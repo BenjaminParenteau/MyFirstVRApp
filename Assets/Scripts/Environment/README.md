@@ -1,0 +1,1 @@
+Shared visual style kit (materials, lighting profile, modular prefab set) that every system builds inside of, so scenes built by different engineers stay visually consistent. Schematics still being worked out — see SharedStyleKit.cs.
