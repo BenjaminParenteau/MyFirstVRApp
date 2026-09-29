@@ -4,7 +4,7 @@
 **Genre:** VR Adventure / Heist Simulation (Casino Simulation with Stealth and Puzzle Elements)
 **Platform:** Meta Quest 3 (standalone VR; developed and tested in Unity with Meta Quest Link)
 
-**Team:** Zachary Scheer, Ashton Calkins, Pakrinha Sim
+**Team:** Zachary Scheer, Ashton Calkins, Pakrinha Sim, Benjamin Parenteau
 
 ## Storyline
 

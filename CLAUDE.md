@@ -10,7 +10,7 @@ Custom project code lives almost entirely under `Assets/Scripts/`; everything el
 
 ## Game being built: "High Stakes"
 
-The project is being developed into a VR casino-heist game for Meta Quest 3 — free-roam casino floor with real table games (blackjack, roulette, ...) as the core loop, layered with a stealth/heist metagame (suspicion meter, guard patrols, keycards, a multi-source vault passcode puzzle) and an unseen voice-only handler ("the Guide") driving the narrative. Full design reference: [docs/GameDesignDocument.md](docs/GameDesignDocument.md).
+The project is being developed into a VR casino-heist game for Meta Quest 3 — free-roam casino floor with real table games (blackjack, roulette, ...) as the core loop, layered with a stealth/heist metagame (suspicion meter, guard patrols, keycards, a multi-source vault passcode puzzle) and an unseen voice-only handler ("the Guide") driving the narrative. Full design reference: [docs/GameDesignDocument.md](docs/GameDesignDocument.md). **Vision / concept art reference: [docs/reference/](docs/reference/README.md)** — read [docs/reference/VisualReference.md](docs/reference/VisualReference.md) before building any environment, UI, character, or audio so the result matches the approved look (warm gold/green casino floor, cold blue back-of-house, diegetic UI only, suspicion-meter dial, etc.). Team: Zachary Scheer, Ashton Calkins, Pakrinha Sim, Benjamin Parenteau.
 
 ### Script folder layout — `Assets/Scripts/`
 
@@ -25,6 +25,19 @@ Each system below has a dedicated subfolder. Put new scripts in the one they bel
 - `Sandbox/` — scratch/throwaway scripts used to test an idea or a Unity feature in isolation (e.g. `TestScript.cs`). Nothing in here is part of a real system; move or delete code once it graduates into one of the folders above instead of leaving it in `Sandbox/`.
 
 If generating custom geometry or using Unity's low-level `GL`/immediate-mode rendering APIs from C#, keep that code in its own renderer/utility scripts inside the relevant system folder rather than mixing it into gameplay logic.
+
+## Team workflow files
+
+- [Progress_Vol1.md](Progress_Vol1.md) — shared project memory for the current (Vol. 1, 15-week) assignment: team split, weekly plan, commit log, decisions, blockers. Read it at the start of a session to see where things stand.
+- `Personal.md` — **git-ignored**, one local copy per team member (4 members). Holds that member's identity, owned areas, current focus, and preferences for Claude. Read it if present; never commit it or copy its contents into tracked files. If it's missing, tell the user to create it by copying `docs/Personal.template.md` to `Personal.md` in the repo root.
+
+### Progress log rule
+
+**Every commit must update the current `Progress_VolN.md`** (currently `Progress_Vol1.md`). Before committing, add a one-line entry at the top of its **Log** section (`YYYY-MM-DD · member/slot · what changed`), and update the Weekly plan status, Decisions, or Open questions if the commit affects them. Include the Progress file in the same commit. Don't commit without it.
+
+**No AI attribution in git history:** never add `Co-Authored-By: Claude` (or any Claude/AI attribution) to commit messages or PR descriptions in this repo — the team does not want it.
+
+Each new class assignment gets its own file: when Vol. 2 starts, create `Progress_Vol2.md`, keep `Progress_Vol1.md` as an archive, and update the file name in this section.
 
 ## Working with this repo (no CLI build/test pipeline)
 
