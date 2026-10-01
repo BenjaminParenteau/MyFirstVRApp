@@ -121,7 +121,7 @@ Unity's scene and prefab files are the main source of conflicts, so the split is
 | Day-0 gate merged: contracts + shared style kit + `MVP_Template` (tag `day-zero`) | D | ✅ (on-device fps check still pending, see Open questions) |
 | Slice A: chips, cage and one table interaction on headset | A | ⬜ |
 | Slice B: tier progression, keycard and VIP door on headset | B | ⬜ |
-| Slice C: diegetic UI + character evolution visuals on headset | C | ⬜ |
+| Slice C: diegetic UI + character evolution visuals on headset | C | 🟨 wrist chip display built (needs headset check); notebook, comfort panel, tier visuals, Guide line to do |
 | Slice D: movement + blocked-out world + `MVP_Main` integration | D | ⬜ |
 | All scenes visually consistent (PR style check passed against `VisualReference.md`) | All | ⬜ |
 | Quest 3 build runs the integrated `MVP_Main` | D | ⬜ |
@@ -167,6 +167,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 ### Slot B log
 
 ### Slot C log
+
+- 2026-10-01 · Wrist chip display: `WristDisplay` (bankroll + tier, observes `IChipWallet`/`ICharacterTier`), `WristAttach` (finds the active XROrigin and attaches to the left controller at runtime), `WristRaiseVisibility` (face lights up when the wrist is raised toward the eyes); mock wallet/tier with Inspector +/- chip buttons; **High Stakes > UI > Build Wrist Display** menu builds `UI_WristDisplay.prefab` and `MVP_UI`; 15 EditMode tests (slot-c/wrist-display)
 
 ### Slot D log
 

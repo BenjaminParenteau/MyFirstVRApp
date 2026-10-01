@@ -1,0 +1,14 @@
+{
+    "name": "HighStakes.UI.WristDisplay.Logic",
+    "rootNamespace": "HighStakes.UI",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}
