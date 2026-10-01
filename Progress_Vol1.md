@@ -170,6 +170,7 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot D log
 
+- 2026-10-01 · Checked every scene has VR + WASD: `MVP_Template`, `Casino_Test/Casino` and `MVP_Hallways` each have the one rig and the XR Interaction Simulator (starts in first-person WASD + mouse mode); `SoloTestRoot` now switches the simulator off in builds and when a headset is connected. `BasicScene`/`SampleScene` are vendored and unused. (slot-d/hallways)
 - 2026-10-01 · Hallways rebuilt wider (4 m, double-width portal doors) with the casino look: red carpet, Ashton's casino wall panel, framed pictures, sconces, chandeliers; security rooms enlarged to 8 x 8 m. Still untested in Unity. (slot-d/hallways)
 - 2026-10-01 · Hallways: `High Stakes > Build Hallways Scene` generates `MVP_Hallways` (3 hallways, casino-warm lead-in turning cool, each ending at a security room) and `DoorPortal` carries the one rig between doors by id, so nothing is connected in the scene; works with the XR Interaction Simulator (WASD) and the headset. Untested in Unity yet. (slot-d/hallways)
 - 2026-10-01 · Created the `dev` integration branch; slot PRs now target `dev`, and Zach promotes tested `dev` into `main` (Merge-conflict rule 8, Decisions).

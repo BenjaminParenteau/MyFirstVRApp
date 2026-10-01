@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.XR;
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 
 namespace HighStakes.Environment
 {
@@ -13,7 +15,16 @@ namespace HighStakes.Environment
         void Awake()
         {
             if (gameObject.scene != UnityEngine.SceneManagement.SceneManager.GetActiveScene())
+            {
                 gameObject.SetActive(false);
+                return;
+            }
+
+            // The simulator (WASD + mouse) is for the Editor only: in a Quest build, or with a real headset connected
+            // (Quest Link), it would add fake devices on top of the real ones.
+            var simulator = GetComponentInChildren<XRInteractionSimulator>(true);
+            if (simulator != null && (!Application.isEditor || XRSettings.isDeviceActive))
+                simulator.gameObject.SetActive(false);
         }
     }
 }

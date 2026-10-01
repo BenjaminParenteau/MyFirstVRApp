@@ -45,7 +45,7 @@ public static class HallwayBuilder
         if (kit == null) { Debug.LogError("[Hallways] Style kit not found. Run High Stakes > Build Style Kit first."); return; }
         if (kit.casinoWallPanel == null || kit.chandelier == null)
         {
-            Debug.LogError("[Hallways] The casino furnishings are missing from the style kit. Run High Stakes > Build Casino Furnishings first.");
+            Debug.LogError("[Hallways] The casino furnishings are missing from the style kit. Pull the latest main (they are committed prefabs) and do not regenerate them: that rewrites the casino prefabs.");
             return;
         }
         if (System.IO.File.Exists(ScenePath) &&
