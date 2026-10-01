@@ -28,6 +28,11 @@ public static class WristDisplayBuilder
     [MenuItem("High Stakes/UI/Build Wrist Display")]
     public static void Build()
     {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+        {
+            Debug.LogWarning("[WristDisplay] Stop Play mode first, then run Build Wrist Display again.");
+            return;
+        }
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return; // opening MVP_UI replaces the open scene
 
         var kit = AssetDatabase.LoadAssetAtPath<SharedStyleKit>(KitPath);
@@ -40,11 +45,11 @@ public static class WristDisplayBuilder
             Debug.LogWarning("[WristDisplay] No default TextMeshPro font. Import it via Window > TextMeshPro > Import TMP Essential Resources, then re-run.");
 
         EnsureFolder(MockFolder);
-        var prefab = BuildPrefab(kit);
-        var tiers = BuildMockTiers();
+        BuildPrefab(kit);
+        BuildMockTiers();
         AssetDatabase.SaveAssets();
 
-        BuildScene(prefab, tiers);
+        BuildScene();
         Debug.Log("[WristDisplay] Built " + PrefabPath + " and " + ScenePath + ". Press Play to test.");
     }
 
@@ -65,9 +70,11 @@ public static class WristDisplayBuilder
         Prim("Screen", face, new Vector3(0, faceY + ScreenSize.y / 2f, 0), ScreenSize, kit.chipBlack);
 
         float textY = faceY + ScreenSize.y + 0.0003f;
-        Label("Caption", face, new Vector3(0, textY, 0.013f), new Vector2(0.05f, 0.007f), "BANKROLL", kit.accentCyan);
-        var bankroll = Label("Bankroll", face, new Vector3(0, textY, 0.001f), new Vector2(0.05f, 0.015f), "$0", kit.accentCyan);
-        var tier = Label("Tier", face, new Vector3(0, textY, -0.013f), new Vector2(0.05f, 0.007f), WristDisplayLogic.NoValue, kit.accentCyan);
+        // Three rows filling the 40 mm face. Tier names are long ("VALUED ASSOCIATE"), so that row wraps onto two
+        // lines instead of shrinking to an unreadable single line.
+        Label("Caption", face, new Vector3(0, textY, 0.0145f), new Vector2(0.05f, 0.007f), "BANKROLL", kit.accentCyan);
+        var bankroll = Label("Bankroll", face, new Vector3(0, textY, 0.0035f), new Vector2(0.05f, 0.015f), "$0", kit.accentCyan);
+        var tier = Label("Tier", face, new Vector3(0, textY, -0.0115f), new Vector2(0.05f, 0.013f), WristDisplayLogic.NoValue, kit.accentCyan, wrap: true);
 
         var attach = root.AddComponent<WristAttach>();
         Set(attach, "visuals", visuals);
@@ -85,7 +92,7 @@ public static class WristDisplayBuilder
         return prefab;
     }
 
-    static TextMeshPro Label(string name, GameObject parent, Vector3 pos, Vector2 size, string text, Color color)
+    static TextMeshPro Label(string name, GameObject parent, Vector3 pos, Vector2 size, string text, Color color, bool wrap = false)
     {
         var go = new GameObject(name);
         go.transform.SetParent(parent.transform, false);
@@ -96,7 +103,7 @@ public static class WristDisplayBuilder
         tmp.text = text;
         tmp.color = color;
         tmp.alignment = TextAlignmentOptions.Center;
-        tmp.textWrappingMode = TextWrappingModes.NoWrap;
+        tmp.textWrappingMode = wrap ? TextWrappingModes.Normal : TextWrappingModes.NoWrap;
         tmp.enableAutoSizing = true; // fits the text to the box, whatever the font's units
         tmp.fontSizeMin = 0.001f;
         tmp.fontSizeMax = 1f;
@@ -146,7 +153,7 @@ public static class WristDisplayBuilder
 
     // ---------------------------------------------------------------- scene
 
-    static void BuildScene(GameObject prefab, TierDefinition[] tiers)
+    static void BuildScene()
     {
         if (AssetDatabase.LoadAssetAtPath<SceneAsset>(ScenePath) == null && !AssetDatabase.CopyAsset(TemplateScenePath, ScenePath))
         {
@@ -155,6 +162,11 @@ public static class WristDisplayBuilder
         }
 
         var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
+
+        // Load the assets only now: opening a scene unloads unused assets, which turned earlier references into
+        // empty slots (the mock tiers ended up as {fileID: 0} and the watch showed "--").
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath);
+        var tiers = BuildMockTiers();
         GameObject content = null, slice = null, solo = null;
         foreach (var root in scene.GetRootGameObjects())
         {
@@ -195,8 +207,15 @@ public static class WristDisplayBuilder
             tierArray.GetArrayElementAtIndex(i).objectReferenceValue = tiers[i];
         so.ApplyModifiedPropertiesWithoutUndo();
 
+        for (int i = 0; i < tiers.Length; i++)
+        {
+            if (tierArray.GetArrayElementAtIndex(i).objectReferenceValue == null)
+                Debug.LogError("[WristDisplay] Mock tier " + i + " didn't wire up; the wrist will show '--' for the tier.");
+        }
+
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
+        AssetDatabase.SaveAssets();
         Selection.activeGameObject = mocks; // the +/- chip buttons are right there in the Inspector
     }
 

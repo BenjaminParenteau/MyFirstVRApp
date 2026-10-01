@@ -168,6 +168,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot C log
 
+- 2026-10-01 · Wrist display: ran the builder and added `MVP_UI.unity`, `UI_WristDisplay.prefab` and three mock tiers (`Content/UI/Mocks/`); fixed the builder dropping the tier references (showed `--`), tier line now wraps for long names, builder refuses to run in Play mode. Tested in the simulator: bankroll updates live; watch position still to tune on the headset (slot-c/wrist-display)
+
 - 2026-10-01 · Wrist chip display: `WristDisplay` (bankroll + tier, observes `IChipWallet`/`ICharacterTier`), `WristAttach` (finds the active XROrigin and attaches to the left controller at runtime), `WristRaiseVisibility` (face lights up when the wrist is raised toward the eyes); mock wallet/tier with Inspector +/- chip buttons; **High Stakes > UI > Build Wrist Display** menu builds `UI_WristDisplay.prefab` and `MVP_UI`; 15 EditMode tests (slot-c/wrist-display)
 
 ### Slot D log
