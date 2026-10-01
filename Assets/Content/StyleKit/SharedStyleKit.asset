@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6227bc30472048cc8b6cfc7936b86f5d, type: 3}
+  m_Name: SharedStyleKit
+  m_EditorClassIdentifier: Assembly-CSharp::HighStakes.Environment.SharedStyleKit
+  carpetRed: {fileID: 2100000, guid: d4999eb69fc254f43ba49b6e7da052f5, type: 2}
+  feltGreen: {fileID: 2100000, guid: 7ca1319d2d2b1a74ebc3c1fc165e914b, type: 2}
+  woodDark: {fileID: 2100000, guid: 61c0fd171445c4d48b5a2388fcb89413, type: 2}
+  brassGold: {fileID: 2100000, guid: 8576709c5420da1449af2d522842c43c, type: 2}
+  plasterCream: {fileID: 2100000, guid: bd6fadb7ae9edc1479d5ea3616d8428e, type: 2}
+  fabricBurgundy: {fileID: 2100000, guid: 7dfe7709c762e1b4ba8dfd8b70c6c8d9, type: 2}
+  concreteCool: {fileID: 2100000, guid: 3fe79d05f0e4c8143a91d4bbf53ddcc4, type: 2}
+  steelCool: {fileID: 2100000, guid: 6f46427838d06d345a76abd6e178004f, type: 2}
+  tileCool: {fileID: 2100000, guid: d7f94c0b631349747ac6a18e23590601, type: 2}
+  screenGlow: {fileID: 2100000, guid: 8b930b2d2217fbf4d9dcde93fe39ab57, type: 2}
+  chipWhite: {fileID: 2100000, guid: f468718dd860e6c4c90f5bfc00cb7b34, type: 2}
+  chipRed: {fileID: 2100000, guid: a700fef46daa2f74aaabd3253e78cb9c, type: 2}
+  chipGreen: {fileID: 2100000, guid: 4d7e01164fb140d4990d520e109d773d, type: 2}
+  chipBlack: {fileID: 2100000, guid: 61c81a9e311cd2748bffe5f0c9670210, type: 2}
+  keycardPlastic: {fileID: 2100000, guid: 018081ff44b5f7f4da9148ac17264538, type: 2}
+  accentCyan: {r: 0.21960784, g: 0.8392157, b: 0.9098039, a: 1}
+  alertRed: {r: 0.84705883, g: 0.20392157, b: 0.17254902, a: 1}
+  safeGreen: {r: 0.23529412, g: 0.78431374, b: 0.43137255, a: 1}
+  volumeProfile: {fileID: 11400000, guid: e9e697ec67d672949b7d67db01577372, type: 2}
+  lightWarmFloor: {fileID: 8144178549924226388, guid: d413d7f9a01c6f64baffe721fdbe285e, type: 3}
+  lightCoolCorridor: {fileID: 6604247117405436537, guid: 87227a7f6aae214438a71771259315e5, type: 3}
+  floorTileWarm: {fileID: 7269106005861701223, guid: ba50c81d14df01d46a1b500a9eb81f2e, type: 3}
+  floorTileCool: {fileID: 3209536954402475759, guid: 3ec7136093b2ccb499eb45102690d382, type: 3}
+  wallWarm: {fileID: 4240379562973136298, guid: 81965720bb909ef44b544bf2667ac63d, type: 3}
+  wallCool: {fileID: 3795857839504509303, guid: d2e9701502d35734d9072d10187103e7, type: 3}
+  doorwayWarm: {fileID: 5622151690210378573, guid: 23abe4eef162e874dbcd259bc23fe780, type: 3}
+  doorwayCool: {fileID: 1076399267581670994, guid: 70aec2cb34becc74b807ed84cbeea401, type: 3}
+  ceilingTile: {fileID: 8058788163526964061, guid: f97d4ec4f63e45443a59b5f40a92289b, type: 3}
+  tableRound: {fileID: 5136386920126518809, guid: 4c3021e8ddc839d4ca1f831c2a131eac, type: 3}
+  chair: {fileID: 2666822570442348964, guid: d2d362756f193e142931bef184852794, type: 3}
+  chip: {fileID: 5575459509356617781, guid: 8ac22d18f9e383e4fa157c47ce86ad5d, type: 3}
+  keycard: {fileID: 2467469816078034293, guid: a2a7f70634b5d6b4ca9b66dc40fe3de8, type: 3}
+  doorReader: {fileID: 971974094984710665, guid: d971315cf7ffc94429cc42da43bfdf37, type: 3}
+  scaleReference: {fileID: 2525328457116977747, guid: 1c0345d631dfc5f47b0aa491826454ab, type: 3}
+  playerRig: {fileID: 3720148140002122904, guid: 0c1d1d2aa2af8d34ab7d90e734e161ab, type: 3}

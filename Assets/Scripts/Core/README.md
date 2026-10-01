@@ -1,0 +1,1 @@
+Shared contracts every slot codes against (interfaces, event channels and shared data types, no gameplay logic). Owned by Slot D. Contracts are append-only after Day 0: changing one needs a note in Progress_Vol1.md Open questions and all four owners' OK.
