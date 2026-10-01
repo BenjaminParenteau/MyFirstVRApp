@@ -13,7 +13,7 @@ namespace HighStakes.Environment
     public class SoloTestRoot : MonoBehaviour
     {
         [Tooltip("Walking speed (m/s) with WASD in the XR Interaction Simulator. The simulator's own default is 1 m/s.")]
-        [SerializeField] float simulatorWalkSpeed = 4f;
+        [SerializeField] float simulatorWalkSpeed = 3f;
 
         void Awake()
         {

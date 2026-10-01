@@ -18,7 +18,7 @@ namespace HighStakes.Environment
         public const float FigureHeight = 1.8f;
         public const float MaxStepHeight = 0.3f;
         /// <summary>Smooth-locomotion speed of the player rig (m/s). The VR template default is 2.5.</summary>
-        public const float MoveSpeed = 4f;
+        public const float MoveSpeed = 3f;
     }
 
     /// <summary>
