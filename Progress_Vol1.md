@@ -67,6 +67,14 @@ Each slice is playable **on its own in its own scene**, then D stitches them tog
 
 Before anyone builds scene content, D merges **one PR tagged `day-zero`** containing the contracts and the style kit. Everyone then pulls and starts every scene from `MVP_Template`.
 
+> **✅ Day-0 is merged (2026-09-30, tag `day-zero`). Start here, A/B/C:**
+> 1. `git checkout main && git pull --rebase origin main` (fetch tags too: `git fetch --tags`). Open the project in Unity `6000.3.23f1` exactly.
+> 2. Copy `docs/Personal.template.md` to `Personal.md` in the repo root and fill it in.
+> 3. Make your branch: `slot-<a|b|c>/<topic>` (e.g. `slot-a/chips`). Don't work on `main` or on a branch named after yourself.
+> 4. Duplicate `Assets/Scenes/MVP/MVP_Template.unity` into your own scene (`MVP_Tables` / `MVP_Progression` / `MVP_UI`) and follow [StyleGuide §5d](docs/StyleGuide.md#5d-how-to-start-your-scene): build only inside your `<Area>_Content` object and your zone (§5b), never add a second XR Origin (§5c).
+> 5. Code against `Assets/Scripts/Core/Contracts/` with a mock in your own folder until the real implementation lands. Test with the simulator ([docs/SimulatorControls.md](docs/SimulatorControls.md)), then an APK.
+> 6. Every commit: one line at the top of **your slot's** Log sub-section below.
+
 **1. Contracts** — `Assets/Scripts/Core/Contracts/`, interfaces and event channels only, no logic:
 - `IChipWallet` — `int Balance`, `bool TrySpend(int)`, `void Add(int)`, `event Action<int> BalanceChanged` (A implements; B and C subscribe).
 - `ICharacterTier` — `TierDefinition Current`, `event Action<TierDefinition> TierChanged` (B implements; C's visuals and wrist display subscribe; door readers query it).
@@ -110,7 +118,7 @@ Unity's scene and prefab files are the main source of conflicts, so the split is
 
 | Item | Owner | Status |
 |---|---|---|
-| Day-0 gate merged: contracts + shared style kit + `MVP_Template` (tag `day-zero`) | D | 🟨 |
+| Day-0 gate merged: contracts + shared style kit + `MVP_Template` (tag `day-zero`) | D | ✅ (on-device fps check still pending, see Open questions) |
 | Slice A: chips, cage and one table interaction on headset | A | ⬜ |
 | Slice B: tier progression, keycard and VIP door on headset | B | ⬜ |
 | Slice C: diegetic UI + character evolution visuals on headset | C | ⬜ |
@@ -134,7 +142,7 @@ Mirrors the milestone table in the GDD. Status: ⬜ not started · 🟨 in progr
 |---|---|---|---|
 | 1 | GDD draft (Storyline & Characters), concept videos | All | ⬜ |
 | 2 | Environment concept art, casino floor layout | D | ⬜ |
-| 3 | Free-roam movement prototype (XR Origin, teleport, smooth locomotion, comfort) | D | ⬜ |
+| 3 | Free-roam movement prototype (XR Origin, teleport, smooth locomotion, comfort) | D | 🟨 |
 | 4 | Blackjack prototype | A | ⬜ |
 | 5 | Roulette prototype | A | ⬜ |
 | 6 | Chip economy and cash-out | A | ⬜ |
@@ -162,6 +170,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot D log
 
+- 2026-09-30 · Merged the Day-0 gate to `main` and tagged `day-zero`; added a "start here" checklist for A/B/C under the Day-0 gate; brought CLAUDE.md up to date (`Core/` + `Environment/` folders, MVP scenes replace `BasicScene`/`SampleScene` as entry points); marked the GDD PDF as in the repo; discarded Unity reserialization churn to vendored `SampleScene`.
+
 - 2026-09-30 · Style kit: added `Kit_PlayerRig` (the one XR Origin, step height 0.3 m), `_SoloTest` group with `SoloTestRoot` (auto-off in `MVP_Main`), zone markers (StyleGuide §5b), convex mesh colliders on cylinder parts, bigger test floor; documented the one-rig rule and "how to start your scene" (StyleGuide §5c–5d).
 
 - 2026-09-30 · Day-0 gate: generated the style kit (`Assets/Content/StyleKit/`) and `Assets/Scenes/MVP/MVP_Template.unity` with the XR Interaction Simulator; added contracts in `Assets/Scripts/Core/Contracts/` (`IChipWallet`, `ICharacterTier`, `IInventoryEvents`, `IGuideVoice`, `TierDefinition`, `ItemData`); reserved layers `Interactable` (6), `PlayerBody` (7) and tags `Chip`, `Keycard`, `Restricted`; created `Assets/Content/{Tables,Progression,UI,Environment}/`; added `docs/SimulatorControls.md`.
@@ -185,4 +195,6 @@ Things the team agreed on that aren't obvious from the code.
 ## Open questions / blockers
 
 - Slots assigned: A Ben, B Ashton, C Pak, D Zach. Confirm the Day-0 tier thresholds (placeholder: 1,000 / 5,000 chips) and the three tier names with the team.
-- Drop `WHOLEDOCCLAUDEGDIT.pdf` into `docs/reference/` and extract its images into `docs/reference/images/`.
+- `WHOLEDOCCLAUDEGDIT.pdf` is now in `docs/reference/`; its concept images still need extracting into `docs/reference/images/` and linking from `VisualReference.md`.
+- **Zach:** run `MVP_Template` as an APK on Quest 3 and confirm the §7 budget (72 fps) — the last Day-0 item, not yet done on device.
+- **Ashton:** the remote branch `Ashton` doesn't follow the `slot-b/<topic>` naming rule (it has no new commits yet); please start from the new `main` on `slot-b/<topic>` and delete `Ashton`.

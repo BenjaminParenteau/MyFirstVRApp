@@ -4,9 +4,9 @@ The source of truth for **what High Stakes should look like and feel like**. Cla
 
 | File | What it is |
 |---|---|
-| `WHOLEDOCCLAUDEGDIT.pdf` | The full submitted Game Design Document with all concept-art images. **Drop the PDF here** (it was shared in chat, so it is not in the repo yet). |
+| `WHOLEDOCCLAUDEGDIT.pdf` | The full submitted Game Design Document with all concept-art images. In the repo. |
 | [VisualReference.md](VisualReference.md) | Text description of every concept image in the PDF, section by section, so the look is searchable without opening the PDF. |
-| `images/` | Extract the PDF's concept images here (e.g. `p02-blackjack-pov.png`) and reference them from VisualReference.md. |
+| `images/` | **Still empty (to do):** extract the PDF's concept images here (e.g. `p02-blackjack-pov.png`) and reference them from VisualReference.md. |
 
 The written design text lives in [../GameDesignDocument.md](../GameDesignDocument.md). If the PDF and that file ever disagree, the PDF is the submitted version — fix the markdown.
 

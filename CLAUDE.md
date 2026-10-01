@@ -22,6 +22,8 @@ Each system below has a dedicated subfolder. Put new scripts in the one they bel
 - `Inventory/` — keycards, passcode fragments, and intel notes as data (e.g. ScriptableObjects), driven through one shared pickup/interaction system rather than per-item logic.
 - `Dialogue/` — NPC dialogue prompts and the Guide's voice-line triggers, routed through one shared dialogue/trigger system rather than scattered per-NPC scripts.
 - `UI/` — diegetic UI (wrist chip counter, notebook inventory, floating dialogue prompts). Should only observe/display state from `Economy/`, `Inventory/`, and `Dialogue/` — presentation code shouldn't own gameplay state.
+- `Core/` — shared contracts (`Core/Contracts/`: `IChipWallet`, `ICharacterTier`, `IInventoryEvents`, `IGuideVoice`, `TierDefinition`, `ItemData`) that every slot codes against. Interfaces and data only, no logic; Slot D owns it and contracts are append-only after Day 0.
+- `Environment/` — the shared style kit (`SharedStyleKit.cs`, `Editor/StyleKitBuilder.cs` with the **High Stakes > Build Style Kit** / **Validate Open Scene** menus), `SoloTestRoot`, and later the casino world. Slot D.
 - `Sandbox/` — scratch/throwaway scripts used to test an idea or a Unity feature in isolation (e.g. `TestScript.cs`). Nothing in here is part of a real system; move or delete code once it graduates into one of the folders above instead of leaving it in `Sandbox/`.
 
 If generating custom geometry or using Unity's low-level `GL`/immediate-mode rendering APIs from C#, keep that code in its own renderer/utility scripts inside the relevant system folder rather than mixing it into gameplay logic.
@@ -58,7 +60,7 @@ Each new class assignment gets its own file: when Vol. 2 starts, create `Progres
 There is no command-line build, lint, or test runner configured — this is a stock Unity project driven through the Editor:
 - **Build**: Unity Editor → File > Build Settings (or `Assets/Settings/Project Configuration/Android Preset.asset` / `Standalone Preset.asset` for platform-specific settings).
 - **Tests**: `com.unity.test-framework` is a dependency but no `Tests` assembly/folder exists yet in `Assets/`. If you add tests, use the Unity Test Runner (Window > General > Test Runner) with EditMode/PlayMode test assemblies.
-- **Scenes**: `Assets/Scenes/BasicScene.unity` and `Assets/Scenes/SampleScene.unity` are the entry points; corresponding scene templates live in `Assets/Settings/Project Configuration/`.
+- **Scenes**: every MVP scene starts as a duplicate of `Assets/Scenes/MVP/MVP_Template.unity` and lives in `Assets/Scenes/MVP/` (`MVP_Tables` A, `MVP_Progression` B, `MVP_UI` C, `MVP_World` + `MVP_Main` D). `BasicScene.unity` / `SampleScene.unity` are vendored VR Template scenes: never edit them or start from them (discard any reserialization churn Unity makes to them).
 
 ## Key package dependencies (`Packages/manifest.json`)
 
