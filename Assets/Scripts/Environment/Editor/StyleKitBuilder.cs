@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement;
 
 /// <summary>
 /// Generates the shared style kit (materials, lighting, greybox prefabs, template scene) from the
@@ -199,6 +200,9 @@ public static class StyleKitBuilder
         // The template rig steps up 0.5 m, enough to walk onto a 0.45 m chair seat. 0.3 m still allows real steps.
         var body = contents.GetComponentInChildren<CharacterController>(true);
         if (body != null) body.stepOffset = StyleScale.MaxStepHeight;
+
+        var move = contents.GetComponentInChildren<ContinuousMoveProvider>(true);
+        if (move != null) move.moveSpeed = StyleScale.MoveSpeed;
 
         // No skybox (StyleGuide §5): clear to black instead of Unity's default blue, so gaps in a room read as darkness.
         var cam = contents.GetComponentInChildren<Camera>(true);
@@ -426,7 +430,7 @@ public static class StyleKitBuilder
 
     // Two of four team laptops have no GPU (no Quest Link), so every scene must be testable in Play mode
     // with the XR Interaction Simulator. The prefab lives in the XRI sample, which must be imported first.
-    static void AddSimulator(Transform parent)
+    internal static void AddSimulator(Transform parent)
     {
         string guid = null;
         foreach (var g in AssetDatabase.FindAssets("\"XR Interaction Simulator\" t:Prefab"))
