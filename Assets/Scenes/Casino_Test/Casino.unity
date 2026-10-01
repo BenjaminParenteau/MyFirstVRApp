@@ -119,98 +119,6 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &1146479763
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1146479766}
-  - component: {fileID: 1146479765}
-  - component: {fileID: 1146479764}
-  m_Layer: 0
-  m_Name: Main Camera
-  m_TagString: MainCamera
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!81 &1146479764
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1146479763}
-  m_Enabled: 1
---- !u!20 &1146479765
-Camera:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1146479763}
-  m_Enabled: 1
-  serializedVersion: 2
-  m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
-  m_projectionMatrixMode: 1
-  m_GateFitMode: 2
-  m_FOVAxisMode: 0
-  m_Iso: 200
-  m_ShutterSpeed: 0.005
-  m_Aperture: 16
-  m_FocusDistance: 10
-  m_FocalLength: 50
-  m_BladeCount: 5
-  m_Curvature: {x: 2, y: 11}
-  m_BarrelClipping: 0.25
-  m_Anamorphism: 0
-  m_SensorSize: {x: 36, y: 24}
-  m_LensShift: {x: 0, y: 0}
-  m_NormalizedViewPortRect:
-    serializedVersion: 2
-    x: 0
-    y: 0
-    width: 1
-    height: 1
-  near clip plane: 0.3
-  far clip plane: 1000
-  field of view: 72
-  orthographic: 0
-  orthographic size: 5
-  m_Depth: -1
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_RenderingPath: -1
-  m_TargetTexture: {fileID: 0}
-  m_TargetDisplay: 0
-  m_TargetEye: 3
-  m_HDR: 1
-  m_AllowMSAA: 1
-  m_AllowDynamicResolution: 0
-  m_ForceIntoRT: 0
-  m_OcclusionCulling: 1
-  m_StereoConvergence: 10
-  m_StereoSeparation: 0.022
---- !u!4 &1146479766
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1146479763}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.7, z: -7.7}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1764113451
 GameObject:
   m_ObjectHideFlags: 0
@@ -7615,12 +7523,12 @@ GameObject:
   - component: {fileID: 3000329}
   - component: {fileID: 3000330}
   - component: {fileID: 3000331}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Casino_ChipStack
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 2147483647
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &3000328
 Transform:
@@ -7727,12 +7635,12 @@ GameObject:
   - component: {fileID: 3000334}
   - component: {fileID: 3000335}
   - component: {fileID: 3000336}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Casino_ChipStack
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 2147483647
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &3000333
 Transform:
@@ -7839,12 +7747,12 @@ GameObject:
   - component: {fileID: 3000339}
   - component: {fileID: 3000340}
   - component: {fileID: 3000341}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Casino_PlayingCard
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 2147483647
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &3000338
 Transform:
@@ -9870,12 +9778,12 @@ GameObject:
   - component: {fileID: 3000431}
   - component: {fileID: 3000432}
   - component: {fileID: 3000433}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Casino_ChipStack
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 2147483647
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &3000430
 Transform:
@@ -9982,12 +9890,12 @@ GameObject:
   - component: {fileID: 3000436}
   - component: {fileID: 3000437}
   - component: {fileID: 3000438}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Casino_ChipStack
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 2147483647
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &3000435
 Transform:
@@ -10094,12 +10002,12 @@ GameObject:
   - component: {fileID: 3000441}
   - component: {fileID: 3000442}
   - component: {fileID: 3000443}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Casino_PlayingCard
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 2147483647
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &3000440
 Transform:
@@ -12125,12 +12033,12 @@ GameObject:
   - component: {fileID: 3000533}
   - component: {fileID: 3000534}
   - component: {fileID: 3000535}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Casino_ChipStack
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 2147483647
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &3000532
 Transform:
@@ -12237,12 +12145,12 @@ GameObject:
   - component: {fileID: 3000538}
   - component: {fileID: 3000539}
   - component: {fileID: 3000540}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Casino_ChipStack
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 2147483647
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &3000537
 Transform:
@@ -12349,12 +12257,12 @@ GameObject:
   - component: {fileID: 3000543}
   - component: {fileID: 3000544}
   - component: {fileID: 3000545}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Casino_PlayingCard
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 2147483647
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &3000542
 Transform:
@@ -14380,12 +14288,12 @@ GameObject:
   - component: {fileID: 3000635}
   - component: {fileID: 3000636}
   - component: {fileID: 3000637}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Casino_ChipStack
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 2147483647
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &3000634
 Transform:
@@ -14492,12 +14400,12 @@ GameObject:
   - component: {fileID: 3000640}
   - component: {fileID: 3000641}
   - component: {fileID: 3000642}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Casino_ChipStack
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 2147483647
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &3000639
 Transform:
@@ -14604,12 +14512,12 @@ GameObject:
   - component: {fileID: 3000645}
   - component: {fileID: 3000646}
   - component: {fileID: 3000647}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Casino_PlayingCard
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 2147483647
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &3000644
 Transform:
@@ -16635,12 +16543,12 @@ GameObject:
   - component: {fileID: 3000737}
   - component: {fileID: 3000738}
   - component: {fileID: 3000739}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Casino_ChipStack
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 2147483647
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &3000736
 Transform:
@@ -16747,12 +16655,12 @@ GameObject:
   - component: {fileID: 3000742}
   - component: {fileID: 3000743}
   - component: {fileID: 3000744}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Casino_ChipStack
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 2147483647
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &3000741
 Transform:
@@ -16859,12 +16767,12 @@ GameObject:
   - component: {fileID: 3000747}
   - component: {fileID: 3000748}
   - component: {fileID: 3000749}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Casino_PlayingCard
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 2147483647
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &3000746
 Transform:
@@ -39583,11 +39491,251 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &1091012064
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1091012066}
+  - component: {fileID: 1091012065}
+  m_Layer: 0
+  m_Name: _SoloTest
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1091012066
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1091012064}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1730785007}
+  - {fileID: 1197082946}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1091012065
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1091012064}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69d97f0f79e8f064faf524cdb81c7ab2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::HighStakes.Environment.SoloTestRoot
+--- !u!1001 &1730785006
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1091012066}
+    m_Modifications:
+    - target: {fileID: 3720148140002122904, guid: 0c1d1d2aa2af8d34ab7d90e734e161ab, type: 3}
+      propertyPath: m_Name
+      value: Kit_PlayerRig
+      objectReference: {fileID: 0}
+    - target: {fileID: 3720148140002122907, guid: 0c1d1d2aa2af8d34ab7d90e734e161ab, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3720148140002122907, guid: 0c1d1d2aa2af8d34ab7d90e734e161ab, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3720148140002122907, guid: 0c1d1d2aa2af8d34ab7d90e734e161ab, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -7.7
+      objectReference: {fileID: 0}
+    - target: {fileID: 3720148140002122907, guid: 0c1d1d2aa2af8d34ab7d90e734e161ab, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3720148140002122907, guid: 0c1d1d2aa2af8d34ab7d90e734e161ab, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3720148140002122907, guid: 0c1d1d2aa2af8d34ab7d90e734e161ab, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3720148140002122907, guid: 0c1d1d2aa2af8d34ab7d90e734e161ab, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3720148140002122907, guid: 0c1d1d2aa2af8d34ab7d90e734e161ab, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3720148140002122907, guid: 0c1d1d2aa2af8d34ab7d90e734e161ab, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 130
+      objectReference: {fileID: 0}
+    - target: {fileID: 3720148140002122907, guid: 0c1d1d2aa2af8d34ab7d90e734e161ab, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 0c1d1d2aa2af8d34ab7d90e734e161ab, type: 3}
+--- !u!4 &1730785007 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3720148140002122907, guid: 0c1d1d2aa2af8d34ab7d90e734e161ab, type: 3}
+  m_PrefabInstance: {fileID: 1730785006}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &8900000003 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8135023674665499069, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
+  m_PrefabInstance: {fileID: 1197082945}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1197082945
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1091012066}
+    m_Modifications:
+    - target: {fileID: 8135023674665499069, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
+      propertyPath: m_Name
+      value: XR Interaction Simulator
+      objectReference: {fileID: 0}
+    - target: {fileID: 8518324294302271954, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8518324294302271954, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8518324294302271954, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8518324294302271954, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8518324294302271954, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8518324294302271954, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8518324294302271954, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8518324294302271954, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8518324294302271954, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8518324294302271954, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8135023674665499069, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
+--- !u!4 &1197082946 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8518324294302271954, guid: 58d0a4ac86f2348deb02f3880c71378e, type: 3}
+  m_PrefabInstance: {fileID: 1197082945}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &8900000000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8900000001}
+  - component: {fileID: 8900000002}
+  m_Layer: 0
+  m_Name: Casino_VRInteractionSetup
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8900000001
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8900000000}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8900000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8900000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 403b27485708467f9893cc2d73a7486b, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::HighStakes.Environment.CasinoVRInteractionSetup
+  floor: {fileID: 3000000}
+  pickupProps:
+  - {fileID: 3000327}
+  - {fileID: 3000332}
+  - {fileID: 3000337}
+  - {fileID: 3000429}
+  - {fileID: 3000434}
+  - {fileID: 3000439}
+  - {fileID: 3000531}
+  - {fileID: 3000536}
+  - {fileID: 3000541}
+  - {fileID: 3000633}
+  - {fileID: 3000638}
+  - {fileID: 3000643}
+  - {fileID: 3000735}
+  - {fileID: 3000740}
+  - {fileID: 3000745}
+  simulator: {fileID: 8900000003}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1146479766}
   - {fileID: 1764113453}
   - {fileID: 3000001}
   - {fileID: 3000006}
@@ -39874,3 +40022,5 @@ SceneRoots:
   - {fileID: 3001746}
   - {fileID: 3001751}
   - {fileID: 3001756}
+  - {fileID: 1091012066}
+  - {fileID: 8900000001}
