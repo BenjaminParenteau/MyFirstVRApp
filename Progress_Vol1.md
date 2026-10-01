@@ -170,6 +170,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot D log
 
+- 2026-10-01 · Told the team not to commit the reserialized OpenXR settings asset (Open questions); verified Android OpenXR features are correct for Quest 3.
+
 - 2026-10-01 · Created the `dev` integration branch; slot PRs now target `dev`, and Zach promotes tested `dev` into `main` (Merge-conflict rule 8, Decisions).
 - 2026-10-01 · Let Ashton edit the shared style kit directly (temporary exception, logged in Decisions); added an Open question on where the casino scene lives and the Quest 3 budget check for it.
 
@@ -199,6 +201,8 @@ Things the team agreed on that aren't obvious from the code.
 - **2026-10-01 · Ashton may edit the shared style kit directly (temporary exception).** He built the full casino and needs kit changes (materials, prefabs, lighting). He edits `Assets/Content/StyleKit/` on a `slot-b/<topic>` branch; Zach does not touch the kit while he does, and nobody reruns **High Stakes > Build Style Kit** (it may overwrite prefabs, since it saves them with `SaveAsPrefabAsset`). Anything not specific to the casino still follows the normal rule (request to Zach, shipped as `stylekit-vN`). Ashton announces each kit change in Open questions so everyone knows when to pull.
 
 ## Open questions / blockers
+
+- **Everyone: don't commit `Assets/XR/Settings/OpenXRPackageSettings.asset`.** Unity keeps reserializing it (renamed/duplicated Android XR feature entries, no functional change; checked 2026-10-01: Meta Quest Support, Touch controllers and hand tracking are on for Android, Android XR Support is off). Commit files by name, never `git add .`; if a pull is blocked by it, `git stash` first. Zach owns this file and only commits it after a deliberate OpenXR settings change. Proper cleanup is after the Milestone 2 submission.
 
 - **Ashton / Zach:** where does the full casino live (`MVP_World` is Slot D's, `MVP_Progression` is Slot B's)? Agree on one scene so nobody edits the same scene file, and run **High Stakes > Validate Open Scene Against Style Kit** plus the Quest 3 budget check (72 fps, < 100k triangles) on it before the APK build.
 
