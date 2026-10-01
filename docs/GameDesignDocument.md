@@ -2,7 +2,7 @@
 
 **Title:** High Stakes
 **Genre:** VR Adventure / Heist Simulation (Casino Simulation with Stealth and Puzzle Elements)
-**Platform:** Meta Quest 3 (standalone VR; developed and tested in Unity with Meta Quest Link)
+**Platform:** Meta Quest 3 (standalone VR; built in Unity as a standalone Android app and tested on the headset, with Meta Quest Link as an optional secondary path)
 
 **Team:** Zachary Scheer, Ashton Calkins, Pakrinha Sim, Benjamin Parenteau
 
@@ -119,4 +119,5 @@
 - **Research and Planning:** Allocate time for researching VR game design principles, 3D modeling techniques, and sound design best practices.
 - **Prototyping:** Schedule time for developing and testing initial prototypes on the VR headset.
 - **Platform Compatibility Design:** Describes the technical specs of the target platform for your game. Address necessary modifications (design, software, deployment procedure) to make the game compatible with other platforms — as appropriate.
+  - *Development hardware constraint (Zach):* two of four team laptops have no dedicated GPU and cannot run Meta Quest Link or PC VR, so the standalone Android build on Quest 3 is the primary target and test path (it also reflects real headset performance), with the XR Interaction Simulator used for quick iteration. PC VR over Link is a secondary path for the two members with GPUs. See [StyleGuide.md §9](StyleGuide.md#9-testing-without-a-gpu).
 - **Review and Feedback:** Plan for regular review sessions to gather feedback and ensure the project is on track.

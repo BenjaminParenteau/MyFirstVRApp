@@ -7,6 +7,7 @@
 - **Name:** _(fill in)_
 - **Member slot:** _(A / B / C / D — see the ownership table in Progress_Vol1.md)_
 - **Git username:** _(fill in)_
+- **Laptop has a dedicated GPU?:** _(yes / no — no means no Quest Link; use APK + XR Interaction Simulator, see [docs/StyleGuide.md §9](StyleGuide.md#9-testing-without-a-gpu))_
 
 ## My area of ownership
 
