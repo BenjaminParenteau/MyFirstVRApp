@@ -111,7 +111,7 @@ Unity's scene and prefab files are the main source of conflicts, so the split is
 5. **New layers/tags/input actions** are the classic hidden conflict: D reserves them up front — layers `Interactable`, `PlayerBody`; tags `Chip`, `Keycard`, `Restricted`.
 6. **Docs:** in `docs/GameDesignDocument.md` each member edits only their own section or table row (video link row = your own row; Platform Compatibility = D; evolutionary-character answer = C; chips/economy text = A; progression/access text = B). Never reflow or reformat sections you don't own — whitespace edits create conflicts.
 7. **This file:** the Log is split into one sub-section per slot (below) so each member only ever appends to their own; the Weekly plan and Milestone 2 checklist rows are edited by the row's owner only.
-8. **Git habits:** work on a branch named `slot-<a|b|c|d>/<topic>`, open a PR into `main`, `git pull --rebase origin main` before pushing, commit small and often, and never force-push `main`. Always commit `.meta` files with their assets. Don't commit `Library/`, `Temp/`, `Logs/`, or `UserSettings/`. Use the pinned Editor version `6000.3.23f1`. Enable Unity's smart merge locally: `git config merge.unityyamlmerge.driver '"<UnityInstall>/Editor/Data/Tools/UnityYAMLMerge.exe" merge -p %O %B %A %A'`.
+8. **Git habits:** `main` is always the working, tested build; `dev` is the integration branch where everything is tested first. Work on a branch named `slot-<a|b|c|d>/<topic>`, open a PR into **`dev`** (never straight into `main`), `git pull --rebase origin dev` before pushing, commit small and often, and never force-push `main`. Always commit `.meta` files with their assets. Don't commit `Library/`, `Temp/`, `Logs/`, or `UserSettings/`. Use the pinned Editor version `6000.3.23f1`. Enable Unity's smart merge locally: `git config merge.unityyamlmerge.driver '"<UnityInstall>/Editor/Data/Tools/UnityYAMLMerge.exe" merge -p %O %B %A %A'`.
 9. **Resolving a scene conflict:** never hand-merge scene YAML. Take one side, then redo the small change in the Editor.
 
 ### Milestone 2 checklist
@@ -170,6 +170,9 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot D log
 
+- 2026-10-01 · Created the `dev` integration branch; slot PRs now target `dev`, and Zach promotes tested `dev` into `main` (Merge-conflict rule 8, Decisions).
+- 2026-10-01 · Let Ashton edit the shared style kit directly (temporary exception, logged in Decisions); added an Open question on where the casino scene lives and the Quest 3 budget check for it.
+
 - 2026-09-30 · Merged the Day-0 gate to `main` and tagged `day-zero`; added a "start here" checklist for A/B/C under the Day-0 gate; brought CLAUDE.md up to date (`Core/` + `Environment/` folders, MVP scenes replace `BasicScene`/`SampleScene` as entry points); marked the GDD PDF as in the repo; discarded Unity reserialization churn to vendored `SampleScene`.
 
 - 2026-09-30 · Style kit: added `Kit_PlayerRig` (the one XR Origin, step height 0.3 m), `_SoloTest` group with `SoloTestRoot` (auto-off in `MVP_Main`), zone markers (StyleGuide §5b), convex mesh colliders on cylinder parts, bigger test floor; documented the one-rig rule and "how to start your scene" (StyleGuide §5c–5d).
@@ -192,7 +195,12 @@ Things the team agreed on that aren't obvious from the code.
 
 - **2026-09-30 · Standalone APK is the primary test target.** Zach and Pak have no dedicated GPU and cannot use Quest Link; Ashton and Ben can. Everything must work as a standalone Android build and in the XR Interaction Simulator; Link/PC VR is optional. Shared lightmaps are baked by Ben or Ashton with the CPU lightmapper only.
 
+- **2026-10-01 · `dev` is the integration branch; `main` is always working.** Slot branches (`slot-<x>/<topic>`) merge by PR into `dev`. Zach tests `dev` (simulator + APK on Quest 3) and only then promotes `dev` into `main` by PR, so `main` is always a build that runs on the headset. No direct pushes to `main` after this (Zach's Day-0 and Progress commits were the last exceptions).
+- **2026-10-01 · Ashton may edit the shared style kit directly (temporary exception).** He built the full casino and needs kit changes (materials, prefabs, lighting). He edits `Assets/Content/StyleKit/` on a `slot-b/<topic>` branch; Zach does not touch the kit while he does, and nobody reruns **High Stakes > Build Style Kit** (it may overwrite prefabs, since it saves them with `SaveAsPrefabAsset`). Anything not specific to the casino still follows the normal rule (request to Zach, shipped as `stylekit-vN`). Ashton announces each kit change in Open questions so everyone knows when to pull.
+
 ## Open questions / blockers
+
+- **Ashton / Zach:** where does the full casino live (`MVP_World` is Slot D's, `MVP_Progression` is Slot B's)? Agree on one scene so nobody edits the same scene file, and run **High Stakes > Validate Open Scene Against Style Kit** plus the Quest 3 budget check (72 fps, < 100k triangles) on it before the APK build.
 
 - Slots assigned: A Ben, B Ashton, C Pak, D Zach. Confirm the Day-0 tier thresholds (placeholder: 1,000 / 5,000 chips) and the three tier names with the team.
 - `WHOLEDOCCLAUDEGDIT.pdf` is now in `docs/reference/`; its concept images still need extracting into `docs/reference/images/` and linking from `VisualReference.md`.
