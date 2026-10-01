@@ -170,6 +170,7 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot D log
 
+- 2026-10-01 · Hallways: `High Stakes > Build Hallways Scene` generates `MVP_Hallways` (3 hallways, casino-warm lead-in turning cool, each ending at a security room) and `DoorPortal` carries the one rig between doors by id, so nothing is connected in the scene; works with the XR Interaction Simulator (WASD) and the headset. Untested in Unity yet. (slot-d/hallways)
 - 2026-10-01 · Created the `dev` integration branch; slot PRs now target `dev`, and Zach promotes tested `dev` into `main` (Merge-conflict rule 8, Decisions).
 - 2026-10-01 · Let Ashton edit the shared style kit directly (temporary exception, logged in Decisions); added an Open question on where the casino scene lives and the Quest 3 budget check for it.
 

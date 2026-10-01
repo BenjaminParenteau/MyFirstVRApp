@@ -426,7 +426,7 @@ public static class StyleKitBuilder
 
     // Two of four team laptops have no GPU (no Quest Link), so every scene must be testable in Play mode
     // with the XR Interaction Simulator. The prefab lives in the XRI sample, which must be imported first.
-    static void AddSimulator(Transform parent)
+    internal static void AddSimulator(Transform parent)
     {
         string guid = null;
         foreach (var g in AssetDatabase.FindAssets("\"XR Interaction Simulator\" t:Prefab"))
