@@ -31,6 +31,7 @@ public static class StyleKitBuilder
         BuildMaterials(kit);
         BuildLighting(kit);
         BuildPrefabs(kit);
+        CasinoStyleKitBuilder.Build(kit);
         EditorUtility.SetDirty(kit);
         AssetDatabase.SaveAssets();
 
@@ -365,6 +366,7 @@ public static class StyleKitBuilder
         }
 
         AddSimulator(solo.transform);
+        AddCasinoExamples(kit, solo.transform);
         AddZones(kit);
 
         // Empty root for the owner's own content, outside _SoloTest so it survives in MVP_Main.
@@ -372,6 +374,30 @@ public static class StyleKitBuilder
 
         Lightmapping.lightingSettings = BuildLightingSettings();
         EditorSceneManager.SaveScene(scene, TemplateScenePath);
+    }
+
+    static void AddCasinoExamples(SharedStyleKit kit, Transform solo)
+    {
+        var examples = new GameObject("CasinoExamples");
+        examples.transform.SetParent(solo, false);
+        PlaceCasinoExample(kit.casinoTableSet, examples.transform, new Vector3(2.5f, 0, 1.5f));
+        PlaceCasinoExample(kit.cashierCounter, examples.transform, new Vector3(-3.5f, 0, 1.5f));
+        for (int i = 0; i < 3; i++)
+            PlaceCasinoExample(kit.slotMachine, examples.transform, new Vector3(7.5f, 0, -1f + i * 2f), 180f);
+        PlaceCasinoExample(kit.barCounter, examples.transform, new Vector3(2.5f, 0, -4f));
+        for (int i = 0; i < 3; i++)
+            PlaceCasinoExample(kit.barStool, examples.transform, new Vector3(1.5f + i, 0, -3f));
+        PlaceCasinoExample(kit.chandelier, examples.transform, new Vector3(2.5f, 2.38f, 1.5f));
+        for (int i = 0; i < 3; i++)
+            PlaceCasinoExample(kit.casinoWallPanel, examples.transform, new Vector3(-4f + i * 2f, 0, 3.5f));
+    }
+
+    static void PlaceCasinoExample(GameObject prefab, Transform parent, Vector3 position, float yaw = 0f)
+    {
+        if (prefab == null) return;
+        var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
+        instance.transform.localPosition = position;
+        instance.transform.localRotation = Quaternion.Euler(0, yaw, 0);
     }
 
     // Where each slice builds, so the scenes line up when MVP_Main loads them together. Values mirror the zone table

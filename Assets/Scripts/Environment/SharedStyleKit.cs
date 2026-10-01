@@ -73,6 +73,15 @@ namespace HighStakes.Environment
         public GameObject doorReader;
         public GameObject scaleReference;
 
+        [Header("Casino furnishings (visual props)")]
+        public GameObject casinoTableSet;
+        public GameObject slotMachine;
+        public GameObject barCounter;
+        public GameObject barStool;
+        public GameObject cashierCounter;
+        public GameObject chandelier;
+        public GameObject casinoWallPanel;
+
         [Header("Player")]
         [Tooltip("The one player rig (XR Origin). Prefab Variant of the VR Template rig with our settings. Never add another rig; change this one.")]
         public GameObject playerRig;
