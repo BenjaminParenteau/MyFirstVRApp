@@ -170,6 +170,7 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot D log
 
+- 2026-10-01 · Committed the built `MVP_Hallways.unity` (3 hallways + security rooms + stand-in casino with door portals); rebuilt against the restored casino prefabs and checked in the simulator. (slot-d/hallways)
 - 2026-10-01 · Added the two portal door prefabs (`Env_PortalDoor_Warm/Cool`) so the casino can place doors with ids `Casino_A/B/C`; `MVP_Hallways.unity` itself is not committed yet (needs a rebuild against the restored casino prefabs). (slot-d/hallways)
 - 2026-10-01 · Faster movement: simulator WASD walking set to 3 m/s (was 1) via `SoloTestRoot`; rig smooth-move speed target 3 m/s (was 2.5) as `StyleScale.MoveSpeed`, applied by the style-kit builder and set by hand on `Kit_PlayerRig` in the Editor. (slot-d/hallways)
 - 2026-10-01 · Checked every scene has VR + WASD: `MVP_Template`, `Casino_Test/Casino` and `MVP_Hallways` each have the one rig and the XR Interaction Simulator (starts in first-person WASD + mouse mode); `SoloTestRoot` now switches the simulator off in builds and when a headset is connected. `BasicScene`/`SampleScene` are vendored and unused. (slot-d/hallways)
