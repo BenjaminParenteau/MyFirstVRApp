@@ -31,6 +31,7 @@ public static class StyleKitBuilder
         BuildMaterials(kit);
         BuildLighting(kit);
         BuildPrefabs(kit);
+        CasinoStyleKitBuilder.Build(kit);
         EditorUtility.SetDirty(kit);
         AssetDatabase.SaveAssets();
 

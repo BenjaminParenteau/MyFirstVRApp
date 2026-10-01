@@ -47,3 +47,10 @@ MonoBehaviour:
   doorReader: {fileID: 971974094984710665, guid: d971315cf7ffc94429cc42da43bfdf37, type: 3}
   scaleReference: {fileID: 2525328457116977747, guid: 1c0345d631dfc5f47b0aa491826454ab, type: 3}
   playerRig: {fileID: 3720148140002122904, guid: 0c1d1d2aa2af8d34ab7d90e734e161ab, type: 3}
+  casinoTableSet: {fileID: 900000000, guid: 8def807e64354edea3e39f9556a85661, type: 3}
+  slotMachine: {fileID: 900000010, guid: fff02b5aef2043b2977a02f03533d051, type: 3}
+  barCounter: {fileID: 900000020, guid: 8a8ee5b6583d4eaf95b268ed52f22f68, type: 3}
+  barStool: {fileID: 900000030, guid: 40613f942c8440dd905fd172eab7bd41, type: 3}
+  cashierCounter: {fileID: 900000040, guid: 5a953b6dae2e4886baacdb5f88cc5117, type: 3}
+  chandelier: {fileID: 900000050, guid: b0140f80c9d54089806c416dadb29334, type: 3}
+  casinoWallPanel: {fileID: 900000060, guid: 734144b30dbf40f5b55f252086d89204, type: 3}
