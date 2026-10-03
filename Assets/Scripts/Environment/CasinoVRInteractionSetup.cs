@@ -1,4 +1,5 @@
 using UnityEngine;
+using Unity.XR.CoreUtils;
 using UnityEngine.XR;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
@@ -16,9 +17,18 @@ namespace HighStakes.Environment
 
         void Awake()
         {
+            var origin = FindFirstObjectByType<XROrigin>();
+            if (origin != null && origin.GetComponent<RoomPlayerCollision>() == null)
+                origin.gameObject.AddComponent<RoomPlayerCollision>();
+
             if (simulator != null)
                 simulator.SetActive(Application.isEditor && !XRSettings.isDeviceActive &&
                     FindFirstObjectByType<XRInteractionSimulator>() == null);
+
+            // Editor walking stays on the ground instead of flying the simulated headset.
+            var activeSimulator = FindFirstObjectByType<XRInteractionSimulator>();
+            if (activeSimulator != null)
+                activeSimulator.translateYSpeed = 0f;
 
             var manager = FindFirstObjectByType<XRInteractionManager>();
             if (manager == null)

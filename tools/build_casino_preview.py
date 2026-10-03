@@ -5,6 +5,8 @@ Run from the repository root. Does not modify any shared kit asset.
 from pathlib import Path
 import math
 import re
+import subprocess
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 SCENE = ROOT / 'Assets/Scenes/Casino_Test/Casino.unity'
@@ -72,6 +74,9 @@ def shape(name, pos, size, mat='WoodDark', mesh=10202, yaw=0):
     guid = re.search(r'guid: (\w+)', (KIT / 'Materials' / f'M_{mat}.mat.meta').read_text())[1]
     text = cube.replace('d4999eb69fc254f43ba49b6e7da052f5', guid)
     text = text.replace('fileID: 10202,', f'fileID: {mesh},')
+    # Unity's cylinder mesh is two units tall; the source cube collider is one.
+    if mesh == 10206:
+        text = text.replace('m_Size: {x: 1, y: 1, z: 1}', 'm_Size: {x: 1, y: 2, z: 1}')
     append_asset(text, 'Casino_' + name, pos, size, yaw)
 
 # Room: open center aisle, burgundy floor, paneled walls and coffered ceiling.
@@ -164,4 +169,5 @@ for z in (-2, 4, 9):
 
 parts.append('--- !u!1660057539 &9223372036854775807\nSceneRoots:\n  m_ObjectHideFlags: 0\n  m_Roots:\n' + ''.join(f'  - {{fileID: {i}}}\n' for i in roots))
 SCENE.write_text(''.join(parts), encoding='utf-8', newline='\n')
+subprocess.run([sys.executable, str(ROOT / 'tools/check_casino_collisions.py'), '--fix'], check=True)
 print(f'Built {SCENE.relative_to(ROOT)} with {len(roots)-2} decorative roots.')
