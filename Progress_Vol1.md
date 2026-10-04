@@ -168,6 +168,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot C log
 
+- 2026-10-03 · Rebuilt `UI_WristDisplay.prefab` with the tier parts; checked in the simulator: tier text updates (ORDINARY NIGHT → VALUED ASSOCIATE), gold case, shirt cuff and VIP badge switch on by tier (slot-c/wrist-display)
+
 - 2026-10-03 · Tier hand visuals: new `TierVisibility` component shows an accessory only within a tier range; the watch now upgrades with tier (steel → gold case + white shirt cuff with brass cufflink at Known High Roller → adds a VIP badge at Valued Associate), kit materials only; 8 new EditMode tests (23 total). Re-run **High Stakes > UI > Build Wrist Display** to update the prefab (slot-c/wrist-display)
 
 - 2026-10-01 · Wrist display: ran the builder and added `MVP_UI.unity`, `UI_WristDisplay.prefab` and three mock tiers (`Content/UI/Mocks/`); fixed the builder dropping the tier references (showed `--`), tier line now wraps for long names, builder refuses to run in Play mode. Tested in the simulator: bankroll updates live; watch position still to tune on the headset (slot-c/wrist-display)
