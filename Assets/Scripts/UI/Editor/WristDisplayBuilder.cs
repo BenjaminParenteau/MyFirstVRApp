@@ -62,17 +62,11 @@ public static class WristDisplayBuilder
 
         var visuals = new GameObject("Visuals");
         visuals.transform.SetParent(root.transform, false);
-        // Tier looks (StyleGuide colours only). Arm runs along -Z (toward the elbow), +Z toward the hand.
+        // Tier looks on the watch itself (StyleGuide colours only): steel → gold → gold with a white VIP stripe
         var caseSteel = Prim("Case", visuals, Vector3.zero, CaseSize, kit.steelCool);
         var caseGold = Prim("Case_Gold", visuals, Vector3.zero, CaseSize, kit.brassGold);
-        var cuff = new GameObject("Cuff_Shirt");
-        cuff.transform.SetParent(visuals.transform, false);
-        Prim("Band", cuff, new Vector3(0, -0.004f, -0.045f), new Vector3(0.075f, 0.01f, 0.03f), kit.chipWhite);
-        Prim("Cufflink", cuff, new Vector3(0, 0.0025f, -0.045f), new Vector3(0.012f, 0.004f, 0.012f), kit.brassGold);
-        var badge = new GameObject("Badge_VIP");
-        badge.transform.SetParent(visuals.transform, false);
-        Prim("Strap", badge, new Vector3(0, -0.002f, 0.03f), new Vector3(0.008f, 0.002f, 0.02f), kit.fabricBurgundy);
-        Prim("Card", badge, new Vector3(0, -0.002f, 0.055f), new Vector3(0.05f, 0.002f, 0.032f), kit.keycardPlastic);
+        var stripe = Prim("Stripe_VIP", visuals, new Vector3(0, 0, -CaseSize.z / 2f - 0.002f),
+            new Vector3(CaseSize.x, CaseSize.y * 0.6f, 0.004f), kit.keycardPlastic);
 
         var face = new GameObject("Face");
         face.transform.SetParent(visuals.transform, false);
@@ -93,11 +87,10 @@ public static class WristDisplayBuilder
         Set(display, "bankrollText", bankroll);
         Set(display, "tierText", tier);
 
-        // Steel watch at the start; gold watch and shirt cuff from tier 1; VIP badge from tier 2
+        // Steel watch at the start; gold from tier 1; VIP stripe from tier 2
         TierRange(root, caseSteel, 0, 0);
         TierRange(root, caseGold, 1, -1);
-        TierRange(root, cuff, 1, -1);
-        TierRange(root, badge, 2, -1);
+        TierRange(root, stripe, 2, -1);
 
         var visibility = root.AddComponent<WristRaiseVisibility>();
         Set(visibility, "face", face);
