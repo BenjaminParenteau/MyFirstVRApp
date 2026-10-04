@@ -168,6 +168,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot C log
 
+- 2026-10-03 · Committed the rebuilt `UI_WristDisplay.prefab` (watch on the back of the left controller); opened the wrist-display PR into `dev` (slot-c/wrist-display)
+
 - 2026-10-03 · Moved the watch from the wrist spot onto the back of the left controller (the rig shows controllers, not hands, so it looked like it floated); dropped the shirt cuff and VIP badge; tier now shows on the case: steel → gold → gold + white VIP stripe. Re-run **High Stakes > UI > Build Wrist Display** (slot-c/wrist-display)
 
 - 2026-10-03 · Rebuilt `UI_WristDisplay.prefab` with the tier parts; checked in the simulator: tier text updates (ORDINARY NIGHT → VALUED ASSOCIATE), gold case, shirt cuff and VIP badge switch on by tier (slot-c/wrist-display)
