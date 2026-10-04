@@ -25,6 +25,18 @@ namespace HighStakes.UI
         }
 
         /// <summary>
+        /// Whether an accessory shown for tiers <paramref name="minTier"/>..<paramref name="maxTier"/> is visible at
+        /// <paramref name="tier"/>. A negative maxTier means "and every tier above". A negative tier means no tier is
+        /// known yet, which counts as the starting tier (0).
+        /// </summary>
+        public static bool IsVisibleAtTier(int tier, int minTier, int maxTier)
+        {
+            if (tier < 0)
+                tier = 0;
+            return tier >= minTier && (maxTier < 0 || tier <= maxTier);
+        }
+
+        /// <summary>
         /// Whether the watch face should be lit. <paramref name="facingDot"/> is the dot product of the face normal and
         /// the direction to the player's eyes (1 = looking straight at it). Uses two thresholds so the face doesn't
         /// flicker at the edge: it turns on above <paramref name="showDot"/> and only turns off below

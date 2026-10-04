@@ -62,7 +62,17 @@ public static class WristDisplayBuilder
 
         var visuals = new GameObject("Visuals");
         visuals.transform.SetParent(root.transform, false);
-        Prim("Case", visuals, Vector3.zero, CaseSize, kit.steelCool);
+        // Tier looks (StyleGuide colours only). Arm runs along -Z (toward the elbow), +Z toward the hand.
+        var caseSteel = Prim("Case", visuals, Vector3.zero, CaseSize, kit.steelCool);
+        var caseGold = Prim("Case_Gold", visuals, Vector3.zero, CaseSize, kit.brassGold);
+        var cuff = new GameObject("Cuff_Shirt");
+        cuff.transform.SetParent(visuals.transform, false);
+        Prim("Band", cuff, new Vector3(0, -0.004f, -0.045f), new Vector3(0.075f, 0.01f, 0.03f), kit.chipWhite);
+        Prim("Cufflink", cuff, new Vector3(0, 0.0025f, -0.045f), new Vector3(0.012f, 0.004f, 0.012f), kit.brassGold);
+        var badge = new GameObject("Badge_VIP");
+        badge.transform.SetParent(visuals.transform, false);
+        Prim("Strap", badge, new Vector3(0, -0.002f, 0.03f), new Vector3(0.008f, 0.002f, 0.02f), kit.fabricBurgundy);
+        Prim("Card", badge, new Vector3(0, -0.002f, 0.055f), new Vector3(0.05f, 0.002f, 0.032f), kit.keycardPlastic);
 
         var face = new GameObject("Face");
         face.transform.SetParent(visuals.transform, false);
@@ -82,6 +92,12 @@ public static class WristDisplayBuilder
         var display = root.AddComponent<WristDisplay>();
         Set(display, "bankrollText", bankroll);
         Set(display, "tierText", tier);
+
+        // Steel watch at the start; gold watch and shirt cuff from tier 1; VIP badge from tier 2
+        TierRange(root, caseSteel, 0, 0);
+        TierRange(root, caseGold, 1, -1);
+        TierRange(root, cuff, 1, -1);
+        TierRange(root, badge, 2, -1);
 
         var visibility = root.AddComponent<WristRaiseVisibility>();
         Set(visibility, "face", face);
@@ -111,7 +127,17 @@ public static class WristDisplayBuilder
         return tmp;
     }
 
-    static void Prim(string name, GameObject parent, Vector3 pos, Vector3 scale, Material m)
+    static void TierRange(GameObject root, GameObject target, int minTier, int maxTier)
+    {
+        var range = root.AddComponent<TierVisibility>();
+        var so = new SerializedObject(range);
+        so.FindProperty("target").objectReferenceValue = target;
+        so.FindProperty("minTier").intValue = minTier;
+        so.FindProperty("maxTier").intValue = maxTier;
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    static GameObject Prim(string name, GameObject parent, Vector3 pos, Vector3 scale, Material m)
     {
         var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
         go.name = name;
@@ -120,6 +146,7 @@ public static class WristDisplayBuilder
         go.transform.localScale = scale;
         go.GetComponent<Renderer>().sharedMaterial = m;
         Object.DestroyImmediate(go.GetComponent<Collider>()); // display only; must not block hands or rays
+        return go;
     }
 
     // ---------------------------------------------------------------- mock tiers

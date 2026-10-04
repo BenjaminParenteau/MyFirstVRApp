@@ -30,6 +30,19 @@ namespace HighStakes.UI.Tests
             Assert.AreEqual(WristDisplayLogic.NoValue, WristDisplayLogic.FormatTier(name));
         }
 
+        [TestCase(0, 0, 0, true)]   // plain cuff at the starting tier
+        [TestCase(1, 0, 0, false)]  // plain cuff gone after the first tier-up
+        [TestCase(0, 1, -1, false)] // gold watch hidden at the start
+        [TestCase(1, 1, -1, true)]
+        [TestCase(2, 1, -1, true)]  // "and above" keeps it on at higher tiers
+        [TestCase(1, 2, -1, false)] // lanyard waits for tier 2
+        [TestCase(-1, 0, 0, true)]  // no tier known yet: treat as starting tier
+        [TestCase(-1, 1, -1, false)]
+        public void IsVisibleAtTier_RespectsRange(int tier, int min, int max, bool expected)
+        {
+            Assert.AreEqual(expected, WristDisplayLogic.IsVisibleAtTier(tier, min, max));
+        }
+
         private const float Show = 0.8f, Hide = 0.6f, MaxDistance = 0.6f;
 
         [Test]
