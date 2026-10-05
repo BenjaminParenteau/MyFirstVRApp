@@ -164,6 +164,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot A log
 
+- 2026-10-04 · VIP room: **High Stakes > Tables > Build VIP Room Scene** generates `MVP_VIPRoom.unity` (10 m hallway with a velvet-rope lane and "VIP LOUNGE" sign opening into a 12 x 12 m lounge: two high-stakes tables, bar, slots), style kit only, baked lighting; the hallway's back door is a portal `VIP_HallStart` -> `Casino_VIP`, so the casino needs one `Env_PortalDoor_Warm` with id `Casino_VIP` to connect it (slot-a/vip-room)
+
 ### Slot B log
 
 ### Slot C log
@@ -206,6 +208,8 @@ Things the team agreed on that aren't obvious from the code.
 - **2026-10-01 · Ashton may edit the shared style kit directly (temporary exception).** He built the full casino and needs kit changes (materials, prefabs, lighting). He edits `Assets/Content/StyleKit/` on a `slot-b/<topic>` branch; Zach does not touch the kit while he does, and nobody reruns **High Stakes > Build Style Kit** (it may overwrite prefabs, since it saves them with `SaveAsPrefabAsset`). Anything not specific to the casino still follows the normal rule (request to Zach, shipped as `stylekit-vN`). Ashton announces each kit change in Open questions so everyone knows when to pull.
 
 ## Open questions / blockers
+
+- **Ben -> Ashton / Zach:** to connect the VIP room, the casino needs one `Env_PortalDoor_Warm` with `portalId` `Casino_VIP` and `targetId` `VIP_HallStart`, and `MVP_VIPRoom` needs loading in `MVP_Main`. Where should the VIP door go on the casino floor?
 
 - **Everyone: don't commit `Assets/XR/Settings/OpenXRPackageSettings.asset`.** Unity keeps reserializing it (renamed/duplicated Android XR feature entries, no functional change; checked 2026-10-01: Meta Quest Support, Touch controllers and hand tracking are on for Android, Android XR Support is off). Commit files by name, never `git add .`; if a pull is blocked by it, `git stash` first. Zach owns this file and only commits it after a deliberate OpenXR settings change. Proper cleanup is after the Milestone 2 submission.
 
