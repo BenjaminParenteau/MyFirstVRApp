@@ -8,19 +8,19 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 /// <summary>
-/// Generates MVP_VIPRoom.unity: a 4 m wide hallway that opens through a roped-off "VIP LOUNGE" doorway into a 12 x 12 m
+/// Generates MVP_VIP.unity: a 4 m wide hallway that opens through a roped-off "VIP LOUNGE" doorway into a 12 x 12 m
 /// VIP room (a playable blackjack table, a high-stakes table set, a bar, slot machines), built only from the shared
 /// style kit in the casino look.
 ///
-/// The hallway starts at a portal door with id VIP_HallStart that leads to Casino_VIP, so the casino only needs an
-/// Env_PortalDoor_Warm with that id to connect here (same scheme as HallwayBuilder). Played on its own, you spawn at the
+/// The hallway starts at a portal door with id VIP_HallStart that leads to the casino door Casino_VIP in MVP_Casino
+/// (SceneFlow swaps the scenes; same scheme as HallwayBuilder). Played on its own, you spawn at the
 /// start of the hallway facing the lounge, with a 1,000-chip test wallet under _SoloTest so the blackjack table plays.
 ///
 /// Slot A owns this. Re-running overwrites the scene, so after the first run edit the scene by hand.
 /// </summary>
 public static class VipRoomBuilder
 {
-    const string ScenePath = "Assets/Scenes/MVP/MVP_VIPRoom.unity";
+    const string ScenePath = "Assets/Scenes/MVP/MVP_VIP.unity";
     const string KitPath = "Assets/Content/StyleKit/SharedStyleKit.asset";
     const string LightingPath = "Assets/Content/StyleKit/Lighting/StyleKit_Lighting.lighting";
     const string PortalDoorPath = "Assets/Content/Environment/Prefabs/Env_PortalDoor_Warm.prefab";
@@ -71,6 +71,7 @@ public static class VipRoomBuilder
         var portal = door.GetComponent<DoorPortal>();
         portal.portalId = "VIP_HallStart";
         portal.targetId = "Casino_VIP";
+        portal.targetScene = HallwayBuilder.CasinoScene;
         PrefabUtility.RecordPrefabInstancePropertyModifications(portal);
 
         BuildEntrance(kit, area);

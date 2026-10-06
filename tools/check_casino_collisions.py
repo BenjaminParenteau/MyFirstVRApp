@@ -3,7 +3,7 @@ from pathlib import Path
 import re
 import sys
 
-scene = Path(__file__).resolve().parents[1] / 'Assets/Scenes/Casino_Test/Casino.unity'
+scene = Path(__file__).resolve().parents[1] / 'Assets/Scenes/MVP/MVP_Casino.unity'
 text = scene.read_text(encoding='utf-8')
 blocks = re.split(r'(?=^--- !u!)', text, flags=re.M)
 objects, meshes, colliders = {}, {}, {}

@@ -6,22 +6,23 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 /// <summary>
-/// Generates MVP_Hallways.unity: three wide hallways that lead from the casino to three security rooms, built only from
-/// the shared style kit. The pieces are NOT connected in the scene: each end has a <see cref="DoorPortal"/> that carries
-/// the player to the matching door (casino door -> hallway start, hallway end -> security room, and back).
+/// Generates the three security wings, one scene each (MVP_SecurityOffice, MVP_CameraRoom, MVP_Vault): a wide hallway
+/// that leads from the casino to a security room, built only from the shared style kit. Hallway and room sit on separate
+/// islands of the same scene, joined by a <see cref="DoorPortal"/> pair (hallway end -> room door, and back). The
+/// hallway's start door leads to the casino's door Casino_A/B/C in MVP_Casino, which SceneFlow loads in its place.
 ///
 /// The hallways are 4 m wide and 3 m tall so NPCs can walk alongside the player. They use the casino look: the same red
 /// carpet floor, Ashton's casino wall panel (cream wall, wood wainscot, brass rail and crown), framed pictures and wall
 /// sconces, and chandeliers. The security rooms at the ends are cool (concrete, steel, glowing screens).
 ///
-/// Slot D owns this. Re-running overwrites the scene, so after the first run edit the scene by hand.
+/// Re-running overwrites the scenes, so after the first run edit them by hand.
 /// </summary>
 public static class HallwayBuilder
 {
-    const string ScenePath = "Assets/Scenes/MVP/MVP_Hallways.unity";
     const string KitPath = "Assets/Content/StyleKit/SharedStyleKit.asset";
     const string LightingPath = "Assets/Content/StyleKit/Lighting/StyleKit_Lighting.lighting";
     const string PrefabFolder = "Assets/Content/Environment/Prefabs";
+    public const string CasinoScene = "MVP_Casino";
 
     const float T = StyleScale.TileSize; // 2 m grid cell
     const int Block = 2;                 // hallway "blocks" are 2x2 cells = 4 m wide, 4 m long
@@ -31,14 +32,22 @@ public static class HallwayBuilder
     // A door sits on one side of two neighbouring cells (a, b) and spans both, so it is centred on the 4 m wall.
     struct DoorSpec
     {
-        public Vector2Int a, b; public Side side; public string id; public string target;
-        public DoorSpec(Vector2Int a, Vector2Int b, Side side, string id, string target)
-        { this.a = a; this.b = b; this.side = side; this.id = id; this.target = target; }
+        public Vector2Int a, b; public Side side; public string id; public string target; public string scene;
+        public DoorSpec(Vector2Int a, Vector2Int b, Side side, string id, string target, string scene = null)
+        { this.a = a; this.b = b; this.side = side; this.id = id; this.target = target; this.scene = scene; }
     }
 
     enum Room { Office, Cameras, Vault }
 
-    [MenuItem("High Stakes/Build Hallways Scene")]
+    /// <summary>Scene paths of the three wings, in Casino_A/B/C order.</summary>
+    public static readonly string[] ScenePaths =
+    {
+        "Assets/Scenes/MVP/MVP_SecurityOffice.unity",
+        "Assets/Scenes/MVP/MVP_CameraRoom.unity",
+        "Assets/Scenes/MVP/MVP_Vault.unity",
+    };
+
+    [MenuItem("High Stakes/Build Security Wing Scenes")]
     public static void Build()
     {
         var kit = AssetDatabase.LoadAssetAtPath<SharedStyleKit>(KitPath);
@@ -48,14 +57,31 @@ public static class HallwayBuilder
             Debug.LogError("[Hallways] The casino furnishings are missing from the style kit. Pull the latest main (they are committed prefabs) and do not regenerate them: that rewrites the casino prefabs.");
             return;
         }
-        if (System.IO.File.Exists(ScenePath) &&
-            !EditorUtility.DisplayDialog("Rebuild hallways?", ScenePath + " exists and will be overwritten, including any hand edits.", "Overwrite", "Cancel")) return;
-        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+        if (!Application.isBatchMode)
+        {
+            if (!EditorUtility.DisplayDialog("Rebuild security wings?", "The three wing scenes will be overwritten, including any hand edits.", "Overwrite", "Cancel")) return;
+            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+        }
 
         EnsureFolder(PrefabFolder);
         var door = PortalDoorPrefab(kit, true);
         var doorCool = PortalDoorPrefab(kit, false);
 
+        // Hallway paths are lists of 4 m blocks, (x, z). One path each, no branches. All start at block (0, 0).
+        BuildWing(kit, door, doorCool, 0, "A", "Security Office", Room.Office,
+            Blocks((0, 0), (0, 1), (0, 2), (0, 3), (0, 4)), Side.PlusZ);
+        BuildWing(kit, door, doorCool, 1, "B", "Camera Room", Room.Cameras,
+            Blocks((0, 0), (0, 1), (0, 2), (1, 2), (2, 2)), Side.PlusX);
+        BuildWing(kit, door, doorCool, 2, "C", "Vault Antechamber", Room.Vault,
+            Blocks((0, 0), (0, 1), (-1, 1), (-2, 1), (-2, 2), (-2, 3)), Side.PlusZ);
+
+        AssetDatabase.SaveAssets();
+        Debug.Log("[Hallways] Built the security wings. Open one and press Play to walk it alone, or play MVP_Main and walk through a casino staff door.");
+    }
+
+    static void BuildWing(SharedStyleKit kit, GameObject door, GameObject doorCool, int index, string letter, string roomName,
+        Room roomKind, List<Vector2Int> blocks, Side endSide)
+    {
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         RenderSettings.skybox = null;
         RenderSettings.ambientMode = AmbientMode.Flat;
@@ -63,28 +89,17 @@ public static class HallwayBuilder
         var lighting = AssetDatabase.LoadAssetAtPath<LightingSettings>(LightingPath);
         if (lighting != null) Lightmapping.lightingSettings = lighting;
 
-        // Test-only stand-in for the casino; switches off with _SoloTest when MVP_Main loads the real casino.
-        var solo = BuildSoloTest(kit);
-        BuildCasinoStandIn(kit, door, solo.transform);
+        // Solo spawn: just past the start door's arrival point, at the hallway's first block facing in (+Z).
+        BuildSoloTest(kit, new Vector3(1f, 0f, 1.2f));
+        var content = new GameObject($"Wing{letter}_Content").transform;
+        BuildHallway(kit, door, doorCool, content, letter, roomName, roomKind, blocks, endSide);
 
-        var content = new GameObject("Hallways_Content").transform;
-
-        // Hallway paths are lists of 4 m blocks, (x, z). One path each, no branches.
-        BuildHallway(kit, door, doorCool, content, "A", 0, "Security Office", Room.Office,
-            Blocks((0, 0), (0, 1), (0, 2), (0, 3), (0, 4)), Side.PlusZ);
-        BuildHallway(kit, door, doorCool, content, "B", 1, "Camera Room", Room.Cameras,
-            Blocks((0, 0), (0, 1), (0, 2), (1, 2), (2, 2)), Side.PlusX);
-        BuildHallway(kit, door, doorCool, content, "C", 2, "Vault Antechamber", Room.Vault,
-            Blocks((0, 0), (0, 1), (-1, 1), (-2, 1), (-2, 2), (-2, 3)), Side.PlusZ);
-
-        EditorSceneManager.SaveScene(scene, ScenePath);
-        AssetDatabase.SaveAssets();
-        Debug.Log("[Hallways] Built " + ScenePath + ". Press Play: you start in the stand-in casino; walk up to a door (WASD in the simulator) to be carried into a hallway. Then run High Stakes > Validate Open Scene Against Style Kit.");
+        EditorSceneManager.SaveScene(scene, ScenePaths[index]);
     }
 
-    // ------------------------------------------------------------------ test rig and stand-in casino
+    // ------------------------------------------------------------------ test rig
 
-    static GameObject BuildSoloTest(SharedStyleKit kit)
+    static GameObject BuildSoloTest(SharedStyleKit kit, Vector3 spawn)
     {
         var solo = new GameObject("_SoloTest");
         solo.AddComponent<SoloTestRoot>();
@@ -95,47 +110,23 @@ public static class HallwayBuilder
         vol.isGlobal = true;
         vol.sharedProfile = kit.volumeProfile;
 
-        var spawn = new GameObject("PlayerSpawn");
-        spawn.transform.SetParent(solo.transform);
-        spawn.transform.position = new Vector3(5f, 0f, 0f); // middle of the stand-in casino, facing the doors (+Z)
-
         if (kit.playerRig != null)
         {
             var rig = (GameObject)PrefabUtility.InstantiatePrefab(kit.playerRig, solo.transform);
-            rig.transform.SetPositionAndRotation(spawn.transform.position, spawn.transform.rotation);
+            rig.transform.position = spawn;
         }
         StyleKitBuilder.AddSimulator(solo.transform);
         return solo;
     }
 
-    // A warm room with the three doors that, in the real game, are doors in Ashton's casino. They only use the ids
-    // Casino_A/B/C, so the real casino just needs doors with the same ids (the Env_PortalDoor_Warm prefab).
-    static void BuildCasinoStandIn(SharedStyleKit kit, GameObject door, Transform solo)
-    {
-        var cells = new List<Vector2Int>();
-        for (int x = 0; x < 6; x++)
-            for (int z = 0; z < 4; z++)
-                cells.Add(new Vector2Int(x, z));
-        var area = BuildArea(kit, door, door, solo, "CasinoStandIn (test only)", Vector3.zero, cells, new HashSet<Vector2Int>(cells),
-            new[]
-            {
-                new DoorSpec(new Vector2Int(0, 3), new Vector2Int(1, 3), Side.PlusZ, "Casino_A", "HallA_Start"),
-                new DoorSpec(new Vector2Int(2, 3), new Vector2Int(3, 3), Side.PlusZ, "Casino_B", "HallB_Start"),
-                new DoorSpec(new Vector2Int(4, 3), new Vector2Int(5, 3), Side.PlusZ, "Casino_C", "HallC_Start"),
-            });
-        Place(kit.casinoTableSet, area, new Vector3(5f, 0f, 2f), 0);
-        Place(kit.chandelier, area, new Vector3(5f, 2.38f, 2f), 0);
-        Place(kit.lightWarmFloor, area, new Vector3(5f, 2.6f, 2f), 0);
-    }
-
     // ------------------------------------------------------------------ hallways and rooms
 
     static void BuildHallway(SharedStyleKit kit, GameObject door, GameObject doorCool, Transform parent,
-        string letter, int index, string roomName, Room roomKind, List<Vector2Int> blocks, Side endSide)
+        string letter, string roomName, Room roomKind, List<Vector2Int> blocks, Side endSide)
     {
-        // Each hallway and its room sit on their own island so nothing is ever physically connected.
-        var hallOrigin = new Vector3(100f, 0f, 40f * index);
-        var roomOrigin = new Vector3(140f, 0f, 40f * index);
+        // The hallway and its room sit on their own islands so nothing is ever physically connected.
+        var hallOrigin = Vector3.zero;
+        var roomOrigin = new Vector3(40f, 0f, 0f);
 
         // Expand each 4 m block into its 2x2 cells.
         var cells = new List<Vector2Int>();
@@ -153,7 +144,7 @@ public static class HallwayBuilder
         var hall = BuildArea(kit, door, door, parent, $"Hall{letter}", hallOrigin, cells, new HashSet<Vector2Int>(cells),
             new[]
             {
-                new DoorSpec(start.a, start.b, Side.MinusZ, $"Hall{letter}_Start", $"Casino_{letter}"),
+                new DoorSpec(start.a, start.b, Side.MinusZ, $"Hall{letter}_Start", $"Casino_{letter}", CasinoScene),
                 new DoorSpec(end.a, end.b, endSide, $"Hall{letter}_End", $"Room{letter}_Door"),
             });
 
@@ -209,6 +200,7 @@ public static class HallwayBuilder
                     var portal = instance.GetComponent<DoorPortal>();
                     portal.portalId = d.id;
                     portal.targetId = d.target;
+                    portal.targetScene = d.scene;
                     PrefabUtility.RecordPrefabInstancePropertyModifications(portal);
                     instance.name = "Door_" + d.id;
                 }

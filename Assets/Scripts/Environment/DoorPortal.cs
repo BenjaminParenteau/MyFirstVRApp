@@ -21,6 +21,8 @@ namespace HighStakes.Environment
         public string portalId;
         [Tooltip("portalId of the door this one leads to.")]
         public string targetId;
+        [Tooltip("Scene the target door lives in. Empty = it is in a scene that is already loaded. Needs SceneFlow (MVP_Main).")]
+        public string targetScene;
         [Tooltip("Where the player stands after arriving through this door: in front of it, facing away from it.")]
         public Transform arrival;
         [Tooltip("A locked door does nothing. Slot B's keycard reader can call SetLocked(false).")]
@@ -76,15 +78,38 @@ namespace HighStakes.Environment
 
         void Travel(XROrigin origin)
         {
-            if (!Registry.TryGetValue(targetId ?? string.Empty, out var target) || target == null || target.arrival == null)
+            if (TryGetArrival(targetId, out var arrivalPoint))
             {
-                Debug.LogWarning($"[DoorPortal] '{portalId}' leads to '{targetId}', which isn't loaded.", this);
-                s_blockedUntil = Time.time + 2f;
+                s_blockedUntil = Time.time + Cooldown;
+                Teleport(origin, arrivalPoint.position, arrivalPoint.rotation);
                 return;
             }
-            s_blockedUntil = Time.time + Cooldown;
-            Teleport(origin, target.arrival.position, target.arrival.rotation);
+            // The target lives in another scene: SceneFlow fades out, swaps scenes and calls MoveRig.
+            if (!string.IsNullOrEmpty(targetScene) && SceneFlow.Instance != null && SceneFlow.Instance.Go(targetScene, targetId))
+            {
+                s_blockedUntil = float.MaxValue; // until MoveRig
+                return;
+            }
+            Debug.LogWarning($"[DoorPortal] '{portalId}' leads to '{targetId}' in '{targetScene}', which isn't loaded. Play from MVP_Main to walk between scenes.", this);
+            s_blockedUntil = Time.time + 2f;
         }
+
+        internal static bool TryGetArrival(string id, out Transform arrivalPoint)
+        {
+            arrivalPoint = Registry.TryGetValue(id ?? string.Empty, out var door) && door != null ? door.arrival : null;
+            return arrivalPoint != null;
+        }
+
+        /// <summary>Places the one rig at an arrival point and re-arms the doors after the cooldown.</summary>
+        internal static void MoveRig(Transform arrivalPoint)
+        {
+            s_blockedUntil = Time.time + Cooldown;
+            var origin = FindFirstObjectByType<XROrigin>();
+            if (origin != null) Teleport(origin, arrivalPoint.position, arrivalPoint.rotation);
+        }
+
+        /// <summary>Re-arms the doors after a scene change that found no arrival point.</summary>
+        internal static void Unblock() => s_blockedUntil = Time.time + Cooldown;
 
         static void Teleport(XROrigin origin, Vector3 position, Quaternion rotation)
         {

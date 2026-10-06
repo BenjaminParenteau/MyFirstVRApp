@@ -9,7 +9,7 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-SCENE = ROOT / 'Assets/Scenes/Casino_Test/Casino.unity'
+SCENE = ROOT / 'Assets/Scenes/MVP/MVP_Casino.unity'
 KIT = ROOT / 'Assets/Content/StyleKit'
 original = SCENE.read_text(encoding='utf-8')
 # Keep the original camera, light and scene settings when rebuilding.

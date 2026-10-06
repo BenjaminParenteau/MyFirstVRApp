@@ -9,7 +9,7 @@ import uuid
 
 ROOT = Path(__file__).resolve().parents[1]
 KIT = ROOT / 'Assets/Content/StyleKit'
-scene = (ROOT / 'Assets/Scenes/Casino_Test/Casino.unity').read_text()
+scene = (ROOT / 'Assets/Scenes/MVP/MVP_Casino.unity').read_text()
 blocks = re.findall(r'^--- !u!\d+ &-?\d+\n.*?(?=^--- !u!|\Z)', scene, re.M | re.S)
 by_id = {re.search(r'&(-?\d+)', b)[1]: b for b in blocks}
 transforms = {i: b for i, b in by_id.items() if b.startswith('--- !u!4 ')}

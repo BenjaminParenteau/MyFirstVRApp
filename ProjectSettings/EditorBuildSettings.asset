@@ -6,8 +6,23 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
-    guid: 55daccc09a3b69647bbab145b54a3ab3
+    path: Assets/Scenes/MVP/MVP_Main.unity
+    guid: 990ce4753826dd34e87ee097ca76eb8d
+  - enabled: 1
+    path: Assets/Scenes/MVP/MVP_Casino.unity
+    guid: ef8c5c90e1c9a9446979be9cfdc9674e
+  - enabled: 1
+    path: Assets/Scenes/MVP/MVP_VIP.unity
+    guid: 95fe2f78a9ce5d8458c66f5a47f39170
+  - enabled: 1
+    path: Assets/Scenes/MVP/MVP_SecurityOffice.unity
+    guid: 021aacaf25cf8ed4a801c095e51c7b80
+  - enabled: 1
+    path: Assets/Scenes/MVP/MVP_CameraRoom.unity
+    guid: 17509c015039a8e42bb90c1f4e0e346d
+  - enabled: 1
+    path: Assets/Scenes/MVP/MVP_Vault.unity
+    guid: 8d1aeda5506aac244b08f75740c7bca7
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: bfa1182bd221b4ca89619141f66f1260, type: 2}
     Unity.XR.WindowsMR.Settings: {fileID: 11400000, guid: dc5a169419fa04987b057f65238cf3ba, type: 2}

@@ -50,6 +50,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HighStakes.Environment.DoorPortal
   portalId: 
   targetId: 
+  targetScene: 
   arrival: {fileID: 7179925647671412604}
   locked: 0
   triggerWidth: 2

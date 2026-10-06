@@ -122,7 +122,7 @@ Unity's scene and prefab files are the main source of conflicts, so the split is
 | Slice A: chips, cage and one table interaction on headset | A | 🟨 chip wallet, VIP room and full blackjack table done (in PRs); cashier cage and grabbable chips to do |
 | Slice B: tier progression, keycard and VIP door on headset | B | ⬜ |
 | Slice C: diegetic UI + character evolution visuals on headset | C | 🟨 wrist chip display built (needs headset check); notebook, comfort panel, tier visuals, Guide line to do |
-| Slice D: movement + blocked-out world + `MVP_Main` integration | D | ⬜ |
+| Slice D: movement + blocked-out world + `MVP_Main` integration | D | 🟨 `MVP_Main` + area scenes through doors done (checked in headless Play mode); comfort panel and teleport floors to do |
 | All scenes visually consistent (PR style check passed against `VisualReference.md`) | All | ⬜ |
 | Quest 3 build runs the integrated `MVP_Main` | D | ⬜ |
 | GDD: Platform Compatibility Design section (Quest 3 specs, Unity `6000.3.23f1` + OpenXR, standalone Android build as primary with Meta Quest Link as optional secondary (two members have no GPU), URP, target framerate, changes needed for other platforms such as AndroidXR / PC VR) | D (all review) | ⬜ |
@@ -205,6 +205,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Setup
 
+- 2026-10-06 · One scene per area, loaded through doors: new `MVP_Main` (build index 0: the one rig, `ChipWallet`, wrist display, `SceneFlow` with a fade) loads one area at a time; `DoorPortal.targetScene` swaps areas. Casino moved to `MVP_Casino` and got its doors (VIP portal on Ashton's VIP door, staff doors SECURITY / CAMERAS / VAULT); `MVP_Hallways` split into `MVP_SecurityOffice`, `MVP_CameraRoom`, `MVP_Vault`; `MVP_VIPRoom` renamed `MVP_VIP`. **High Stakes > Build MVP World (all scenes)** builds it all. Headless Play-mode walk: casino -> VIP -> casino -> security wing, one rig and one wallet in every area, arrivals land on the doors.
+
 - 2026-10-06 · Merged Pak's `slot-c/wrist-display` straight into `dev` (no PR, at Ben's request) on top of Slot A's VIP room, wallet and blackjack; clean merge, all 78 EditMode tests pass (wrist display 23, blackjack 49, wallet 6). The wrist display now finds the real `ChipWallet` once both are in one scene (`MVP_Main`).
 
 - 2026-09-30 · Recorded team hardware (Zach and Pak have no dedicated GPU; Ashton and Ben do). Switched the primary test path to standalone APK + XR Interaction Simulator, made Quest Link optional, added StyleGuide §9 "Testing without a GPU", and made the style-kit builder add the simulator to `MVP_Template`.
@@ -226,7 +228,6 @@ Things the team agreed on that aren't obvious from the code.
 
 ## Open questions / blockers
 
-- **Ben -> Ashton / Zach:** to connect the VIP room, the casino needs one `Env_PortalDoor_Warm` with `portalId` `Casino_VIP` and `targetId` `VIP_HallStart`, and `MVP_VIPRoom` needs loading in `MVP_Main`. Where should the VIP door go on the casino floor?
 
 - **Everyone: don't commit `Assets/XR/Settings/OpenXRPackageSettings.asset`.** Unity keeps reserializing it (renamed/duplicated Android XR feature entries, no functional change; checked 2026-10-01: Meta Quest Support, Touch controllers and hand tracking are on for Android, Android XR Support is off). Commit files by name, never `git add .`; if a pull is blocked by it, `git stash` first. Zach owns this file and only commits it after a deliberate OpenXR settings change. Proper cleanup is after the Milestone 2 submission.
 
