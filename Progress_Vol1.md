@@ -121,7 +121,7 @@ Unity's scene and prefab files are the main source of conflicts, so the split is
 | Day-0 gate merged: contracts + shared style kit + `MVP_Template` (tag `day-zero`) | D | ✅ (on-device fps check still pending, see Open questions) |
 | Slice A: chips, cage and one table interaction on headset | A | 🟨 chip wallet, VIP room and full blackjack table done (in PRs); cashier cage and grabbable chips to do |
 | Slice B: tier progression, keycard and VIP door on headset | B | ⬜ |
-| Slice C: diegetic UI + character evolution visuals on headset | C | ⬜ |
+| Slice C: diegetic UI + character evolution visuals on headset | C | 🟨 wrist chip display built (needs headset check); notebook, comfort panel, tier visuals, Guide line to do |
 | Slice D: movement + blocked-out world + `MVP_Main` integration | D | ⬜ |
 | All scenes visually consistent (PR style check passed against `VisualReference.md`) | All | ⬜ |
 | Quest 3 build runs the integrated `MVP_Main` | D | ⬜ |
@@ -173,6 +173,18 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot C log
 
+- 2026-10-03 · Committed the rebuilt `UI_WristDisplay.prefab` (watch on the back of the left controller); opened the wrist-display PR into `dev` (slot-c/wrist-display)
+
+- 2026-10-03 · Moved the watch from the wrist spot onto the back of the left controller (the rig shows controllers, not hands, so it looked like it floated); dropped the shirt cuff and VIP badge; tier now shows on the case: steel → gold → gold + white VIP stripe. Re-run **High Stakes > UI > Build Wrist Display** (slot-c/wrist-display)
+
+- 2026-10-03 · Rebuilt `UI_WristDisplay.prefab` with the tier parts; checked in the simulator: tier text updates (ORDINARY NIGHT → VALUED ASSOCIATE), gold case, shirt cuff and VIP badge switch on by tier (slot-c/wrist-display)
+
+- 2026-10-03 · Tier hand visuals: new `TierVisibility` component shows an accessory only within a tier range; the watch now upgrades with tier (steel → gold case + white shirt cuff with brass cufflink at Known High Roller → adds a VIP badge at Valued Associate), kit materials only; 8 new EditMode tests (23 total). Re-run **High Stakes > UI > Build Wrist Display** to update the prefab (slot-c/wrist-display)
+
+- 2026-10-01 · Wrist display: ran the builder and added `MVP_UI.unity`, `UI_WristDisplay.prefab` and three mock tiers (`Content/UI/Mocks/`); fixed the builder dropping the tier references (showed `--`), tier line now wraps for long names, builder refuses to run in Play mode. Tested in the simulator: bankroll updates live; watch position still to tune on the headset (slot-c/wrist-display)
+
+- 2026-10-01 · Wrist chip display: `WristDisplay` (bankroll + tier, observes `IChipWallet`/`ICharacterTier`), `WristAttach` (finds the active XROrigin and attaches to the left controller at runtime), `WristRaiseVisibility` (face lights up when the wrist is raised toward the eyes); mock wallet/tier with Inspector +/- chip buttons; **High Stakes > UI > Build Wrist Display** menu builds `UI_WristDisplay.prefab` and `MVP_UI`; 15 EditMode tests (slot-c/wrist-display)
+
 ### Slot D log
 
 - 2026-10-01 · Committed the built `MVP_Hallways.unity` (3 hallways + security rooms + stand-in casino with door portals); rebuilt against the restored casino prefabs and checked in the simulator. (slot-d/hallways)
@@ -192,6 +204,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 - 2026-09-30 · Day-0 gate: generated the style kit (`Assets/Content/StyleKit/`) and `Assets/Scenes/MVP/MVP_Template.unity` with the XR Interaction Simulator; added contracts in `Assets/Scripts/Core/Contracts/` (`IChipWallet`, `ICharacterTier`, `IInventoryEvents`, `IGuideVoice`, `TierDefinition`, `ItemData`); reserved layers `Interactable` (6), `PlayerBody` (7) and tags `Chip`, `Keycard`, `Restricted`; created `Assets/Content/{Tables,Progression,UI,Environment}/`; added `docs/SimulatorControls.md`.
 
 ### Setup
+
+- 2026-10-06 · Merged Pak's `slot-c/wrist-display` straight into `dev` (no PR, at Ben's request) on top of Slot A's VIP room, wallet and blackjack; clean merge, all 78 EditMode tests pass (wrist display 23, blackjack 49, wallet 6). The wrist display now finds the real `ChipWallet` once both are in one scene (`MVP_Main`).
 
 - 2026-09-30 · Recorded team hardware (Zach and Pak have no dedicated GPU; Ashton and Ben do). Switched the primary test path to standalone APK + XR Interaction Simulator, made Quest Link optional, added StyleGuide §9 "Testing without a GPU", and made the style-kit builder add the simulator to `MVP_Template`.
 - 2026-09-29 · Wrote docs/StyleGuide.md and the style-kit generator (`SharedStyleKit.cs`, `Editor/StyleKitBuilder.cs`). Zach still needs to run **High Stakes > Build Style Kit** in the Editor, review the result on the headset, and commit the generated `Assets/Content/StyleKit/` + `MVP_Template.unity`.
