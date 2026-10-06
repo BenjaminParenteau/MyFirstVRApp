@@ -83,6 +83,12 @@ public static class WorldBuilder
             if (root.name == "Casino_Doors") Object.DestroyImmediate(root);
         var doors = new GameObject("Casino_Doors").transform;
 
+        // The casino's own test rig stands at the start too (rebuilding Kit_PlayerRig drops its position override).
+        foreach (var root in scene.GetRootGameObjects())
+            if (root.name == "_SoloTest")
+                foreach (var rig in root.GetComponentsInChildren<Unity.XR.CoreUtils.XROrigin>(true))
+                    rig.transform.SetPositionAndRotation(CasinoStart, Quaternion.identity);
+
         // Ashton's VIP door: 1.9 m wide, its face at z 12.66, the player in front of it on -Z.
         Portal(doors, "Door_Casino_VIP", new Vector3(-1.8f, 0f, 12.6f), 0f, 1.9f, "Casino_VIP", "VIP_HallStart", "MVP_VIP");
 

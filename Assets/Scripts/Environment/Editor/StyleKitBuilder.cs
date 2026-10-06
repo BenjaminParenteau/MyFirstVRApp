@@ -17,7 +17,9 @@ public static class StyleKitBuilder
 {
     const string Root = "Assets/Content/StyleKit";
     const string TemplateScenePath = "Assets/Scenes/MVP/MVP_Template.unity";
-    const string RigPrefabPath = "Assets/VRTemplateAssets/Prefabs/Setup/Complete XR Origin Set Up Variant.prefab";
+    // The plain XRI starter rig (as in vrstake): the VR Template variant adds a tunneling vignette on every move and turn
+    // and floating controller callouts.
+    const string RigPrefabPath = "Assets/Samples/XR Interaction Toolkit/3.5.1/Starter Assets/Prefabs/XR Origin (XR Rig).prefab";
 
     [MenuItem("High Stakes/Build Style Kit")]
     public static void Build()
@@ -174,13 +176,31 @@ public static class StyleKitBuilder
         kit.playerRig = PlayerRig("Kit_PlayerRig");
     }
 
-    // The one player rig for the whole game: a Prefab Variant of the VR Template rig carrying our settings, so the
+    /// <summary>
+    /// Rebuilds only Kit_PlayerRig from the starter rig, keeping its GUID so every scene keeps its reference. Instance
+    /// overrides made against the old base (e.g. a scene rig's position) are dropped; re-place those rigs.
+    /// </summary>
+    [MenuItem("High Stakes/Rebuild Player Rig (XRI starter rig)")]
+    public static void RebuildPlayerRig()
+    {
+        var kit = AssetDatabase.LoadAssetAtPath<SharedStyleKit>($"{Root}/SharedStyleKit.asset");
+        var rig = PlayerRig("Kit_PlayerRig", fresh: true);
+        if (kit != null && rig != null)
+        {
+            kit.playerRig = rig;
+            EditorUtility.SetDirty(kit);
+            AssetDatabase.SaveAssets();
+        }
+        Debug.Log("[StyleKit] Rebuilt Kit_PlayerRig on the XRI starter rig.");
+    }
+
+    // The one player rig for the whole game: a Prefab Variant of the XRI starter rig carrying our settings, so the
     // vendored prefab stays untouched and a change here reaches every scene at once.
-    static GameObject PlayerRig(string name)
+    static GameObject PlayerRig(string name, bool fresh = false)
     {
         string path = $"{Root}/Prefabs/{name}.prefab";
         GameObject contents;
-        bool exists = AssetDatabase.LoadAssetAtPath<GameObject>(path) != null;
+        bool exists = !fresh && AssetDatabase.LoadAssetAtPath<GameObject>(path) != null;
         if (exists)
         {
             contents = PrefabUtility.LoadPrefabContents(path);
@@ -201,8 +221,7 @@ public static class StyleKitBuilder
         var body = contents.GetComponentInChildren<CharacterController>(true);
         if (body != null) body.stepOffset = StyleScale.MaxStepHeight;
 
-        var move = contents.GetComponentInChildren<ContinuousMoveProvider>(true);
-        if (move != null) move.moveSpeed = StyleScale.MoveSpeed;
+        // Move speed stays at the starter rig's default, which is what vrstake plays with.
 
         // No skybox (StyleGuide §5): clear to black instead of Unity's default blue, so gaps in a room read as darkness.
         var cam = contents.GetComponentInChildren<Camera>(true);
