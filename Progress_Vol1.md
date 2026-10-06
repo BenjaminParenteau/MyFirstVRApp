@@ -119,7 +119,7 @@ Unity's scene and prefab files are the main source of conflicts, so the split is
 | Item | Owner | Status |
 |---|---|---|
 | Day-0 gate merged: contracts + shared style kit + `MVP_Template` (tag `day-zero`) | D | ✅ (on-device fps check still pending, see Open questions) |
-| Slice A: chips, cage and one table interaction on headset | A | ⬜ |
+| Slice A: chips, cage and one table interaction on headset | A | 🟨 chip wallet done; VIP room scene in PR; cashier cage, grabbable chips and table to do |
 | Slice B: tier progression, keycard and VIP door on headset | B | ⬜ |
 | Slice C: diegetic UI + character evolution visuals on headset | C | ⬜ |
 | Slice D: movement + blocked-out world + `MVP_Main` integration | D | ⬜ |
@@ -163,6 +163,8 @@ One entry per commit, newest first, **inside your own slot's sub-section** so me
 Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot A log
+
+- 2026-10-06 · Chip wallet: `Economy/ChipWallet` is the one real `IChipWallet` (balance rules in the Unity-free `ChipLedger`, rejects negative amounts, saturates at int max, logs an error if two wallets are active, Inspector ⋮ menu adds/spends chips in Play mode); 6 EditMode tests pass. Zach: add one `ChipWallet` to `MVP_Main` outside `_SoloTest` (slot-a/chips)
 
 ### Slot B log
 
