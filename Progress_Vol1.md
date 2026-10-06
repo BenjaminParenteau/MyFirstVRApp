@@ -119,7 +119,7 @@ Unity's scene and prefab files are the main source of conflicts, so the split is
 | Item | Owner | Status |
 |---|---|---|
 | Day-0 gate merged: contracts + shared style kit + `MVP_Template` (tag `day-zero`) | D | ✅ (on-device fps check still pending, see Open questions) |
-| Slice A: chips, cage and one table interaction on headset | A | ⬜ |
+| Slice A: chips, cage and one table interaction on headset | A | 🟨 chip wallet, VIP room and full blackjack table done (in PRs); cashier cage and grabbable chips to do |
 | Slice B: tier progression, keycard and VIP door on headset | B | ⬜ |
 | Slice C: diegetic UI + character evolution visuals on headset | C | ⬜ |
 | Slice D: movement + blocked-out world + `MVP_Main` integration | D | ⬜ |
@@ -164,6 +164,9 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot A log
 
+- 2026-10-06 · Blackjack ported from Ben's vrstake prototype: Unity-free rules + 49 EditMode tests in `TableGames/Logic` and `TableGames/Tests` (natural pays 3:2, dealer stands on all 17s, double, one split, hidden hole card, exact-odds return check), `BlackjackPresenter` + `PressableButton` + our own drawn cards (`CardView`, no third-party art), bets go through `ChipWallet`. **High Stakes > Tables > Build Blackjack Table** builds `Content/Tables/Prefabs/Tables_BlackjackTable.prefab` from the kit; it replaces one table in the VIP room, and `_SoloTest` gets a 1,000-chip wallet so the table plays on its own. Ahead of the week-4 plan. Zach: kit floor tile `Mesh` isn't static, so floors never lightmap (slot-a/blackjack)
+
+- 2026-10-06 · Chip wallet: `Economy/ChipWallet` is the one real `IChipWallet` (balance rules in the Unity-free `ChipLedger`, rejects negative amounts, saturates at int max, logs an error if two wallets are active, Inspector ⋮ menu adds/spends chips in Play mode); 6 EditMode tests pass. Zach: add one `ChipWallet` to `MVP_Main` outside `_SoloTest` (slot-a/chips)
 - 2026-10-04 · VIP room: **High Stakes > Tables > Build VIP Room Scene** generates `MVP_VIPRoom.unity` (10 m hallway with a velvet-rope lane and "VIP LOUNGE" sign opening into a 12 x 12 m lounge: two high-stakes tables, bar, slots), style kit only, baked lighting; the hallway's back door is a portal `VIP_HallStart` -> `Casino_VIP`, so the casino needs one `Env_PortalDoor_Warm` with id `Casino_VIP` to connect it (slot-a/vip-room)
 
 ### Slot B log
