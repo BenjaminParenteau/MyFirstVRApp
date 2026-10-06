@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.XR;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
@@ -17,7 +16,7 @@ namespace HighStakes.Environment
         void Awake()
         {
             if (simulator != null)
-                simulator.SetActive(Application.isEditor && !XRSettings.isDeviceActive &&
+                simulator.SetActive(SoloTestRoot.SimulatorAllowed() &&
                     FindFirstObjectByType<XRInteractionSimulator>() == null);
 
             // Editor walking stays on the ground instead of flying the simulated headset.

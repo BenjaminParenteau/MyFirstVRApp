@@ -205,6 +205,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Setup
 
+- 2026-10-06 · Simulator off with a real headset: `SoloTestRoot.SimulatorAllowed()` also treats a running XR loader as a headset (over Quest Link `XRSettings.isDeviceActive` can still be false at startup, so the simulator's fake HMD ran next to the real one: view on the floor, wrong head tracking) and keeps checking each frame; the casino setup uses the same check.
+
 - 2026-10-06 · Movement now matches Ben's vrstake prototype: `Kit_PlayerRig` rebuilt as a variant of the plain XRI starter rig (**High Stakes > Rebuild Player Rig**), dropping the VR Template's tunneling vignette on every move/turn and the floating controller callouts; move speed back to the starter default; removed `RoomPlayerCollision` (fought XRI's own CharacterController every frame). Stick locomotion still collides with walls; walking for real (or simulator WASD) passes through them, as in vrstake.
 
 - 2026-10-06 · One scene per area, loaded through doors: new `MVP_Main` (build index 0: the one rig, `ChipWallet`, wrist display, `SceneFlow` with a fade) loads one area at a time; `DoorPortal.targetScene` swaps areas. Casino moved to `MVP_Casino` and got its doors (VIP portal on Ashton's VIP door, staff doors SECURITY / CAMERAS / VAULT); `MVP_Hallways` split into `MVP_SecurityOffice`, `MVP_CameraRoom`, `MVP_Vault`; `MVP_VIPRoom` renamed `MVP_VIP`. **High Stakes > Build MVP World (all scenes)** builds it all. Headless Play-mode walk: casino -> VIP -> casino -> security wing, one rig and one wallet in every area, arrivals land on the doors.
