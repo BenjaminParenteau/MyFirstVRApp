@@ -205,6 +205,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Setup
 
+- 2026-10-06 · Blackjack buttons pressable and watch on the controller: the starter rig's near grab only hit layer Default and its far ray Default/UI/Teleport, so nothing on the reserved `Interactable` layer (table buttons, Ashton's props) could be pointed at or grabbed; `Kit_PlayerRig` now adds `Interactable` to both hands' casters. `WristAttach` also finds the left controller while the rig still has it switched off (untracked), so the watch rides along from the start. Headless check: watch on Left Controller, right ray hovers DEAL, pressing it takes the wager.
+
 - 2026-10-06 · Simulator off with a real headset: `SoloTestRoot.SimulatorAllowed()` also treats a running XR loader as a headset (over Quest Link `XRSettings.isDeviceActive` can still be false at startup, so the simulator's fake HMD ran next to the real one: view on the floor, wrong head tracking) and keeps checking each frame; the casino setup uses the same check.
 
 - 2026-10-06 · Movement now matches Ben's vrstake prototype: `Kit_PlayerRig` rebuilt as a variant of the plain XRI starter rig (**High Stakes > Rebuild Player Rig**), dropping the VR Template's tunneling vignette on every move/turn and the floating controller callouts; move speed back to the starter default; removed `RoomPlayerCollision` (fought XRI's own CharacterController every frame). Stick locomotion still collides with walls; walking for real (or simulator WASD) passes through them, as in vrstake.

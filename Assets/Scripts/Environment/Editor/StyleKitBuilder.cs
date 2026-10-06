@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
+using UnityEngine.XR.Interaction.Toolkit.Interactors.Casters;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement;
 
 /// <summary>
@@ -184,7 +185,12 @@ public static class StyleKitBuilder
     public static void RebuildPlayerRig()
     {
         var kit = AssetDatabase.LoadAssetAtPath<SharedStyleKit>($"{Root}/SharedStyleKit.asset");
-        var rig = PlayerRig("Kit_PlayerRig", fresh: true);
+        // Fresh only when the existing rig still sits on another base: a fresh variant gets new internal ids, which
+        // drops every scene's overrides on its rig instance.
+        var existing = AssetDatabase.LoadAssetAtPath<GameObject>($"{Root}/Prefabs/Kit_PlayerRig.prefab");
+        var basePrefab = existing != null ? PrefabUtility.GetCorrespondingObjectFromSource(existing) : null;
+        bool fresh = basePrefab == null || AssetDatabase.GetAssetPath(basePrefab) != RigPrefabPath;
+        var rig = PlayerRig("Kit_PlayerRig", fresh);
         if (kit != null && rig != null)
         {
             kit.playerRig = rig;
@@ -222,6 +228,17 @@ public static class StyleKitBuilder
         if (body != null) body.stepOffset = StyleScale.MaxStepHeight;
 
         // Move speed stays at the starter rig's default, which is what vrstake plays with.
+
+        // The starter rig's near grab only hits Default and its far ray Default/UI/Teleport. Add the reserved
+        // Interactable layer, or nothing on it (table buttons, grabbable props) can be pointed at or grabbed.
+        int interactable = LayerMask.NameToLayer("Interactable");
+        if (interactable >= 0)
+        {
+            foreach (var near in contents.GetComponentsInChildren<SphereInteractionCaster>(true))
+                near.physicsLayerMask |= 1 << interactable;
+            foreach (var far in contents.GetComponentsInChildren<CurveInteractionCaster>(true))
+                far.raycastMask |= 1 << interactable;
+        }
 
         // No skybox (StyleGuide §5): clear to black instead of Unity's default blue, so gaps in a room read as darkness.
         var cam = contents.GetComponentInChildren<Camera>(true);

@@ -62,7 +62,8 @@ namespace HighStakes.UI
 
         private static Transform FindChild(Transform root, string childName)
         {
-            foreach (var t in root.GetComponentsInChildren<Transform>())
+            // Inactive too: the rig switches a controller off until it is tracked, and the watch should ride along.
+            foreach (var t in root.GetComponentsInChildren<Transform>(true))
             {
                 if (t.name == childName)
                     return t;
