@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HighStakes.Economy;
 using HighStakes.Environment;
 using TMPro;
 using UnityEditor;
@@ -8,11 +9,12 @@ using UnityEngine.Rendering;
 
 /// <summary>
 /// Generates MVP_VIPRoom.unity: a 4 m wide hallway that opens through a roped-off "VIP LOUNGE" doorway into a 12 x 12 m
-/// VIP room (two high-stakes tables, a bar, slot machines), built only from the shared style kit in the casino look.
+/// VIP room (a playable blackjack table, a high-stakes table set, a bar, slot machines), built only from the shared
+/// style kit in the casino look.
 ///
 /// The hallway starts at a portal door with id VIP_HallStart that leads to Casino_VIP, so the casino only needs an
 /// Env_PortalDoor_Warm with that id to connect here (same scheme as HallwayBuilder). Played on its own, you spawn at the
-/// start of the hallway facing the lounge.
+/// start of the hallway facing the lounge, with a 1,000-chip test wallet under _SoloTest so the blackjack table plays.
 ///
 /// Slot A owns this. Re-running overwrites the scene, so after the first run edit the scene by hand.
 /// </summary>
@@ -42,6 +44,10 @@ public static class VipRoomBuilder
         }
 
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        // Built in the fresh scene (its scene copy is removed again) so the user's scene is never touched.
+        var blackjack = AssetDatabase.LoadAssetAtPath<GameObject>(BlackjackTableBuilder.PrefabPath);
+        if (blackjack == null) blackjack = BlackjackTableBuilder.BuildPrefab();
+        if (blackjack == null) return;
         RenderSettings.skybox = null;
         RenderSettings.ambientMode = AmbientMode.Flat;
         RenderSettings.ambientLight = new Color32(0x3A, 0x30, 0x26, 0xFF); // same flat ambient as the casino
@@ -76,8 +82,8 @@ public static class VipRoomBuilder
             Place(kit.lightWarmFloor, area, new Vector3(1f, 2.6f, z), 0);
         }
 
-        // Room: two high-stakes tables, bar on the back wall, slot machines along the sides.
-        Place(kit.casinoTableSet, area, new Vector3(-1.5f, 0f, 15f), 0);
+        // Room: the blackjack table and a high-stakes table set, bar on the back wall, slot machines along the sides.
+        Place(blackjack, area, new Vector3(-1.5f, 0f, 15f), 0).name = "Tables_Blackjack"; // player side faces the hallway
         Place(kit.casinoTableSet, area, new Vector3(3.5f, 0f, 15f), 0);
         Place(kit.barCounter, area, new Vector3(1f, 0f, 19.8f), 0);
         foreach (float x in new[] { -0.5f, 1f, 2.5f }) Place(kit.barStool, area, new Vector3(x, 0f, 18.8f), 0);
@@ -97,9 +103,10 @@ public static class VipRoomBuilder
         Debug.Log("[VIPRoom] Built " + ScenePath + ". Press Play and walk forward (WASD in the simulator) into the lounge.");
     }
 
-    // Batch entry point: build, then bake the lightmaps (CPU, per the kit's lighting settings).
+    // Batch entry point: rebuild the blackjack prefab, build, then bake the lightmaps (CPU, per the kit's lighting settings).
     public static void BuildAndBake()
     {
+        BlackjackTableBuilder.BuildPrefab();
         Build();
         Lightmapping.Bake();
         EditorSceneManager.SaveScene(EditorSceneManager.GetActiveScene());
@@ -117,6 +124,13 @@ public static class VipRoomBuilder
         var rig = (GameObject)PrefabUtility.InstantiatePrefab(kit.playerRig, solo.transform);
         rig.transform.position = spawn; // faces +Z, down the hallway
         StyleKitBuilder.AddSimulator(solo.transform);
+
+        // Stand-in for MVP_Main's wallet; under _SoloTest, so it switches off there and the real one is the only one.
+        var wallet = new GameObject("SoloTest_ChipWallet").AddComponent<ChipWallet>();
+        wallet.transform.SetParent(solo.transform);
+        var so = new SerializedObject(wallet);
+        so.FindProperty("startingBalance").intValue = 1000;
+        so.ApplyModifiedPropertiesWithoutUndo();
     }
 
     // ponytail: same floor/ceiling/wall-per-open-edge idea as HallwayBuilder.BuildArea (private there), warm look only.
