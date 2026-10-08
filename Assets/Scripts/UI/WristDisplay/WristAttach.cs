@@ -15,10 +15,10 @@ namespace HighStakes.UI
         [SerializeField] private string controllerName = "Left Controller";
         [Tooltip("Hidden until attached, so the watch never floats at the world origin.")]
         [SerializeField] private GameObject visuals;
-        [Tooltip("Position on the controller. Default sits on the back of the left wrist. Tune in Play mode, then copy back.")]
-        [SerializeField] private Vector3 localPosition = new Vector3(-0.035f, -0.01f, -0.09f);
-        [Tooltip("Rotation on the controller. Default turns the face (+Y) toward the back of the left hand (-X).")]
-        [SerializeField] private Vector3 localEulerAngles = new Vector3(0f, 0f, 90f);
+        [Tooltip("Where the back of the left wrist is, relative to the controller: behind the grip, toward the back of the hand. Tune in Play mode, then copy back.")]
+        [SerializeField] private Vector3 localPosition = new Vector3(-0.022f, -0.03f, -0.135f);
+        [Tooltip("Worn like a watch: face (+Y) toward the back of the hand (-X), 3 o'clock (+X) toward the hand (+Z), 12 o'clock (+Z) down the controller (-Y), so it reads upright when you turn your wrist to look.")]
+        [SerializeField] private Vector3 localEulerAngles = new Vector3(90f, 0f, 90f);
 
         private const float SearchInterval = 1f;
 

@@ -904,7 +904,7 @@ PrefabInstance:
   m_SourcePrefab: {fileID: 100100000, guid: 0c1d1d2aa2af8d34ab7d90e734e161ab, type: 3}
 --- !u!4 &206603510 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 3720148140002122907, guid: 0c1d1d2aa2af8d34ab7d90e734e161ab, type: 3}
+  m_CorrespondingSourceObject: {fileID: 6295871397155252032, guid: 0c1d1d2aa2af8d34ab7d90e734e161ab, type: 3}
   m_PrefabInstance: {fileID: 206603509}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &257042804
@@ -2536,6 +2536,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69d97f0f79e8f064faf524cdb81c7ab2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HighStakes.Environment.SoloTestRoot
+  simulatorWalkSpeed: 3
 --- !u!4 &796051562
 Transform:
   m_ObjectHideFlags: 0

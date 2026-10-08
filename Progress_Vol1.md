@@ -205,6 +205,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Setup
 
+- 2026-10-08 · The wrist display now looks like a watch: round case (steel, gold from Known High Roller) whose rim frames a round dark face, crown at 3 o'clock, lugs, and a strap wrapped around the wrist; worn so it reads upright when you turn the wrist to look (`WristAttach` (90, 0, 90), behind the grip). Rebuilt with **High Stakes > UI > Build Wrist Display**; checked in headless renders.
+
 - 2026-10-08 · Watch back on the left wrist (Ben's call): `WristAttach` defaults and `UI_WristDisplay.prefab` use Pak's original wrist pose again, (-0.035, -0.01, -0.09) with the face turned toward the back of the hand, just behind the controller grip; checked in a headless render (shows BANKROLL $1,000).
 
 - 2026-10-06 · Blackjack buttons pressable and watch on the controller: the starter rig's near grab only hit layer Default and its far ray Default/UI/Teleport, so nothing on the reserved `Interactable` layer (table buttons, Ashton's props) could be pointed at or grabbed; `Kit_PlayerRig` now adds `Interactable` to both hands' casters. `WristAttach` also finds the left controller while the rig still has it switched off (untracked), so the watch rides along from the start. Headless check: watch on Left Controller, right ray hovers DEAL, pressing it takes the wager.

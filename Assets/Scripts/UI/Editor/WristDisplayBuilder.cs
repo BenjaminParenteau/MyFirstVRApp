@@ -21,9 +21,14 @@ public static class WristDisplayBuilder
     const string ScenePath = "Assets/Scenes/MVP/MVP_UI.unity";
     const string KitPath = "Assets/Content/StyleKit/SharedStyleKit.asset";
 
-    // Watch size (metres): a chunky digital watch, as in docs/reference/VisualReference.md
-    static readonly Vector3 CaseSize = new Vector3(0.06f, 0.012f, 0.046f);
-    static readonly Vector3 ScreenSize = new Vector3(0.054f, 0.0005f, 0.04f);
+    // Watch size (metres): a chunky round digital watch, as in docs/reference/VisualReference.md
+    const float CaseDiameter = 0.046f;
+    const float CaseHeight = 0.011f;
+    const float FaceDiameter = 0.038f;
+    // The wrist the strap wraps around: an ellipse in the watch's YZ plane, centred under the case.
+    const float WristHalfDepth = 0.022f; // along Y, back of the wrist to the palm side
+    const float WristHalfWidth = 0.03f;  // along Z, 12 o'clock to 6 o'clock
+    const float StrapWidth = 0.022f;     // along X, the forearm
 
     [MenuItem("High Stakes/UI/Build Wrist Display")]
     public static void Build()
@@ -57,28 +62,30 @@ public static class WristDisplayBuilder
 
     static GameObject BuildPrefab(SharedStyleKit kit)
     {
-        // Watch space: +Y points out of the face, +Z is the top of the text
+        // Watch space, as worn: +Y out of the face, +Z toward 12 o'clock (top of the text), +X toward 3 o'clock and the
+        // hand. The case bottom sits on the back of the wrist at y = 0.
         var root = new GameObject("UI_WristDisplay");
 
         var visuals = new GameObject("Visuals");
         visuals.transform.SetParent(root.transform, false);
-        // Tier looks on the watch itself (StyleGuide colours only): steel → gold → gold with a white VIP stripe
-        var caseSteel = Prim("Case", visuals, Vector3.zero, CaseSize, kit.steelCool);
-        var caseGold = Prim("Case_Gold", visuals, Vector3.zero, CaseSize, kit.brassGold);
-        var stripe = Prim("Stripe_VIP", visuals, new Vector3(0, 0, -CaseSize.z / 2f - 0.002f),
-            new Vector3(CaseSize.x, CaseSize.y * 0.6f, 0.004f), kit.keycardPlastic);
+        // Tier looks on the watch itself (StyleGuide colours only): steel -> gold -> gold with a white VIP band
+        var caseSteel = WatchCase(kit.steelCool, visuals, "Case");
+        var caseGold = WatchCase(kit.brassGold, visuals, "Case_Gold");
+        var stripe = Prim("Stripe_VIP", visuals, PrimitiveType.Cube, new Vector3(0, -0.0005f, -(CaseDiameter / 2f + 0.006f)),
+            new Vector3(StrapWidth + 0.002f, 0.0045f, 0.004f), kit.keycardPlastic);
+        Strap(kit.chipBlack, visuals);
 
         var face = new GameObject("Face");
         face.transform.SetParent(visuals.transform, false);
-        float faceY = CaseSize.y / 2f;
-        Prim("Screen", face, new Vector3(0, faceY + ScreenSize.y / 2f, 0), ScreenSize, kit.chipBlack);
+        float faceTop = CaseHeight + 0.0004f;
+        Prim("Screen", face, PrimitiveType.Cylinder, new Vector3(0, faceTop - 0.0004f, 0), new Vector3(FaceDiameter, 0.0004f, FaceDiameter), kit.chipBlack);
 
-        float textY = faceY + ScreenSize.y + 0.0003f;
-        // Three rows filling the 40 mm face. Tier names are long ("VALUED ASSOCIATE"), so that row wraps onto two
+        float textY = faceTop + 0.0003f;
+        // Three rows inside the round face. Tier names are long ("VALUED ASSOCIATE"), so that row wraps onto two
         // lines instead of shrinking to an unreadable single line.
-        Label("Caption", face, new Vector3(0, textY, 0.0145f), new Vector2(0.05f, 0.007f), "BANKROLL", kit.accentCyan);
-        var bankroll = Label("Bankroll", face, new Vector3(0, textY, 0.0035f), new Vector2(0.05f, 0.015f), "$0", kit.accentCyan);
-        var tier = Label("Tier", face, new Vector3(0, textY, -0.0115f), new Vector2(0.05f, 0.013f), WristDisplayLogic.NoValue, kit.accentCyan, wrap: true);
+        Label("Caption", face, new Vector3(0, textY, 0.0105f), new Vector2(0.024f, 0.005f), "BANKROLL", kit.accentCyan);
+        var bankroll = Label("Bankroll", face, new Vector3(0, textY, 0.002f), new Vector2(0.032f, 0.011f), "$0", kit.accentCyan);
+        var tier = Label("Tier", face, new Vector3(0, textY, -0.0095f), new Vector2(0.026f, 0.009f), WristDisplayLogic.NoValue, kit.accentCyan, wrap: true);
 
         var attach = root.AddComponent<WristAttach>();
         Set(attach, "visuals", visuals);
@@ -87,7 +94,7 @@ public static class WristDisplayBuilder
         Set(display, "bankrollText", bankroll);
         Set(display, "tierText", tier);
 
-        // Steel watch at the start; gold from tier 1; VIP stripe from tier 2
+        // Steel watch at the start; gold from tier 1; VIP band from tier 2
         TierRange(root, caseSteel, 0, 0);
         TierRange(root, caseGold, 1, -1);
         TierRange(root, stripe, 2, -1);
@@ -99,6 +106,44 @@ public static class WristDisplayBuilder
         var prefab = PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
         Object.DestroyImmediate(root);
         return prefab;
+    }
+
+    // Round case (its rim frames the face like a bezel), a crown at 3 o'clock and lugs at 12 and 6 o'clock.
+    static GameObject WatchCase(Material metal, GameObject parent, string name)
+    {
+        var watchCase = new GameObject(name);
+        watchCase.transform.SetParent(parent.transform, false);
+        // Unity's cylinder is 2 units tall, so a Y scale of h/2 makes it h tall; centred at half its height.
+        Prim("Body", watchCase, PrimitiveType.Cylinder, new Vector3(0, CaseHeight / 2f, 0),
+            new Vector3(CaseDiameter, CaseHeight / 2f, CaseDiameter), metal);
+        var crown = Prim("Crown", watchCase, PrimitiveType.Cylinder, new Vector3(CaseDiameter / 2f + 0.002f, CaseHeight * 0.55f, 0),
+            new Vector3(0.006f, 0.0025f, 0.006f), metal);
+        crown.transform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+        foreach (float side in new[] { 1f, -1f })
+            Prim("Lugs", watchCase, PrimitiveType.Cube, new Vector3(0, CaseHeight * 0.4f, side * (CaseDiameter / 2f + 0.002f)),
+                new Vector3(StrapWidth + 0.003f, CaseHeight * 0.6f, 0.007f), metal);
+        return watchCase;
+    }
+
+    // A band of short flat segments around the wrist ellipse, from one lug, under the wrist, to the other.
+    static void Strap(Material material, GameObject parent)
+    {
+        var strap = new GameObject("Strap");
+        strap.transform.SetParent(parent.transform, false);
+        var centre = new Vector3(0f, -WristHalfDepth, 0f);
+        const int segments = 28;
+        for (int i = 0; i < segments; i++)
+        {
+            float a0 = 2f * Mathf.PI * i / segments, a1 = 2f * Mathf.PI * (i + 1) / segments;
+            // Angle 0 is the top of the wrist (under the case): leave out the arc the case covers.
+            var p0 = centre + new Vector3(0f, WristHalfDepth * Mathf.Cos(a0), WristHalfWidth * Mathf.Sin(a0));
+            var p1 = centre + new Vector3(0f, WristHalfDepth * Mathf.Cos(a1), WristHalfWidth * Mathf.Sin(a1));
+            var mid = (p0 + p1) / 2f;
+            if (Mathf.Abs(mid.z) < CaseDiameter / 2f && mid.y > -0.004f) continue;
+            var seg = Prim("Band", strap, PrimitiveType.Cube, mid,
+                new Vector3(StrapWidth, 0.0025f, Vector3.Distance(p0, p1) + 0.0008f), material);
+            seg.transform.localRotation = Quaternion.LookRotation(p1 - p0, mid - centre);
+        }
     }
 
     static TextMeshPro Label(string name, GameObject parent, Vector3 pos, Vector2 size, string text, Color color, bool wrap = false)
@@ -130,9 +175,9 @@ public static class WristDisplayBuilder
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 
-    static GameObject Prim(string name, GameObject parent, Vector3 pos, Vector3 scale, Material m)
+    static GameObject Prim(string name, GameObject parent, PrimitiveType type, Vector3 pos, Vector3 scale, Material m)
     {
-        var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        var go = GameObject.CreatePrimitive(type);
         go.name = name;
         go.transform.SetParent(parent.transform, false);
         go.transform.localPosition = pos;

@@ -1,6 +1,6 @@
 # Wrist display
 
-A chunky watch on the back of the **left wrist** (just behind the left controller's grip) that shows **BANKROLL**
+A round watch on the back of the **left wrist** (round case, crown, lugs and a strap around the wrist, just behind the left controller's grip) that shows **BANKROLL**
 (chips) and the current **tier**, in cyan text on a dark face (docs/reference/VisualReference.md). It lights up when
 you raise your wrist and look at it. The case shows the tier: steel → gold (Known High Roller) → gold with a white VIP stripe
 (Valued Associate).
