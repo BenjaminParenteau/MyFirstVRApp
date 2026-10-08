@@ -209,6 +209,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Setup
 
+- 2026-10-08 · Pit Boss walks the casino floor: Microsoft Rocketbox `Business_Male_04` (MIT, 7.3k triangles, textures cut to 1024 PNG) in `Content/Characters/PitBoss/`, slow-walk and look-around clips from the same library, `PatrolWalker` (Security) loops four waypoints around the centre and left aisles, turning on the spot and looking around at each corner; capsule collider so you bump into him. **High Stakes > Characters > Build Pit Boss** rebuilds the prefab and his `PitBoss_Patrol` in `MVP_Casino`. Headless check in `MVP_Main`: he walks up the aisle facing forward, plays both clips, turns the corner.
+
 - 2026-10-08 · Watch hologram: looking at the raised watch projects a blue holographic HUD above it on a beam of light (bankroll, tier, session +/-), growing out of the face in 0.2 s, always facing the eyes, folding away in 0.12 s when you look away (`WatchHologram`, built by **High Stakes > UI > Build Wrist Display**; transparent unlit `UI_Hologram*.mat`). 5 new logic tests (83 pass); headless check: hidden, opens above the watch while looked at, folds away after.
 
 - 2026-10-08 · The wrist display now looks like a watch: round case (steel, gold from Known High Roller) whose rim frames a round dark face, crown at 3 o'clock, lugs, and a strap wrapped around the wrist; worn so it reads upright when you turn the wrist to look (`WristAttach` (90, 0, 90), behind the grip). Rebuilt with **High Stakes > UI > Build Wrist Display**; checked in headless renders.
@@ -234,6 +236,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 - 2026-09-29 · _(setup)_ · Added `docs/reference/` (concept-art descriptions from the submitted GDD PDF), linked from CLAUDE.md; added Benjamin Parenteau to the GDD team line.
 
 ## Decisions
+
+- **2026-10-08 · NPCs come from Microsoft Rocketbox (MIT).** Free, safe in the public repo, semi-realistic, shared skeleton across 115 avatars and 400+ animations. Cast plan: Pit Boss `Business_Male_04`, dealers `Business_Male_06` / `Business_Female_01` (+ black vest), informant `Business_Male_07`, guards `Security_Male_01` / `Security_Female_01`, server `Female_Adult_13`, guests from Adults/Party. Rocketbox's own `FixRocketboxMaxImport` postprocessor is not used (it rewrites every material in the project); the builders apply its fixes per character. The Pit Boss was added ahead of the MVP plan at Ben's request (walking only; no detection or suspicion yet).
 
 - **2026-10-08 · Holograms get their own materials.** The kit has no transparent glow material, so the watch HUD uses three transparent unlit blue materials in `Content/UI/` (`UI_Hologram`, `UI_HologramEdge`, `UI_HologramBeam`). Reuse them for any future holographic UI instead of adding more.
 
