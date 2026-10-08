@@ -24,6 +24,12 @@ namespace HighStakes.UI
         private ICharacterTier tier;
         private float nextSearchTime;
 
+        /// <summary>The wallet this watch found (null until one is loaded). Other watch parts read through here.</summary>
+        public IChipWallet Wallet => wallet;
+
+        /// <summary>The tier source this watch found (null until one is loaded).</summary>
+        public ICharacterTier Tier => tier;
+
         private void OnEnable()
         {
             Bind();

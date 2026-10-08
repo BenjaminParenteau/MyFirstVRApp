@@ -15,6 +15,31 @@ namespace HighStakes.UI.Tests
             Assert.AreEqual(expected, WristDisplayLogic.FormatChips(chips));
         }
 
+        [TestCase(40, "+$40")]
+        [TestCase(-15, "-$15")]
+        [TestCase(0, "$0")]
+        public void FormatNet_SignsWinsAndLosses(int net, string expected)
+        {
+            Assert.AreEqual(expected, WristDisplayLogic.FormatNet(net));
+        }
+
+        [Test]
+        public void StepOpen_OpensAndClosesAtTheirOwnRatesAndStaysInRange()
+        {
+            Assert.AreEqual(0.5f, WristDisplayLogic.StepOpen(0f, true, 0.1f, 0.2f, 0.1f), 1e-5f);
+            Assert.AreEqual(1f, WristDisplayLogic.StepOpen(0.9f, true, 0.1f, 0.2f, 0.1f));
+            Assert.AreEqual(0f, WristDisplayLogic.StepOpen(0.5f, false, 0.1f, 0.2f, 0.1f));
+            Assert.AreEqual(0f, WristDisplayLogic.StepOpen(0f, false, 0.1f, 0.2f, 0.1f));
+        }
+
+        [Test]
+        public void EaseOut_RunsFromZeroToOneAheadOfLinear()
+        {
+            Assert.AreEqual(0f, WristDisplayLogic.EaseOut(0f));
+            Assert.AreEqual(1f, WristDisplayLogic.EaseOut(1f));
+            Assert.Greater(WristDisplayLogic.EaseOut(0.5f), 0.5f);
+        }
+
         [TestCase("Known High Roller", "KNOWN HIGH ROLLER")]
         [TestCase("  Ordinary Night ", "ORDINARY NIGHT")]
         public void FormatTier_UppercasesAndTrims(string name, string expected)

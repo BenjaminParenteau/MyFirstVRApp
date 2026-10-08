@@ -36,6 +36,30 @@ namespace HighStakes.UI
             return tier >= minTier && (maxTier < 0 || tier <= maxTier);
         }
 
+        /// <summary>Chips won or lost this session: 40 -> "+$40", -15 -> "-$15", 0 -> "$0".</summary>
+        public static string FormatNet(int net)
+        {
+            return net > 0 ? "+" + FormatChips(net) : FormatChips(net);
+        }
+
+        /// <summary>
+        /// Moves the hologram's open amount (0 = folded into the watch, 1 = fully projected) one frame toward open or
+        /// closed, at a constant rate: <paramref name="openSeconds"/> to open fully, <paramref name="closeSeconds"/> to close.
+        /// </summary>
+        public static float StepOpen(float amount, bool open, float deltaTime, float openSeconds, float closeSeconds)
+        {
+            float step = deltaTime / (open ? openSeconds : closeSeconds);
+            float next = open ? amount + step : amount - step;
+            return next < 0f ? 0f : next > 1f ? 1f : next;
+        }
+
+        /// <summary>Ease-out (fast start, gentle stop) for the projected size, so the panel snaps open and settles.</summary>
+        public static float EaseOut(float t)
+        {
+            float inv = 1f - t;
+            return 1f - inv * inv * inv;
+        }
+
         /// <summary>
         /// Whether the watch face should be lit. <paramref name="facingDot"/> is the dot product of the face normal and
         /// the direction to the player's eyes (1 = looking straight at it). Uses two thresholds so the face doesn't

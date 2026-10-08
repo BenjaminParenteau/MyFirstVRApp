@@ -4165,6 +4165,27 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 105875074835338383, guid: bf5d2a72ade6e4dca8fd2c51aabff0ce, type: 3}
       insertIndex: -1
       addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 7742927382707011284, guid: bf5d2a72ade6e4dca8fd2c51aabff0ce, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 3559516902494198207, guid: bf5d2a72ade6e4dca8fd2c51aabff0ce, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 8128582106758559244, guid: bf5d2a72ade6e4dca8fd2c51aabff0ce, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 6619739542451211549, guid: bf5d2a72ade6e4dca8fd2c51aabff0ce, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 6395474830071068038, guid: bf5d2a72ade6e4dca8fd2c51aabff0ce, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 7721564073754258638, guid: bf5d2a72ade6e4dca8fd2c51aabff0ce, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 3482360693274345162, guid: bf5d2a72ade6e4dca8fd2c51aabff0ce, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: bf5d2a72ade6e4dca8fd2c51aabff0ce, type: 3}
 --- !u!4 &1777745200 stripped
 Transform:

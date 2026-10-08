@@ -25,6 +25,9 @@ namespace HighStakes.UI
         private Camera eyes;
         private bool shown = true;
 
+        /// <summary>True while the player is looking at the raised watch. The hologram opens and closes with it.</summary>
+        public bool IsShown => shown;
+
         private void Awake()
         {
             if (faceNormal == null)
@@ -57,7 +60,7 @@ namespace HighStakes.UI
                 Mathf.Cos(showAngle * Mathf.Deg2Rad), Mathf.Cos(hideAngle * Mathf.Deg2Rad), maxDistance);
         }
 
-        private static Camera FindEyes()
+        internal static Camera FindEyes()
         {
             var origin = FindFirstObjectByType<XROrigin>();
             return origin != null && origin.Camera != null ? origin.Camera : Camera.main;

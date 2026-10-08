@@ -20,6 +20,14 @@ public static class WristDisplayBuilder
     const string TemplateScenePath = "Assets/Scenes/MVP/MVP_Template.unity";
     const string ScenePath = "Assets/Scenes/MVP/MVP_UI.unity";
     const string KitPath = "Assets/Content/StyleKit/SharedStyleKit.asset";
+    const string HologramMaterialPath = ContentRoot + "/UI_Hologram.mat";
+    const string HologramEdgeMaterialPath = ContentRoot + "/UI_HologramEdge.mat";
+    const string HologramBeamMaterialPath = ContentRoot + "/UI_HologramBeam.mat";
+
+    // Hologram panel (metres, panel space: +Y up, viewed from -Z).
+    const float PanelWidth = 0.15f;
+    const float PanelHeight = 0.08f;
+    static readonly Color HoloBlue = new Color(0.25f, 0.65f, 1f);
 
     // Watch size (metres): a chunky round digital watch, as in docs/reference/VisualReference.md
     const float CaseDiameter = 0.046f;
@@ -103,6 +111,8 @@ public static class WristDisplayBuilder
         Set(visibility, "face", face);
         Set(visibility, "faceNormal", root.transform);
 
+        BuildHologram(kit, root, visuals, display, visibility, faceTop);
+
         var prefab = PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
         Object.DestroyImmediate(root);
         return prefab;
@@ -146,6 +156,100 @@ public static class WristDisplayBuilder
         }
     }
 
+    // The HUD the watch projects while looked at. Panel and beam are placed in world space by WatchHologram each frame.
+    static void BuildHologram(SharedStyleKit kit, GameObject root, GameObject visuals, WristDisplay display,
+        WristRaiseVisibility visibility, float faceTop)
+    {
+        var panelMaterial = HologramMaterial(HologramMaterialPath, new Color(HoloBlue.r, HoloBlue.g, HoloBlue.b, 0.22f));
+        var edgeMaterial = HologramMaterial(HologramEdgeMaterialPath, new Color(HoloBlue.r, HoloBlue.g, HoloBlue.b, 0.85f));
+        var beamMaterial = HologramMaterial(HologramBeamMaterialPath, new Color(HoloBlue.r, HoloBlue.g, HoloBlue.b, 0.12f));
+
+        var hologram = new GameObject("Hologram");
+        hologram.transform.SetParent(visuals.transform, false);
+        var emitter = new GameObject("Emitter");
+        emitter.transform.SetParent(hologram.transform, false);
+        emitter.transform.localPosition = new Vector3(0f, faceTop, 0f);
+
+        var panel = new GameObject("Panel");
+        panel.transform.SetParent(hologram.transform, false);
+        Prim("Glass", panel, PrimitiveType.Quad, Vector3.zero, new Vector3(PanelWidth, PanelHeight, 1f), panelMaterial);
+        const float edge = 0.0015f;
+        foreach (float y in new[] { PanelHeight / 2f, -PanelHeight / 2f })
+            Prim("Edge", panel, PrimitiveType.Quad, new Vector3(0f, y, -0.0005f), new Vector3(PanelWidth, edge, 1f), edgeMaterial);
+        foreach (float x in new[] { PanelWidth / 2f, -PanelWidth / 2f })
+            Prim("Edge", panel, PrimitiveType.Quad, new Vector3(x, 0f, -0.0005f), new Vector3(edge, PanelHeight, 1f), edgeMaterial);
+        // Rule line under the header.
+        Prim("Rule", panel, PrimitiveType.Quad, new Vector3(0f, 0.022f, -0.0005f), new Vector3(PanelWidth - 0.02f, 0.0008f, 1f), edgeMaterial);
+
+        HudText("Header", panel, new Vector3(0f, 0.03f), new Vector2(PanelWidth - 0.02f, 0.01f), "HIGH STAKES", TextAlignmentOptions.Center, kit.accentCyan);
+        var rows = new[] { ("BANKROLL", 0.011f), ("TIER", -0.008f), ("SESSION", -0.027f) };
+        var values = new TextMeshPro[rows.Length];
+        for (int i = 0; i < rows.Length; i++)
+        {
+            var (caption, y) = rows[i];
+            HudText(caption + "_Caption", panel, new Vector3(-0.037f, y), new Vector2(0.06f, 0.011f), caption, TextAlignmentOptions.Left, HoloBlue);
+            values[i] = HudText(caption + "_Value", panel, new Vector3(0.025f, y), new Vector2(0.085f, 0.014f), WristDisplayLogic.NoValue, TextAlignmentOptions.Right, kit.accentCyan);
+        }
+
+        var beam = Prim("Beam", hologram, PrimitiveType.Cylinder, Vector3.zero, Vector3.one * 0.01f, beamMaterial);
+
+        var holo = root.AddComponent<WatchHologram>();
+        Set(holo, "visibility", visibility);
+        Set(holo, "display", display);
+        Set(holo, "emitter", emitter.transform);
+        Set(holo, "panel", panel.transform);
+        Set(holo, "beam", beam.transform);
+        Set(holo, "bankrollText", values[0]);
+        Set(holo, "tierText", values[1]);
+        Set(holo, "sessionText", values[2]);
+        var so = new SerializedObject(holo);
+        so.FindProperty("panelHalfHeight").floatValue = PanelHeight / 2f;
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    // Upright text on the panel, readable from -Z (the side WatchHologram turns toward the eyes).
+    static TextMeshPro HudText(string name, GameObject panel, Vector2 pos, Vector2 size, string text, TextAlignmentOptions align, Color color)
+    {
+        var go = new GameObject(name);
+        go.transform.SetParent(panel.transform, false);
+        go.transform.localPosition = new Vector3(pos.x, pos.y, -0.001f);
+        var tmp = go.AddComponent<TextMeshPro>();
+        tmp.rectTransform.sizeDelta = size;
+        tmp.text = text;
+        tmp.color = color;
+        tmp.alignment = align;
+        tmp.fontStyle = FontStyles.Bold;
+        tmp.textWrappingMode = TextWrappingModes.NoWrap;
+        tmp.enableAutoSizing = true;
+        tmp.fontSizeMin = 0.001f;
+        tmp.fontSizeMax = 1f;
+        tmp.margin = Vector4.zero;
+        return tmp;
+    }
+
+    // Transparent, unlit, both sides: holograms glow the same in any light and never cast shadows.
+    static Material HologramMaterial(string path, Color color)
+    {
+        var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (material == null)
+        {
+            material = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+            AssetDatabase.CreateAsset(material, path);
+        }
+        material.SetFloat("_Surface", 1f); // transparent
+        material.SetFloat("_Blend", 0f);   // alpha
+        material.SetFloat("_Cull", 0f);    // both sides
+        material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        material.SetFloat("_ZWrite", 0f);
+        material.SetOverrideTag("RenderType", "Transparent");
+        material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+        material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+        material.SetColor("_BaseColor", color);
+        EditorUtility.SetDirty(material);
+        return material;
+    }
+
     static TextMeshPro Label(string name, GameObject parent, Vector3 pos, Vector2 size, string text, Color color, bool wrap = false)
     {
         var go = new GameObject(name);
@@ -184,6 +288,8 @@ public static class WristDisplayBuilder
         go.transform.localScale = scale;
         go.GetComponent<Renderer>().sharedMaterial = m;
         Object.DestroyImmediate(go.GetComponent<Collider>()); // display only; must not block hands or rays
+        var renderer = go.GetComponent<Renderer>();
+        renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         return go;
     }
 

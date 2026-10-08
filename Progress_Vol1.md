@@ -205,6 +205,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Setup
 
+- 2026-10-08 · Watch hologram: looking at the raised watch projects a blue holographic HUD above it on a beam of light (bankroll, tier, session +/-), growing out of the face in 0.2 s, always facing the eyes, folding away in 0.12 s when you look away (`WatchHologram`, built by **High Stakes > UI > Build Wrist Display**; transparent unlit `UI_Hologram*.mat`). 5 new logic tests (83 pass); headless check: hidden, opens above the watch while looked at, folds away after.
+
 - 2026-10-08 · The wrist display now looks like a watch: round case (steel, gold from Known High Roller) whose rim frames a round dark face, crown at 3 o'clock, lugs, and a strap wrapped around the wrist; worn so it reads upright when you turn the wrist to look (`WristAttach` (90, 0, 90), behind the grip). Rebuilt with **High Stakes > UI > Build Wrist Display**; checked in headless renders.
 
 - 2026-10-08 · Watch back on the left wrist (Ben's call): `WristAttach` defaults and `UI_WristDisplay.prefab` use Pak's original wrist pose again, (-0.035, -0.01, -0.09) with the face turned toward the back of the hand, just behind the controller grip; checked in a headless render (shows BANKROLL $1,000).
@@ -228,6 +230,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 - 2026-09-29 · _(setup)_ · Added `docs/reference/` (concept-art descriptions from the submitted GDD PDF), linked from CLAUDE.md; added Benjamin Parenteau to the GDD team line.
 
 ## Decisions
+
+- **2026-10-08 · Holograms get their own materials.** The kit has no transparent glow material, so the watch HUD uses three transparent unlit blue materials in `Content/UI/` (`UI_Hologram`, `UI_HologramEdge`, `UI_HologramBeam`). Reuse them for any future holographic UI instead of adding more.
 
 - **2026-10-06 · Player rig = plain XRI starter rig.** Same base as vrstake, which plays better: no tunneling vignette by default (the comfort panel can offer it), no controller callouts, starter move speed, no custom tracked-movement collision. Keep our settings on top only (0.3 m step, black clear).
 

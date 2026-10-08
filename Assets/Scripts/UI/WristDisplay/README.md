@@ -12,6 +12,9 @@ you raise your wrist and look at it. The case shows the tier: steel → gold (Kn
 - **WristAttach.cs**: finds the one active `XROrigin` at runtime and attaches the watch to the left wrist,
   relative to `Left Controller` (StyleGuide §5c: never put it inside the rig in a scene). Position and rotation are Inspector fields.
 - **../TierVisuals/TierVisibility.cs**: shows a part only within a tier range (used for the steel/gold case and stripe).
+- **WatchHologram.cs**: while the face is lit, projects a blue holographic HUD above the watch on a beam of light
+  (bankroll, tier, chips won or lost this session). It grows out of the face, turns to face the eyes, and folds back
+  into the watch when you look away. Materials: `Content/UI/UI_Hologram*.mat` (transparent unlit, made by the builder).
 - **WristRaiseVisibility.cs**: turns the face on when it points at your eyes (within 35°, closer than 0.6 m) and
   off past 50°. Tick **Always Visible** to keep it on while testing.
 - **Logic/WristDisplayLogic.cs**: pure formatting (`$25,000`) and show/hide rules, covered by `Tests/`.
