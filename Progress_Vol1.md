@@ -164,6 +164,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot A log
 
+- 2026-10-08 · Plan for porting the other vrstake games (Dice, Limbo, Crash, Mines, Plinko): `docs/plans/VrstakeGamesPort.md` (shared table kit first, then one game per commit, simplest first). Placement and the GDD's roulette plan are open questions.
+
 - 2026-10-08 · Dealer board now as wide as the table (1.6 m) with its bottom edge standing on the table's dealer edge; a brass projector strip along that edge replaces the puck and beam, and the board rises straight up out of it (height grows from the bottom) when you walk up and sinks back when you leave. Headless check: width matches the table top, bottom on the top, win lands on the amount, sinks away after walking off.
 
 - 2026-10-08 · Dealer hologram at the blackjack table: a brass projector puck on the dealer's edge projects a blue holographic board where the dealer would stand (shares the watch's hologram materials). It rises out of the puck when you walk within 1.8 m of the table and folds away past 2.2 m; it replaces the old floating result text: idle prompt, YOU WIN / BLACKJACK! with the amount counting up from +$0 (eased, pulsing, a pop when it lands), DEALER WINS / PUSH, and the hands (YOU 20 · DEALER 18). `TableHologram` is reusable for future tables; `CountUp` + 3 tests (86 pass). Headless check: hidden from the hallway, opens at the table, a win counts up (+$1 on the way to +$10) and lands on the amount won, folds away after walking off.
@@ -253,6 +255,8 @@ Things the team agreed on that aren't obvious from the code.
 - **2026-10-01 · Ashton may edit the shared style kit directly (temporary exception).** He built the full casino and needs kit changes (materials, prefabs, lighting). He edits `Assets/Content/StyleKit/` on a `slot-b/<topic>` branch; Zach does not touch the kit while he does, and nobody reruns **High Stakes > Build Style Kit** (it may overwrite prefabs, since it saves them with `SaveAsPrefabAsset`). Anything not specific to the casino still follows the normal rule (request to Zach, shipped as `stylekit-vN`). Ashton announces each kit change in Open questions so everyone knows when to pull.
 
 ## Open questions / blockers
+
+- **Ben:** vrstake games placement: the casino floor's five round tables become Dice/Limbo/Crash/Mines/Plinko (recommended), or a separate electronic-games room? And is roulette (week 5, GDD) still planned? vrstake has none to port. See `docs/plans/VrstakeGamesPort.md`.
 
 
 - **Everyone: don't commit `Assets/XR/Settings/OpenXRPackageSettings.asset`.** Unity keeps reserializing it (renamed/duplicated Android XR feature entries, no functional change; checked 2026-10-01: Meta Quest Support, Touch controllers and hand tracking are on for Android, Android XR Support is off). Commit files by name, never `git add .`; if a pull is blocked by it, `git stash` first. Zach owns this file and only commits it after a deliberate OpenXR settings change. Proper cleanup is after the Milestone 2 submission.
