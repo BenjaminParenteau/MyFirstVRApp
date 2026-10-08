@@ -47,18 +47,14 @@ namespace HighStakes.TableGames.Blackjack
         [SerializeField] float dealSeconds = 0.25f;
 
         [Header("Round result")]
-        [SerializeField] TMP_Text resultText;
-        [SerializeField] float popSeconds = 0.25f;
-        [SerializeField] Color idleColor = Color.white;
-        [SerializeField] Color winColor = new Color(0f, 0.9f, 0.1f);
-        [SerializeField] Color loseColor = new Color(0.7f, 0.73f, 0.83f);
+        [Tooltip("The dealer-side hologram that announces each round.")]
+        [SerializeField] TableHologram hologram;
 
         IChipWallet wallet;
         BlackjackGame game;
         WagerAmount wager;
         BlackjackRound round;
         bool animating;
-        Vector3 resultRestScale;
         readonly Dictionary<string, CardView> onTable = new Dictionary<string, CardView>();
 
         bool Between => round == null || round.State == BlackjackState.Settled;
@@ -75,8 +71,6 @@ namespace HighStakes.TableGames.Blackjack
             doubleButton.Pressed.AddListener(() => Move(r => r.CanDouble, r => r.Double()));
             splitButton.Pressed.AddListener(() => Move(r => r.CanSplit, Split));
             foreach (var card in cardPool) card.gameObject.SetActive(false);
-            resultRestScale = resultText.transform.localScale;
-            ClearResult();
         }
 
         void Start()
@@ -142,7 +136,7 @@ namespace HighStakes.TableGames.Blackjack
         void Deal()
         {
             if (wager == null || !Between || animating) return;
-            ClearResult();
+            hologram.Idle("GOOD LUCK");
             if (!EnsureGame()) return;
             if (!game.TryStart(wager.Value, out var started))
             {
@@ -235,7 +229,7 @@ namespace HighStakes.TableGames.Blackjack
 
             animating = false;
             Show();
-            if (round.State == BlackjackState.Settled) yield return Announce();
+            if (round.State == BlackjackState.Settled) Announce();
         }
 
         CardView Take()
@@ -287,15 +281,15 @@ namespace HighStakes.TableGames.Blackjack
             t.localRotation = Quaternion.identity;
         }
 
-        IEnumerator Announce()
+        void Announce()
         {
             var net = round.Payout - round.Staked;
             Debug.Log($"[Blackjack] staked {round.Staked}, paid {round.Payout}, dealer {round.Dealer.Total}, " +
                       $"hands {string.Join(", ", HandSummaries())}");
-            if (net > 0) Result($"+{net:N0}", winColor);
-            else if (net == 0) Result("PUSH", idleColor);
-            else Result($"-{-net:N0}", loseColor);
-            yield return Pop();
+            var detail = Summary();
+            if (net > 0) hologram.Won(net, round.Hands[0].Result == HandResult.Blackjack ? "BLACKJACK!" : "YOU WIN", detail);
+            else if (net == 0) hologram.Push(detail);
+            else hologram.Lost(-net, detail);
         }
 
         IEnumerable<string> HandSummaries()
@@ -303,27 +297,17 @@ namespace HighStakes.TableGames.Blackjack
             foreach (var hand in round.Hands) yield return $"{hand.Total} {hand.Result}";
         }
 
-        void ClearResult() => Result("", idleColor);
+        /// <summary>"YOU 20 · DEALER 18", with both totals after a split and the dealer's blackjack or bust spelled out.</summary>
+        string Summary()
+        {
+            var you = new List<string>();
+            foreach (var hand in round.Hands) you.Add(hand.IsBust ? "BUST" : hand.Total.ToString());
+            var dealer = round.Dealer.IsBlackjack ? "BLACKJACK" : round.Dealer.IsBust ? "BUST" : round.Dealer.Total.ToString();
+            return $"YOU {string.Join(" / ", you)}  ·  DEALER {dealer}";
+        }
 
         /// <summary>A round that never started, such as a wager the wallet could not cover.</summary>
-        void Refused(string message) => Result(message, loseColor);
-
-        void Result(string message, Color color)
-        {
-            resultText.text = message;
-            resultText.color = color;
-        }
-
-        IEnumerator Pop()
-        {
-            var t = resultText.transform;
-            for (var elapsed = 0f; elapsed < popSeconds; elapsed += Time.deltaTime)
-            {
-                t.localScale = resultRestScale * (1f + 0.5f * Mathf.Sin(elapsed / popSeconds * Mathf.PI));
-                yield return null;
-            }
-            t.localScale = resultRestScale;
-        }
+        void Refused(string message) => hologram.Refused(message);
 
         void ShowBalance() => balanceText.text = wallet == null ? "" : "CHIPS " + wallet.Balance.ToString("N0");
 

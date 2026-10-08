@@ -102,9 +102,7 @@ public static class BlackjackTableBuilder
         var marker = Part(kit.brassGold, t, "ActiveHand", PrimitiveType.Cube, new Vector3(0f, Felt + 0.001f, PlayerZ - 0.065f), new Vector3(0.12f, 0.003f, 0.008f), false, false);
         SetRef(presenter, "activeMarker", marker.transform);
 
-        // Upright behind the dealer's cards, facing the player, so the outcome reads without looking down.
-        var result = Text(t, "ResultText", new Vector3(0f, 1.0f, 0.38f), Quaternion.identity, new Vector2(1.2f, 0.12f), 0.3f, 0.8f, Color.white);
-        SetRef(presenter, "resultText", result);
+        SetRef(presenter, "hologram", BuildHologram(kit, t));
 
         var cards = new GameObject("Cards").transform; // stays at the root's origin: the presenter mixes card and shoe local positions
         cards.SetParent(t, false);
@@ -129,11 +127,7 @@ public static class BlackjackTableBuilder
         Set(presenter, "cardStep", p => p.floatValue = 0.045f);
         Set(presenter, "splitOffset", p => p.floatValue = 0.18f);
         Set(presenter, "dealSeconds", p => p.floatValue = 0.25f);
-        Set(presenter, "popSeconds", p => p.floatValue = 0.25f);
         Set(presenter, "unavailable", p => p.colorValue = new Color(1f, 1f, 1f, 0.2f));
-        Set(presenter, "idleColor", p => p.colorValue = Color.white);
-        Set(presenter, "winColor", p => p.colorValue = kit.safeGreen);
-        Set(presenter, "loseColor", p => p.colorValue = kit.alertRed);
 
         EnsureFolder(System.IO.Path.GetDirectoryName(PrefabPath).Replace('\\', '/'));
         var prefab = PrefabUtility.SaveAsPrefabAsset(root, PrefabPath, out var saved);
@@ -194,6 +188,69 @@ public static class BlackjackTableBuilder
     }
 
     /// <summary>Text lying flat on the felt, readable from the player's side.</summary>
+    // Hologram materials are shared with the watch HUD (made by High Stakes > UI > Build Wrist Display).
+    const string HologramMaterialPath = "Assets/Content/UI/UI_Hologram.mat";
+    const string HologramEdgeMaterialPath = "Assets/Content/UI/UI_HologramEdge.mat";
+    const string HologramBeamMaterialPath = "Assets/Content/UI/UI_HologramBeam.mat";
+    const float BoardWidth = 0.72f;
+    const float BoardHeight = 0.38f;
+
+    /// <summary>
+    /// A brass projector puck on the dealer's edge and the board it projects where the dealer would stand, facing the
+    /// player, centred at eye height for a standing player. TableHologram opens it when the player walks up.
+    /// </summary>
+    static TableHologram BuildHologram(SharedStyleKit kit, Transform table)
+    {
+        var glass = AssetDatabase.LoadAssetAtPath<Material>(HologramMaterialPath);
+        var edgeMaterial = AssetDatabase.LoadAssetAtPath<Material>(HologramEdgeMaterialPath);
+        var beamMaterial = AssetDatabase.LoadAssetAtPath<Material>(HologramBeamMaterialPath);
+        if (glass == null || edgeMaterial == null || beamMaterial == null)
+            throw new InvalidOperationException("[Blackjack] Hologram materials missing; run High Stakes > UI > Build Wrist Display first.");
+
+        var root = new GameObject("Hologram").transform;
+        root.SetParent(table, false);
+        var puckPosition = new Vector3(0f, Felt + 0.012f, 0.4f);
+        Part(kit.brassGold, root, "Projector", PrimitiveType.Cylinder, puckPosition, new Vector3(0.1f, 0.012f, 0.1f), true, false);
+        Part(edgeMaterial, root, "ProjectorLens", PrimitiveType.Cylinder, puckPosition + Vector3.up * 0.0125f, new Vector3(0.06f, 0.001f, 0.06f), false, false);
+        var emitter = new GameObject("Emitter").transform;
+        emitter.SetParent(root, false);
+        emitter.localPosition = puckPosition + Vector3.up * 0.013f;
+
+        var board = new GameObject("Board").transform;
+        board.SetParent(root, false);
+        board.localPosition = new Vector3(0f, 1.5f, 0.75f);
+        Part(glass, board, "Glass", PrimitiveType.Quad, Vector3.zero, new Vector3(BoardWidth, BoardHeight, 1f), false, false);
+        const float edge = 0.005f;
+        foreach (float y in new[] { BoardHeight / 2f, -BoardHeight / 2f })
+            Part(edgeMaterial, board, "Edge", PrimitiveType.Quad, new Vector3(0f, y, -0.001f), new Vector3(BoardWidth, edge, 1f), false, false);
+        foreach (float x in new[] { BoardWidth / 2f, -BoardWidth / 2f })
+            Part(edgeMaterial, board, "Edge", PrimitiveType.Quad, new Vector3(x, 0f, -0.001f), new Vector3(edge, BoardHeight, 1f), false, false);
+        Part(edgeMaterial, board, "Rule", PrimitiveType.Quad, new Vector3(0f, 0.09f, -0.001f), new Vector3(BoardWidth - 0.08f, 0.002f, 1f), false, false);
+
+        // Upright text facing the player (-Z): title, the amount (counts up on a win), and the hands.
+        var title = Text(board, "Title", new Vector3(0f, 0.13f, -0.002f), Quaternion.identity, new Vector2(BoardWidth - 0.08f, 0.06f), 0.1f, 2f, kit.accentCyan);
+        var amount = Text(board, "Amount", new Vector3(0f, 0.005f, -0.002f), Quaternion.identity, new Vector2(BoardWidth - 0.08f, 0.15f), 0.1f, 4f, Color.white);
+        var detail = Text(board, "Detail", new Vector3(0f, -0.13f, -0.002f), Quaternion.identity, new Vector2(BoardWidth - 0.08f, 0.05f), 0.1f, 1.5f, Color.white);
+        foreach (var text in new[] { title, amount, detail }) text.fontStyle = FontStyles.Bold;
+
+        var beam = Part(beamMaterial, root, "Beam", PrimitiveType.Cylinder, Vector3.zero, Vector3.one * 0.01f, false, false);
+        foreach (var r in root.GetComponentsInChildren<Renderer>(true))
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+
+        var hologram = table.gameObject.AddComponent<TableHologram>();
+        SetRef(hologram, "emitter", emitter);
+        SetRef(hologram, "panel", board);
+        SetRef(hologram, "beam", beam.transform);
+        SetRef(hologram, "titleText", title);
+        SetRef(hologram, "amountText", amount);
+        SetRef(hologram, "detailText", detail);
+        Set(hologram, "idleColor", p => p.colorValue = Color.white);
+        Set(hologram, "winColor", p => p.colorValue = kit.safeGreen);
+        Set(hologram, "loseColor", p => p.colorValue = kit.alertRed);
+        Set(hologram, "panelHalfHeight", p => p.floatValue = BoardHeight / 2f);
+        return hologram;
+    }
+
     static TextMeshPro FlatText(Transform parent, string name, float x, float z, Vector2 size, float maxSize) =>
         Text(parent, name, new Vector3(x, TextY, z), Quaternion.Euler(90f, 0f, 0f), size, 0.1f, maxSize, Color.white);
 
