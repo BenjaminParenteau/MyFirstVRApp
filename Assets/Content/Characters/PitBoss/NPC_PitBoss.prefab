@@ -2425,7 +2425,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HighStakes.Security.PatrolWalker
   waypoints: []
   animator: {fileID: 3611376392865518745}
-  walkSpeed: 0.9
+  walkSpeed: 0.82095164
   turnSpeed: 140
   walkWithinAngle: 35
   pauseSeconds: 4.6

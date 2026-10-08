@@ -78,6 +78,7 @@ public static class PitBossBuilder
         var walker = root.AddComponent<PatrolWalker>();
         var so = new SerializedObject(walker);
         so.FindProperty("animator").objectReferenceValue = animator;
+        so.FindProperty("walkSpeed").floatValue = StrideSpeed(walk, root);
         so.ApplyModifiedPropertiesWithoutUndo();
         var prefab = PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
         Object.DestroyImmediate(root);
@@ -118,19 +119,47 @@ public static class PitBossBuilder
     }
 
     // Generic rig on the model's own skeleton (every Rocketbox avatar shares it), one looping clip per file.
+    // The walk still carries the hips forward (1.2 m per 1.47 s loop) and would snap back each loop, so the hips
+    // (Bip01) are the root node: their ground travel becomes root motion, which the Animator discards
+    // (applyRootMotion off) while PatrolWalker moves him. Height bob and facing stay in the pose.
     static AnimationClip Clip(string path, string clipName, Avatar avatar)
     {
         var importer = (ModelImporter)AssetImporter.GetAtPath(path);
         importer.animationType = ModelImporterAnimationType.Generic;
         importer.avatarSetup = ModelImporterAvatarSetup.CopyFromOther;
         importer.sourceAvatar = avatar;
+        importer.motionNodeName = "Bip01";
         importer.materialImportMode = ModelImporterMaterialImportMode.None;
         var clip = importer.defaultClipAnimations[0];
         clip.name = clipName;
         clip.loopTime = true;
+        clip.lockRootRotation = true;      // bake facing into the pose
+        clip.keepOriginalOrientation = true;
+        clip.lockRootHeightY = true;       // bake the step bob into the pose
+        clip.keepOriginalPositionY = true;
+        clip.lockRootPositionXZ = false;   // extract ground travel (then dropped)
         importer.clipAnimations = new[] { clip };
         importer.SaveAndReimport();
         return AssetDatabase.LoadAllAssetsAtPath(path).OfType<AnimationClip>().First(c => c.name == clipName);
+    }
+
+    /// <summary>
+    /// The walk clip's own pace: how far the hips travel over one loop, before extraction, divided by its length.
+    /// Walking the patrol at exactly this speed keeps the feet planted instead of sliding.
+    /// </summary>
+    static float StrideSpeed(AnimationClip walk, GameObject character)
+    {
+        var raw = AssetDatabase.LoadAllAssetsAtPath(WalkPath).OfType<AnimationClip>().First(c => !c.name.StartsWith("__preview"));
+        var hips = character.GetComponentsInChildren<Transform>().First(t => t.name == "Bip01");
+        var curves = AnimationUtility.GetCurveBindings(raw);
+        var z = curves.FirstOrDefault(b => b.path == "Bip01" && b.propertyName == "m_LocalPosition.z");
+        var x = curves.FirstOrDefault(b => b.path == "Bip01" && b.propertyName == "m_LocalPosition.x");
+        float Travel(EditorCurveBinding b) => b.path == null ? 0f :
+            AnimationUtility.GetEditorCurve(raw, b).Evaluate(raw.length) - AnimationUtility.GetEditorCurve(raw, b).Evaluate(0f);
+        float distance = new Vector2(Travel(x), Travel(z)).magnitude * hips.parent.lossyScale.x;
+        float speed = distance > 0.1f ? distance / walk.length : 0.8f;
+        Debug.Log($"[PitBoss] walk clip travels {distance:F2} m per {walk.length:F2} s loop: patrol speed {speed:F2} m/s");
+        return speed;
     }
 
     static void Transition(AnimatorState from, AnimatorState to, bool walking)

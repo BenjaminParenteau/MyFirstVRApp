@@ -209,6 +209,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Setup
 
+- 2026-10-08 · Pit Boss walk no longer snaps backwards: the Rocketbox walk still moved the hips 1.20 m forward per 1.47 s loop and jumped back each loop; the hips (`Bip01`) are now the clip's root node so that travel becomes root motion and is dropped, and the builder sets the patrol speed from the clip's own stride (0.82 m/s) so the feet don't slide. Headless check: over 19 s of walking the hips never left the feet (0 m drift, 0 m jump).
+
 - 2026-10-08 · Pit Boss walks the casino floor: Microsoft Rocketbox `Business_Male_04` (MIT, 7.3k triangles, textures cut to 1024 PNG) in `Content/Characters/PitBoss/`, slow-walk and look-around clips from the same library, `PatrolWalker` (Security) loops four waypoints around the centre and left aisles, turning on the spot and looking around at each corner; capsule collider so you bump into him. **High Stakes > Characters > Build Pit Boss** rebuilds the prefab and his `PitBoss_Patrol` in `MVP_Casino`. Headless check in `MVP_Main`: he walks up the aisle facing forward, plays both clips, turns the corner.
 
 - 2026-10-08 · Watch hologram: looking at the raised watch projects a blue holographic HUD above it on a beam of light (bankroll, tier, session +/-), growing out of the face in 0.2 s, always facing the eyes, folding away in 0.12 s when you look away (`WatchHologram`, built by **High Stakes > UI > Build Wrist Display**; transparent unlit `UI_Hologram*.mat`). 5 new logic tests (83 pass); headless check: hidden, opens above the watch while looked at, folds away after.
