@@ -7,16 +7,15 @@ using UnityEngine;
 namespace HighStakes.TableGames
 {
     /// <summary>
-    /// A blue holographic board where the dealer would stand, projected from a puck on the dealer's edge of the table
-    /// (the same look as the watch HUD). It rises out of the puck when the player walks up to the table and folds back
-    /// into it when they leave. The table's presenter tells it what to show; a win counts up from +$0 to the amount won.
+    /// A blue holographic board as wide as the table, standing on its dealer edge where the dealer would be (the same
+    /// look as the watch HUD). It rises out of a projector strip along that edge when the player walks up to the table
+    /// and sinks back into it when they leave. The table's presenter tells it what to show; a win counts up from +$0 to
+    /// the amount won.
     /// </summary>
     public class TableHologram : MonoBehaviour
     {
-        [Tooltip("Centre of the projector puck: the beam starts here and the board folds into it.")]
-        [SerializeField] Transform emitter;
+        [Tooltip("The board, pivoted at the middle of its bottom edge so it grows up from the table.")]
         [SerializeField] Transform panel;
-        [SerializeField] Transform beam;
         [SerializeField] TMP_Text titleText;
         [SerializeField] TMP_Text amountText;
         [SerializeField] TMP_Text detailText;
@@ -27,13 +26,10 @@ namespace HighStakes.TableGames
         [SerializeField] float showDistance = 1.8f;
         [Tooltip("And closes past this distance. Larger than Show Distance so it doesn't flicker at the edge.")]
         [SerializeField] float hideDistance = 2.2f;
-        [SerializeField] float panelHalfHeight = 0.19f;
-        [SerializeField] float beamWidth = 0.03f;
         [SerializeField] float openSeconds = 0.3f;
         [SerializeField] float closeSeconds = 0.2f;
         [SerializeField] float countSeconds = 1.2f;
 
-        Vector3 panelRest;
         Vector3 panelScale;
         float open;
         bool near;
@@ -42,7 +38,6 @@ namespace HighStakes.TableGames
 
         void Awake()
         {
-            panelRest = panel.localPosition;
             panelScale = panel.localScale;
             Idle();
             Place(0f);
@@ -61,22 +56,13 @@ namespace HighStakes.TableGames
             Place(WristDisplayLogic.EaseOut(open));
         }
 
-        // Grows the board up out of the puck and stretches the beam between them.
+        // Raises the board out of the projector strip: full width, height growing from the bottom edge.
         void Place(float k)
         {
             bool visible = k > 0f;
             if (panel.gameObject.activeSelf != visible) panel.gameObject.SetActive(visible);
-            if (beam.gameObject.activeSelf != visible) beam.gameObject.SetActive(visible);
             if (!visible) return;
-
-            panel.localPosition = Vector3.LerpUnclamped(emitter.localPosition, panelRest, k);
-            panel.localScale = panelScale * (Mathf.Max(k, 0.001f) * pulse);
-            Vector3 from = emitter.localPosition;
-            Vector3 to = panel.localPosition - Vector3.up * (panelHalfHeight * k);
-            Vector3 span = to - from;
-            beam.localPosition = from + span / 2f;
-            beam.localRotation = Quaternion.FromToRotation(Vector3.up, span);
-            beam.localScale = new Vector3(beamWidth * k, span.magnitude / 2f, beamWidth * k); // Unity's cylinder is 2 m tall
+            panel.localScale = new Vector3(panelScale.x * pulse, panelScale.y * Mathf.Max(k, 0.001f) * pulse, panelScale.z);
         }
 
         /// <summary>Between rounds: the table's name and a prompt.</summary>
