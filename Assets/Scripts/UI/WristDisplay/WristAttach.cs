@@ -4,8 +4,8 @@ using UnityEngine;
 namespace HighStakes.UI
 {
     /// <summary>
-    /// Attaches this object to the player's left controller at runtime, as a screen on the controller body
-    /// (the rig shows controllers, not hands, so a wrist position would look like it floats). The watch is never placed inside the rig
+    /// Attaches this object to the player's left controller at runtime, on the back of the left wrist just behind the
+    /// grip, where a watch sits. The watch is never placed inside the rig
     /// in a scene (StyleGuide §5c): it finds the one active XROrigin and parents itself to it, so it works both in
     /// MVP_UI's solo-test rig and in MVP_Main's rig. Visuals stay hidden until it is attached.
     /// </summary>
@@ -15,10 +15,10 @@ namespace HighStakes.UI
         [SerializeField] private string controllerName = "Left Controller";
         [Tooltip("Hidden until attached, so the watch never floats at the world origin.")]
         [SerializeField] private GameObject visuals;
-        [Tooltip("Position on the controller. Default sits on the back of the left controller's grip. Tune in Play mode, then copy back.")]
-        [SerializeField] private Vector3 localPosition = new Vector3(0f, -0.035f, -0.045f);
-        [Tooltip("Rotation on the controller. Default tilts the face (+Y) back and up, toward the player's eyes.")]
-        [SerializeField] private Vector3 localEulerAngles = new Vector3(-60f, 0f, 0f);
+        [Tooltip("Position on the controller. Default sits on the back of the left wrist. Tune in Play mode, then copy back.")]
+        [SerializeField] private Vector3 localPosition = new Vector3(-0.035f, -0.01f, -0.09f);
+        [Tooltip("Rotation on the controller. Default turns the face (+Y) toward the back of the left hand (-X).")]
+        [SerializeField] private Vector3 localEulerAngles = new Vector3(0f, 0f, 90f);
 
         private const float SearchInterval = 1f;
 

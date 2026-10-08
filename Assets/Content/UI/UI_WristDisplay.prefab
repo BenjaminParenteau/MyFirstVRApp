@@ -448,8 +448,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HighStakes.UI.WristAttach
   controllerName: Left Controller
   visuals: {fileID: 5907672806029814173}
-  localPosition: {x: 0, y: -0.035, z: -0.045}
-  localEulerAngles: {x: -60, y: 0, z: 0}
+  localPosition: {x: -0.035, y: -0.01, z: -0.09}
+  localEulerAngles: {x: 0, y: 0, z: 90}
 --- !u!114 &5492758658636461036
 MonoBehaviour:
   m_ObjectHideFlags: 0

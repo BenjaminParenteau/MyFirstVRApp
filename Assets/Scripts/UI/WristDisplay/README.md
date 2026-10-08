@@ -1,17 +1,16 @@
 # Wrist display
 
-A chunky watch screen mounted on the back of the **left controller** that shows **BANKROLL** (chips) and the current
-**tier**, in cyan text on a dark face (docs/reference/VisualReference.md). It lights up when you look at it.
-It sits on the controller, not the wrist, because the rig draws controllers and no hands, so a wrist spot looked like
-it was floating. The case shows the tier: steel → gold (Known High Roller) → gold with a white VIP stripe
+A chunky watch on the back of the **left wrist** (just behind the left controller's grip) that shows **BANKROLL**
+(chips) and the current **tier**, in cyan text on a dark face (docs/reference/VisualReference.md). It lights up when
+you raise your wrist and look at it. The case shows the tier: steel → gold (Known High Roller) → gold with a white VIP stripe
 (Valued Associate).
 
 ## Pieces
 
 - **WristDisplay.cs**: writes the bankroll and tier text. It only observes `IChipWallet` and `ICharacterTier` and
   never changes them. Leave its sources empty and it finds the active wallet and tier in the loaded scenes.
-- **WristAttach.cs**: finds the one active `XROrigin` at runtime and attaches the watch to the back of
-  `Left Controller` (StyleGuide §5c: never put it inside the rig in a scene). Position and rotation are Inspector fields.
+- **WristAttach.cs**: finds the one active `XROrigin` at runtime and attaches the watch to the left wrist,
+  relative to `Left Controller` (StyleGuide §5c: never put it inside the rig in a scene). Position and rotation are Inspector fields.
 - **../TierVisuals/TierVisibility.cs**: shows a part only within a tier range (used for the steel/gold case and stripe).
 - **WristRaiseVisibility.cs**: turns the face on when it points at your eyes (within 35°, closer than 0.6 m) and
   off past 50°. Tick **Always Visible** to keep it on while testing.

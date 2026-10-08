@@ -205,6 +205,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Setup
 
+- 2026-10-08 · Watch back on the left wrist (Ben's call): `WristAttach` defaults and `UI_WristDisplay.prefab` use Pak's original wrist pose again, (-0.035, -0.01, -0.09) with the face turned toward the back of the hand, just behind the controller grip; checked in a headless render (shows BANKROLL $1,000).
+
 - 2026-10-06 · Blackjack buttons pressable and watch on the controller: the starter rig's near grab only hit layer Default and its far ray Default/UI/Teleport, so nothing on the reserved `Interactable` layer (table buttons, Ashton's props) could be pointed at or grabbed; `Kit_PlayerRig` now adds `Interactable` to both hands' casters. `WristAttach` also finds the left controller while the rig still has it switched off (untracked), so the watch rides along from the start. Headless check: watch on Left Controller, right ray hovers DEAL, pressing it takes the wager.
 
 - 2026-10-06 · Simulator off with a real headset: `SoloTestRoot.SimulatorAllowed()` also treats a running XR loader as a headset (over Quest Link `XRSettings.isDeviceActive` can still be false at startup, so the simulator's fake HMD ran next to the real one: view on the floor, wrong head tracking) and keeps checking each frame; the casino setup uses the same check.
