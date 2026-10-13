@@ -35,6 +35,7 @@ namespace HighStakes.Environment
 
             foreach (var prop in pickupProps)
             {
+                if (prop == null) continue; // a prop removed from the scene (e.g. under a table that was replaced)
                 prop.layer = LayerMask.NameToLayer("Interactable");
                 var body = prop.AddComponent<Rigidbody>();
                 body.mass = 0.02f;

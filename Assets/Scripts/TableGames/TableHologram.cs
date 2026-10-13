@@ -19,6 +19,10 @@ namespace HighStakes.TableGames
         [SerializeField] TMP_Text titleText;
         [SerializeField] TMP_Text amountText;
         [SerializeField] TMP_Text detailText;
+        [Tooltip("Shown as the title between rounds.")]
+        [SerializeField] string tableName = "BLACKJACK";
+        [Tooltip("The detail line between rounds, telling the player how to start.")]
+        [SerializeField] string prompt = "PRESS DEAL TO PLAY";
         [SerializeField] Color idleColor = Color.white;
         [SerializeField] Color winColor = Color.green;
         [SerializeField] Color loseColor = Color.red;
@@ -66,17 +70,17 @@ namespace HighStakes.TableGames
         }
 
         /// <summary>Between rounds: the table's name and a prompt.</summary>
-        public void Idle(string detail = "PRESS DEAL TO PLAY")
+        public void Idle(string detail = null)
         {
             StopCount();
-            Show("BLACKJACK", "", idleColor, detail);
+            Show(tableName, "", idleColor, detail ?? prompt);
         }
 
         /// <summary>A round that never started, such as a wager the wallet could not cover.</summary>
         public void Refused(string message)
         {
             StopCount();
-            Show("BLACKJACK", "", idleColor, message, loseColor);
+            Show(tableName, "", idleColor, message, loseColor);
         }
 
         /// <summary>Counts up from +$0 to the chips won, pulsing, then holds the total. A new round cuts it short.</summary>
@@ -105,16 +109,16 @@ namespace HighStakes.TableGames
             pulse = 1f;
         }
 
-        public void Lost(long lost, string detail)
+        public void Lost(long lost, string detail, string title = "DEALER WINS")
         {
             StopCount();
-            Show("DEALER WINS", "-$" + lost.ToString("N0"), loseColor, detail);
+            Show(title, "-$" + lost.ToString("N0"), loseColor, detail);
         }
 
-        public void Push(string detail)
+        public void Push(string detail, string title = "PUSH")
         {
             StopCount();
-            Show("PUSH", "$0", idleColor, detail);
+            Show(title, "$0", idleColor, detail);
         }
 
         // Every message replaces whatever was showing, including a win still counting.

@@ -164,6 +164,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot A log
 
+- 2026-10-13 · Roulette on the main casino floor and blackjack moved there from the VIP room (classics on the floor, Stake-style games in the high-roller room). Roulette: European single zero, straight-up on 0-36 plus columns, dozens and even-money bets; bets stay on the layout until CLEAR; the wheel spins and the ball lands in the pocket the game drew; winnings are credited when the ball lands, not at SPIN, so the chip count can't spoil the result. Shared `TableKit` builds every table (blackjack moved onto it); `TableHologram` takes a table name and prompt. 15 roulette tests (98 pass). Headless check: bets placed through the buttons, stake leaves at SPIN, payout matches the announced pocket, ball rests in that pocket, blackjack deals on the floor. Also fixed `CasinoVRInteractionSetup` stopping on a removed grabbable prop. Plan updated: `docs/plans/VrstakeGamesPort.md`.
+
 - 2026-10-08 · Plan for porting the other vrstake games (Dice, Limbo, Crash, Mines, Plinko): `docs/plans/VrstakeGamesPort.md` (shared table kit first, then one game per commit, simplest first). Placement and the GDD's roulette plan are open questions.
 
 - 2026-10-08 · Dealer board now as wide as the table (1.6 m) with its bottom edge standing on the table's dealer edge; a brass projector strip along that edge replaces the puck and beam, and the board rises straight up out of it (height grows from the bottom) when you walk up and sinks back when you leave. Headless check: width matches the table top, bottom on the top, win lands on the amount, sinks away after walking off.
@@ -256,7 +258,7 @@ Things the team agreed on that aren't obvious from the code.
 
 ## Open questions / blockers
 
-- **Ben:** vrstake games placement: the casino floor's five round tables become Dice/Limbo/Crash/Mines/Plinko (recommended), or a separate electronic-games room? And is roulette (week 5, GDD) still planned? vrstake has none to port. See `docs/plans/VrstakeGamesPort.md`.
+- **GDD:** update the game list to the two-room plan in `docs/plans/VrstakeGamesPort.md` (classics on the floor; Mines, Plinko, Dice and virtual games in the high-roller room).
 
 
 - **Everyone: don't commit `Assets/XR/Settings/OpenXRPackageSettings.asset`.** Unity keeps reserializing it (renamed/duplicated Android XR feature entries, no functional change; checked 2026-10-01: Meta Quest Support, Touch controllers and hand tracking are on for Android, Android XR Support is off). Commit files by name, never `git add .`; if a pull is blocked by it, `git stash` first. Zach owns this file and only commits it after a deliberate OpenXR settings change. Proper cleanup is after the Milestone 2 submission.

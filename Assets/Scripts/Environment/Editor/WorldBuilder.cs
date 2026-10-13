@@ -42,11 +42,13 @@ public static class WorldBuilder
     static void Build(bool bake)
     {
         BlackjackTableBuilder.BuildPrefab();
+        RouletteTableBuilder.BuildPrefab();
         VipRoomBuilder.Build();
         if (bake) Bake(VipPath);
         HallwayBuilder.Build();
         if (bake) foreach (var path in HallwayBuilder.ScenePaths) Bake(path);
         AddCasinoDoors();
+        AddCasinoTables();
         BuildMain();
 
         var scenes = new System.Collections.Generic.List<EditorBuildSettingsScene>
@@ -97,6 +99,61 @@ public static class WorldBuilder
         StaffDoor(kit, doors, "Door_Casino_B", new Vector3(1.0f, 0f, 12.775f), 0f, "CAMERAS", "Casino_B", "HallB_Start", HallwayBuilder.ScenePaths[1]);
         StaffDoor(kit, doors, "Door_Casino_C", new Vector3(3.6f, 0f, 12.775f), 0f, "VAULT", "Casino_C", "HallC_Start", HallwayBuilder.ScenePaths[2]);
 
+        EditorSceneManager.SaveScene(scene);
+    }
+
+    // The classic games stand on the main floor in place of Ashton's two front round tables (and their chairs, chips
+    // and cards), facing the centre aisle: roulette on the right, blackjack on the left. Re-running replaces them.
+    static readonly (string Path, Vector3 Position, string Name)[] FloorTables =
+    {
+        (RouletteTableBuilder.PrefabPath, new Vector3(3.6f, 0f, -1f), "Tables_Roulette"),
+        (BlackjackTableBuilder.PrefabPath, new Vector3(-3.6f, 0f, -1f), "Tables_Blackjack"),
+    };
+
+    static void AddCasinoTables()
+    {
+        var scene = EditorSceneManager.OpenScene(CasinoPath, OpenSceneMode.Single);
+        foreach (var root in scene.GetRootGameObjects())
+        {
+            if (root.name == "Casino_Tables") { Object.DestroyImmediate(root); continue; }
+            bool decor = root.name.StartsWith("Casino_Kit_Table_Round") || root.name.StartsWith("Casino_Kit_Chair") ||
+                         root.name.StartsWith("Casino_ChipStack") || root.name.StartsWith("Casino_PlayingCard");
+            if (!decor) continue;
+            foreach (var table in FloorTables)
+            {
+                var flat = root.transform.position - table.Position;
+                if (new Vector2(flat.x, flat.z).magnitude < 1.7f) { Object.DestroyImmediate(root); break; }
+            }
+        }
+
+        // Drop the removed chips and cards from the casino's grabbable-prop list.
+        foreach (var setup in Object.FindObjectsByType<CasinoVRInteractionSetup>(FindObjectsSortMode.None))
+        {
+            var so = new SerializedObject(setup);
+            var props = so.FindProperty("pickupProps");
+            for (int i = props.arraySize - 1; i >= 0; i--)
+                if (props.GetArrayElementAtIndex(i).objectReferenceValue == null) props.DeleteArrayElementAtIndex(i);
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        var tables = new GameObject("Casino_Tables").transform;
+        foreach (var table in FloorTables)
+        {
+            var placed = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(table.Path), tables);
+            placed.name = table.Name;
+            placed.transform.SetPositionAndRotation(table.Position, Quaternion.identity); // player side (-Z) faces the entrance aisle
+        }
+
+        // Stand-in for MVP_Main's wallet so the floor's tables play when the casino is opened on its own.
+        foreach (var root in scene.GetRootGameObjects())
+        {
+            if (root.name != "_SoloTest" || root.transform.Find("SoloTest_ChipWallet") != null) continue;
+            var wallet = new GameObject("SoloTest_ChipWallet").AddComponent<ChipWallet>();
+            wallet.transform.SetParent(root.transform);
+            var so = new SerializedObject(wallet);
+            so.FindProperty("startingBalance").intValue = 1000;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
         EditorSceneManager.SaveScene(scene);
     }
 
