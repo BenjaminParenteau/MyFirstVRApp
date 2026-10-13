@@ -9,7 +9,7 @@ using UnityEngine.Rendering;
 
 /// <summary>
 /// Generates MVP_VIP.unity: a 4 m wide hallway that opens through a roped-off "VIP LOUNGE" doorway into a 12 x 12 m
-/// VIP room (two high-stakes table sets, a bar, slot machines; the Stake-style games go here next), built only from the shared
+/// high-roller room (the Stake-style games Dice, Mines and Plinko, a bar, slot machines), built only from the shared
 /// style kit in the casino look.
 ///
 /// The hallway starts at a portal door with id VIP_HallStart that leads to the casino door Casino_VIP in MVP_Casino
@@ -80,9 +80,19 @@ public static class VipRoomBuilder
             Place(kit.lightWarmFloor, area, new Vector3(1f, 2.6f, z), 0);
         }
 
-        // Room: two high-stakes table sets (blackjack moved to the main floor), bar on the back wall, slots along the sides.
-        Place(kit.casinoTableSet, area, new Vector3(-1.5f, 0f, 15f), 0);
-        Place(kit.casinoTableSet, area, new Vector3(3.5f, 0f, 15f), 0);
+        // Room: the Stake-style games in a row facing the bar (Mines straight ahead of the entrance), bar on the back
+        // wall, slots along the sides. Players stand on each table's -Z side, looking toward the bar.
+        foreach (var (path, build, x, name) in new (string, System.Func<GameObject>, float, string)[]
+        {
+            (DiceTableBuilder.PrefabPath, DiceTableBuilder.BuildPrefab, -2.6f, "Tables_Dice"),
+            (MinesTableBuilder.PrefabPath, MinesTableBuilder.BuildPrefab, 1f, "Tables_Mines"),
+            (PlinkoTableBuilder.PrefabPath, PlinkoTableBuilder.BuildPrefab, 4.6f, "Tables_Plinko"),
+        })
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (prefab == null) prefab = build();
+            if (prefab != null) Place(prefab, area, new Vector3(x, 0f, 14f), 0).name = name;
+        }
         Place(kit.barCounter, area, new Vector3(1f, 0f, 19.8f), 0);
         foreach (float x in new[] { -0.5f, 1f, 2.5f }) Place(kit.barStool, area, new Vector3(x, 0f, 18.8f), 0);
         foreach (float z in new[] { 12f, 18f })
@@ -90,7 +100,7 @@ public static class VipRoomBuilder
             Place(kit.slotMachine, area, new Vector3(-4.5f, 0f, z), 0);   // screen faces +X
             Place(kit.slotMachine, area, new Vector3(6.5f, 0f, z), 180f); // screen faces -X
         }
-        foreach (var p in new[] { new Vector3(-1.5f, 0, 15f), new Vector3(3.5f, 0, 15f), new Vector3(1f, 0, 11f), new Vector3(1f, 0, 19f) })
+        foreach (var p in new[] { new Vector3(-0.8f, 0, 15.5f), new Vector3(2.8f, 0, 15.5f), new Vector3(1f, 0, 11f), new Vector3(1f, 0, 19f) })
         {
             Place(kit.chandelier, area, p + Vector3.up * 2.38f, 0);
             Place(kit.lightWarmFloor, area, p + Vector3.up * 2.6f, 0);

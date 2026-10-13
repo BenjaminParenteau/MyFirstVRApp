@@ -43,6 +43,9 @@ public static class WorldBuilder
     {
         BlackjackTableBuilder.BuildPrefab();
         RouletteTableBuilder.BuildPrefab();
+        DiceTableBuilder.BuildPrefab();
+        MinesTableBuilder.BuildPrefab();
+        PlinkoTableBuilder.BuildPrefab();
         VipRoomBuilder.Build();
         if (bake) Bake(VipPath);
         HallwayBuilder.Build();

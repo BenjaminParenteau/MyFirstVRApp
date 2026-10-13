@@ -22,7 +22,8 @@ public static class TableKit
     // Hologram materials are shared with the watch HUD (made by High Stakes > UI > Build Wrist Display).
     const string HologramMaterialPath = "Assets/Content/UI/UI_Hologram.mat";
     const string HologramEdgeMaterialPath = "Assets/Content/UI/UI_HologramEdge.mat";
-    const float BoardHeight = 0.42f;
+    /// <summary>The dealer board's usual height; Plinko passes a taller one and draws its pegs inside it.</summary>
+    public const float BoardHeight = 0.42f;
 
     /// <summary>The style kit and the Interactable layer, or null with an error logged if either is missing.</summary>
     public static SharedStyleKit Kit(out int interactableLayer)
@@ -41,6 +42,23 @@ public static class TableKit
         }
         return kit;
     }
+
+    /// <summary>
+    /// A table body from the kit: wooden top with a collider, felt, brass rail on the player's edge, and pedestals.
+    /// <paramref name="width"/> runs along X, <paramref name="depth"/> along Z.
+    /// </summary>
+    public static void Body(SharedStyleKit kit, Transform table, float width, float depth)
+    {
+        float[] legs = width > 2f ? new[] { -width * 0.3f, width * 0.3f } : new[] { 0f };
+        foreach (float x in legs)
+            Part(kit.woodDark, table, "Pedestal", PrimitiveType.Cylinder, new Vector3(x, 0.36f, 0f), new Vector3(0.45f, 0.36f, 0.45f), true, false);
+        Part(kit.woodDark, table, "Top", PrimitiveType.Cube, new Vector3(0f, Felt - 0.025f, 0f), new Vector3(width, 0.04f, depth), true, true);
+        Part(kit.feltGreen, table, "Felt", PrimitiveType.Cube, new Vector3(0f, Felt - 0.0025f, 0f), new Vector3(width - 0.1f, 0.005f, depth - 0.1f), true, false);
+        Part(kit.brassGold, table, "Rail", PrimitiveType.Cube, new Vector3(0f, Felt + 0.01f, -depth / 2f), new Vector3(width, 0.03f, 0.04f), true, false);
+    }
+
+    /// <summary>Makes a value button (a step, a chip size) keep pressing while held. Never for a button that bets.</summary>
+    public static void RepeatWhileHeld(PressableButton button) => Set(button, "repeatWhileHeld", p => p.boolValue = true);
 
     /// <summary>
     /// A pressable block on the felt with its label lying on top. The collider and interactable sit on an unscaled
@@ -67,9 +85,12 @@ public static class TableKit
     /// <summary>
     /// A brass projector strip along the dealer's edge and the board it projects, <paramref name="width"/> wide and
     /// standing on the table where the dealer would be, facing the player. TableHologram raises it when the player
-    /// walks up and shows <paramref name="tableName"/> between rounds.
+    /// walks up and shows <paramref name="tableName"/> between rounds. The title, amount and detail lines sit in the top
+    /// 0.42 m of the board whatever its height; a taller board leaves room below them (the child "Board" of "Hologram",
+    /// pivoted at the middle of its bottom edge, +Y up, facing -Z) for a game to draw into.
     /// </summary>
-    public static TableHologram Hologram(SharedStyleKit kit, Transform table, float width, float dealerEdgeZ, string tableName, string prompt)
+    public static TableHologram Hologram(SharedStyleKit kit, Transform table, float width, float dealerEdgeZ, string tableName, string prompt,
+        float boardHeight = BoardHeight)
     {
         var glass = AssetDatabase.LoadAssetAtPath<Material>(HologramMaterialPath);
         var edgeMaterial = AssetDatabase.LoadAssetAtPath<Material>(HologramEdgeMaterialPath);
@@ -89,20 +110,21 @@ public static class TableKit
         var board = new GameObject("Board").transform;
         board.SetParent(root, false);
         board.localPosition = new Vector3(0f, tableTop + stripHeight, dealerEdgeZ);
-        float mid = BoardHeight / 2f;
-        Part(glass, board, "Glass", PrimitiveType.Quad, new Vector3(0f, mid, 0f), new Vector3(width, BoardHeight, 1f), false, false);
+        float mid = boardHeight / 2f;
+        Part(glass, board, "Glass", PrimitiveType.Quad, new Vector3(0f, mid, 0f), new Vector3(width, boardHeight, 1f), false, false);
         const float edge = 0.006f;
-        foreach (float y in new[] { BoardHeight, 0f })
+        foreach (float y in new[] { boardHeight, 0f })
             Part(edgeMaterial, board, "Edge", PrimitiveType.Quad, new Vector3(0f, y, -0.001f), new Vector3(width, edge, 1f), false, false);
         foreach (float x in new[] { width / 2f, -width / 2f })
-            Part(edgeMaterial, board, "Edge", PrimitiveType.Quad, new Vector3(x, mid, -0.001f), new Vector3(edge, BoardHeight, 1f), false, false);
-        Part(edgeMaterial, board, "Rule", PrimitiveType.Quad, new Vector3(0f, mid + 0.105f, -0.001f), new Vector3(width - 0.2f, 0.003f, 1f), false, false);
+            Part(edgeMaterial, board, "Edge", PrimitiveType.Quad, new Vector3(x, mid, -0.001f), new Vector3(edge, boardHeight, 1f), false, false);
 
-        // Upright text facing the player (-Z): title, the amount (counts up on a win), and a detail line.
+        // Upright text facing the player (-Z) in the top 0.42 m: title, the amount (counts up on a win), a detail line.
+        float top = boardHeight;
+        Part(edgeMaterial, board, "Rule", PrimitiveType.Quad, new Vector3(0f, top - 0.105f, -0.001f), new Vector3(width - 0.2f, 0.003f, 1f), false, false);
         float textWidth = Mathf.Min(width - 0.2f, 1.4f);
-        var title = Text(board, "Title", new Vector3(0f, mid + 0.15f, -0.002f), Quaternion.identity, new Vector2(textWidth, 0.07f), 0.1f, 3f, kit.accentCyan);
-        var amount = Text(board, "Amount", new Vector3(0f, mid + 0.005f, -0.002f), Quaternion.identity, new Vector2(textWidth, 0.17f), 0.1f, 6f, Color.white);
-        var detail = Text(board, "Detail", new Vector3(0f, mid - 0.145f, -0.002f), Quaternion.identity, new Vector2(textWidth, 0.06f), 0.1f, 2.5f, Color.white);
+        var title = Text(board, "Title", new Vector3(0f, top - 0.06f, -0.002f), Quaternion.identity, new Vector2(textWidth, 0.07f), 0.1f, 3f, kit.accentCyan);
+        var amount = Text(board, "Amount", new Vector3(0f, top - 0.205f, -0.002f), Quaternion.identity, new Vector2(textWidth, 0.17f), 0.1f, 6f, Color.white);
+        var detail = Text(board, "Detail", new Vector3(0f, top - 0.355f, -0.002f), Quaternion.identity, new Vector2(textWidth, 0.06f), 0.1f, 2.5f, Color.white);
         foreach (var text in new[] { title, amount, detail }) text.fontStyle = FontStyles.Bold;
 
         foreach (var r in root.GetComponentsInChildren<Renderer>(true))

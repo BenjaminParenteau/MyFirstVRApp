@@ -14,9 +14,9 @@ Two rooms, two kinds of game (Ben, 2026-10-13):
 |---|---|---|
 | Blackjack | Main floor (left front table) | Done: ported from vrstake, moved from the VIP room to the floor |
 | Roulette | Main floor (right front table) | Done: European single zero, straight-up and outside bets |
-| Mines | High-roller room | Port from vrstake |
-| Plinko | High-roller room | Port from vrstake |
-| Dice | High-roller room | Port from vrstake |
+| Mines | High-roller room | Done: ported from vrstake (2026-10-13) |
+| Plinko | High-roller room | Done: ported from vrstake (2026-10-13) |
+| Dice | High-roller room | Done: ported from vrstake (2026-10-13) |
 | Slots (recommended) | Main floor | New: make the slot machines already on the floor playable |
 | Baccarat (recommended) | Main floor | New: reuses blackjack's cards |
 | Three Card Poker (recommended) | Main floor | New: the GDD's "poker", against the house |
