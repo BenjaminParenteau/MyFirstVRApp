@@ -1,15 +1,17 @@
 using System.Collections.Generic;
 using HighStakes.Environment;
+using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 
 /// <summary>
-/// Generates the three security wings, one scene each (MVP_SecurityOffice, MVP_CameraRoom, MVP_Vault): a wide hallway
-/// that leads from the casino to a security room, built only from the shared style kit. Hallway and room sit on separate
-/// islands of the same scene, joined by a <see cref="DoorPortal"/> pair (hallway end -> room door, and back). The
-/// hallway's start door leads to the casino's door Casino_A/B/C in MVP_Casino, which SceneFlow loads in its place.
+/// Generates the security area: the hub MVP_SecurityHall (entered from the casino's STAFF ONLY door) and three wings,
+/// one scene each (MVP_SecurityOffice, MVP_CameraRoom, MVP_Vault): a wide hallway that leads from the hub to a security
+/// room, built only from the shared style kit. Hallway and room sit on separate islands of the same scene, joined by a
+/// <see cref="DoorPortal"/> pair (hallway end -> room door, and back). The hub's SECURITY / CAMERAS / VAULT doors lead to
+/// each wing's start door, and back; SceneFlow loads the target scene in place of the current one.
 ///
 /// The hallways are 4 m wide and 3 m tall so NPCs can walk alongside the player. They use the casino look: the same red
 /// carpet floor, Ashton's casino wall panel (cream wall, wood wainscot, brass rail and crown), framed pictures and wall
@@ -23,6 +25,12 @@ public static class HallwayBuilder
     const string LightingPath = "Assets/Content/StyleKit/Lighting/StyleKit_Lighting.lighting";
     const string PrefabFolder = "Assets/Content/Environment/Prefabs";
     public const string CasinoScene = "MVP_Casino";
+    public const string HubScene = "MVP_SecurityHall";
+    public const string HubScenePath = "Assets/Scenes/MVP/" + HubScene + ".unity";
+    /// <summary>portalId of the casino's staff door, which the hub's entrance leads back to.</summary>
+    public const string CasinoStaffDoor = "Casino_Staff";
+    static readonly string[] Letters = { "A", "B", "C" };
+    static readonly string[] WingLabels = { "SECURITY", "CAMERAS", "VAULT" };
 
     const float T = StyleScale.TileSize; // 2 m grid cell
     const int Block = 2;                 // hallway "blocks" are 2x2 cells = 4 m wide, 4 m long
@@ -39,7 +47,7 @@ public static class HallwayBuilder
 
     enum Room { Office, Cameras, Vault }
 
-    /// <summary>Scene paths of the three wings, in Casino_A/B/C order.</summary>
+    /// <summary>Scene paths of the three wings, in hub door A/B/C order (SECURITY, CAMERAS, VAULT).</summary>
     public static readonly string[] ScenePaths =
     {
         "Assets/Scenes/MVP/MVP_SecurityOffice.unity",
@@ -74,9 +82,113 @@ public static class HallwayBuilder
             Blocks((0, 0), (0, 1), (0, 2), (1, 2), (2, 2)), Side.PlusX);
         BuildWing(kit, door, doorCool, 2, "C", "Vault Antechamber", Room.Vault,
             Blocks((0, 0), (0, 1), (-1, 1), (-2, 1), (-2, 2), (-2, 3)), Side.PlusZ);
+        BuildHub(kit, door);
 
         AssetDatabase.SaveAssets();
-        Debug.Log("[Hallways] Built the security wings. Open one and press Play to walk it alone, or play MVP_Main and walk through a casino staff door.");
+        Debug.Log("[Hallways] Built the security hub and wings. Open one and press Play to walk it alone, or play MVP_Main and walk through the casino's STAFF ONLY door.");
+    }
+
+    /// <summary>
+    /// Builds only the hub scene and points the existing wings' start doors at it, without rebuilding the wings, so
+    /// their baked lighting is kept. Returns false if the style kit is missing.
+    /// </summary>
+    public static bool BuildHubAndRelinkWings()
+    {
+        var kit = AssetDatabase.LoadAssetAtPath<SharedStyleKit>(KitPath);
+        if (kit == null || kit.casinoWallPanel == null) { Debug.LogError("[Hallways] Style kit or casino furnishings missing."); return false; }
+        EnsureFolder(PrefabFolder);
+        var door = AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabFolder}/Env_PortalDoor_Warm.prefab");
+        BuildHub(kit, door != null ? door : PortalDoorPrefab(kit, true));
+
+        for (int i = 0; i < ScenePaths.Length; i++)
+        {
+            var scene = EditorSceneManager.OpenScene(ScenePaths[i], OpenSceneMode.Single);
+            bool found = false;
+            foreach (var portal in Object.FindObjectsByType<DoorPortal>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (portal.portalId != $"Hall{Letters[i]}_Start") continue;
+                portal.targetId = $"Hub_{Letters[i]}";
+                portal.targetScene = HubScene;
+                PrefabUtility.RecordPrefabInstancePropertyModifications(portal);
+                found = true;
+            }
+            if (!found) Debug.LogWarning($"[Hallways] No door Hall{Letters[i]}_Start in {ScenePaths[i]}.");
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+        }
+        return true;
+    }
+
+    // The hub: a straight warm hallway, 4 x 12 m. Entrance at the near end (back to the casino), SECURITY on the left,
+    // VAULT on the right, CAMERAS at the far end. Not baked here (see the Progress open question): until it is, only the
+    // flat ambient lights it.
+    static void BuildHub(SharedStyleKit kit, GameObject door)
+    {
+        var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        RenderSettings.skybox = null;
+        RenderSettings.ambientMode = AmbientMode.Flat;
+        RenderSettings.ambientLight = new Color32(0x3A, 0x30, 0x26, 0xFF);
+        var lighting = AssetDatabase.LoadAssetAtPath<LightingSettings>(LightingPath);
+        if (lighting != null) Lightmapping.lightingSettings = lighting;
+
+        BuildSoloTest(kit, new Vector3(1f, 0f, 1.2f));
+        var content = new GameObject("Hub_Content").transform;
+
+        var blocks = Blocks((0, 0), (0, 1), (0, 2));
+        var cells = new List<Vector2Int>();
+        foreach (var bl in blocks)
+            for (int dx = 0; dx < Block; dx++)
+                for (int dz = 0; dz < Block; dz++)
+                    cells.Add(new Vector2Int(bl.x * Block + dx, bl.y * Block + dz));
+
+        var entrance = EdgePair(blocks[0], Side.MinusZ);
+        var left = EdgePair(blocks[1], Side.MinusX);
+        var far = EdgePair(blocks[2], Side.PlusZ);
+        var right = EdgePair(blocks[1], Side.PlusX);
+        var hub = BuildArea(kit, door, door, content, "SecurityHall", Vector3.zero, cells, new HashSet<Vector2Int>(cells),
+            new[]
+            {
+                new DoorSpec(entrance.a, entrance.b, Side.MinusZ, "Hub_Start", CasinoStaffDoor, CasinoScene),
+                new DoorSpec(left.a, left.b, Side.MinusX, "Hub_A", "HallA_Start", SceneName(ScenePaths[0])),
+                new DoorSpec(far.a, far.b, Side.PlusZ, "Hub_B", "HallB_Start", SceneName(ScenePaths[1])),
+                new DoorSpec(right.a, right.b, Side.PlusX, "Hub_C", "HallC_Start", SceneName(ScenePaths[2])),
+            });
+
+        // Signs over the doors, on the wall above the 2.1 m door leaf.
+        var signPos = new Vector3(0f, 2.5f, -0.1f);
+        Sign(kit, hub.Find("Door_Hub_Start"), "CASINO", signPos, 1.4f);
+        for (int i = 0; i < Letters.Length; i++)
+            Sign(kit, hub.Find($"Door_Hub_{Letters[i]}"), WingLabels[i], signPos, 1.4f);
+
+        foreach (var bl in blocks)
+        {
+            Vector3 centre = (CellLocal(new Vector2Int(bl.x * Block, bl.y * Block)) + CellLocal(new Vector2Int(bl.x * Block + 1, bl.y * Block + 1))) * 0.5f;
+            Place(kit.chandelier, hub, centre + Vector3.up * 2.38f, 0);
+            Place(kit.lightWarmFloor, hub, centre + Vector3.up * 2.6f, 0);
+        }
+
+        EditorSceneManager.SaveScene(scene, HubScenePath);
+    }
+
+    static string SceneName(string path) => System.IO.Path.GetFileNameWithoutExtension(path);
+
+    /// <summary>A black plate with brass text on the front (local -Z) of <paramref name="parent"/>. Kit materials only.</summary>
+    public static void Sign(SharedStyleKit kit, Transform parent, string label, Vector3 localPos, float width)
+    {
+        if (parent == null) { Debug.LogWarning("[Hallways] No door to put the '" + label + "' sign on."); return; }
+        Detail(kit.chipBlack, parent, "SignPlate", PrimitiveType.Cube, localPos, new Vector3(width, 0.22f, 0.03f));
+
+        var sign = new GameObject("SignText").AddComponent<TextMeshPro>();
+        sign.transform.SetParent(parent, false);
+        sign.transform.localPosition = localPos + new Vector3(0f, 0f, -0.02f);
+        sign.rectTransform.sizeDelta = new Vector2(width - 0.05f, 0.18f);
+        sign.text = label;
+        sign.fontStyle = FontStyles.Bold;
+        sign.alignment = TextAlignmentOptions.Center;
+        sign.enableAutoSizing = true;
+        sign.fontSizeMin = 0.1f;
+        sign.fontSizeMax = 2f;
+        sign.color = kit.brassGold.color;
     }
 
     static void BuildWing(SharedStyleKit kit, GameObject door, GameObject doorCool, int index, string letter, string roomName,
@@ -144,7 +256,7 @@ public static class HallwayBuilder
         var hall = BuildArea(kit, door, door, parent, $"Hall{letter}", hallOrigin, cells, new HashSet<Vector2Int>(cells),
             new[]
             {
-                new DoorSpec(start.a, start.b, Side.MinusZ, $"Hall{letter}_Start", $"Casino_{letter}", CasinoScene),
+                new DoorSpec(start.a, start.b, Side.MinusZ, $"Hall{letter}_Start", $"Hub_{letter}", HubScene),
                 new DoorSpec(end.a, end.b, endSide, $"Hall{letter}_End", $"Room{letter}_Door"),
             });
 

@@ -49,22 +49,49 @@ public static class WorldBuilder
         VipRoomBuilder.Build();
         if (bake) Bake(VipPath);
         HallwayBuilder.Build();
-        if (bake) foreach (var path in HallwayBuilder.ScenePaths) Bake(path);
+        if (bake)
+        {
+            Bake(HallwayBuilder.HubScenePath);
+            foreach (var path in HallwayBuilder.ScenePaths) Bake(path);
+        }
         AddCasinoDoors();
         AddCasinoTables();
         BuildMain();
+        SetBuildScenes();
 
+        AssetDatabase.SaveAssets();
+        Debug.Log("[World] Built. Open MVP_Main and press Play: you start in the casino; walk into a door to change area.");
+    }
+
+    /// <summary>
+    /// Security area only: builds the hub (MVP_SecurityHall), points the existing wings' start doors at it (their baked
+    /// lighting is kept), swaps the casino's three staff doors for one STAFF ONLY door and adds the hub to the build list.
+    /// </summary>
+    [MenuItem("High Stakes/Build Security Hub (keeps wing lighting)")]
+    public static void BuildSecurityHubMenu()
+    {
+        if (!EditorUtility.DisplayDialog("Build security hub?",
+                "Creates MVP_SecurityHall, relinks the three wings' start doors to it, replaces the casino's staff doors with one STAFF ONLY door (in MVP_Casino's Casino_Doors) and updates the build scene list. The hub is not baked.",
+                "Build", "Cancel")) return;
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+        if (!HallwayBuilder.BuildHubAndRelinkWings()) return;
+        AddCasinoDoors();
+        SetBuildScenes();
+        AssetDatabase.SaveAssets();
+        Debug.Log("[World] Security hub built. Open MVP_Main and press Play: walk through the casino's STAFF ONLY door into the hub, then SECURITY / CAMERAS / VAULT.");
+    }
+
+    static void SetBuildScenes()
+    {
         var scenes = new System.Collections.Generic.List<EditorBuildSettingsScene>
         {
             new EditorBuildSettingsScene(MainPath, true),
             new EditorBuildSettingsScene(CasinoPath, true),
             new EditorBuildSettingsScene(VipPath, true),
+            new EditorBuildSettingsScene(HallwayBuilder.HubScenePath, true),
         };
         foreach (var path in HallwayBuilder.ScenePaths) scenes.Add(new EditorBuildSettingsScene(path, true));
         EditorBuildSettings.scenes = scenes.ToArray();
-
-        AssetDatabase.SaveAssets();
-        Debug.Log("[World] Built. Open MVP_Main and press Play: you start in the casino; walk into a door to change area.");
     }
 
     static void Bake(string path)
@@ -77,8 +104,8 @@ public static class WorldBuilder
     // ------------------------------------------------------------------ casino doors
 
     /// <summary>
-    /// The VIP portal goes on Ashton's existing VIP door; the security wings get staff doors: one on the right wall
-    /// near the cashier cage, two on the back wall between the VIP door and the cage. Re-running replaces them.
+    /// The VIP portal goes on Ashton's existing VIP door; one STAFF ONLY door on the right wall near the cashier cage
+    /// leads to the security hub, which branches to the three wings. Re-running replaces them.
     /// </summary>
     static void AddCasinoDoors()
     {
@@ -97,10 +124,8 @@ public static class WorldBuilder
         // Ashton's VIP door: 1.9 m wide, its face at z 12.66, the player in front of it on -Z.
         Portal(doors, "Door_Casino_VIP", new Vector3(-1.8f, 0f, 12.6f), 0f, 1.9f, "Casino_VIP", "VIP_HallStart", "MVP_VIP");
 
-        // Staff doors: right wall (inner face x 8.8) between the pilasters at z 6 and 10; back wall (panel face z 12.775).
-        StaffDoor(kit, doors, "Door_Casino_A", new Vector3(8.8f, 0f, 8f), 90f, "SECURITY", "Casino_A", "HallA_Start", HallwayBuilder.ScenePaths[0]);
-        StaffDoor(kit, doors, "Door_Casino_B", new Vector3(1.0f, 0f, 12.775f), 0f, "CAMERAS", "Casino_B", "HallB_Start", HallwayBuilder.ScenePaths[1]);
-        StaffDoor(kit, doors, "Door_Casino_C", new Vector3(3.6f, 0f, 12.775f), 0f, "VAULT", "Casino_C", "HallC_Start", HallwayBuilder.ScenePaths[2]);
+        // Staff door: right wall (inner face x 8.8) between the pilasters at z 6 and 10.
+        StaffDoor(kit, doors, "Door_Casino_Staff", new Vector3(8.8f, 0f, 8f), 90f, "STAFF ONLY", HallwayBuilder.CasinoStaffDoor, "Hub_Start", HallwayBuilder.HubScenePath);
 
         EditorSceneManager.SaveScene(scene);
     }

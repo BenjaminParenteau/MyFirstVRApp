@@ -15,6 +15,9 @@ EditorBuildSettings:
     path: Assets/Scenes/MVP/MVP_VIP.unity
     guid: 95fe2f78a9ce5d8458c66f5a47f39170
   - enabled: 1
+    path: Assets/Scenes/MVP/MVP_SecurityHall.unity
+    guid: 80bb476f86ff7704a9b7d171bd858e2a
+  - enabled: 1
     path: Assets/Scenes/MVP/MVP_SecurityOffice.unity
     guid: 021aacaf25cf8ed4a801c095e51c7b80
   - enabled: 1
