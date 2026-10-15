@@ -1,4 +1,6 @@
 using System.Linq;
+using HighStakes.Dialogue;
+using HighStakes.Inventory;
 using HighStakes.Security;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -80,12 +82,43 @@ public static class PitBossBuilder
         so.FindProperty("animator").objectReferenceValue = animator;
         so.FindProperty("walkSpeed").floatValue = StrideSpeed(walk, root);
         so.ApplyModifiedPropertiesWithoutUndo();
+        AddKeycardGiver(root, walker);
         var prefab = PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
         Object.DestroyImmediate(root);
 
         PlaceInCasino(prefab);
         AssetDatabase.SaveAssets();
         Debug.Log("[PitBoss] Built " + PrefabPath + " and placed him on the MVP_Casino floor.");
+    }
+
+    // Point at him and grip: he stops, faces the player, says a line over his head and holds out the VIP keycard.
+    static void AddKeycardGiver(GameObject boss, PatrolWalker walker)
+    {
+        var card = AccessBuilder.BuildVipKeycard();
+        boss.AddComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRSimpleInteractable>(); // uses his capsule
+
+        var glass = AssetDatabase.LoadAssetAtPath<Material>("Assets/Content/UI/UI_Hologram.mat");
+        var speech = new GameObject("Speech").transform;
+        speech.SetParent(boss.transform, false);
+        var bubble = new GameObject("Bubble").transform;
+        bubble.SetParent(speech, false);
+        bubble.localPosition = new Vector3(0f, 2.15f, 0f);
+        var backing = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        backing.name = "Backing";
+        Object.DestroyImmediate(backing.GetComponent<Collider>());
+        backing.transform.SetParent(bubble, false);
+        backing.transform.localScale = new Vector3(1.1f, 0.24f, 1f);
+        backing.GetComponent<Renderer>().sharedMaterial = glass;
+        var line = TableKit.Text(bubble, "Line", new Vector3(0f, 0f, -0.002f), Quaternion.identity, new Vector2(1.04f, 0.2f), 0.1f, 1f, Color.white);
+        line.textWrappingMode = TMPro.TextWrappingModes.Normal;
+        var bubbleComponent = speech.gameObject.AddComponent<SpeechBubble>();
+        TableKit.SetRef(bubbleComponent, "bubble", bubble.gameObject);
+        TableKit.SetRef(bubbleComponent, "text", line);
+
+        var giver = boss.AddComponent<KeycardGiver>();
+        TableKit.SetRef(giver, "cardPrefab", card);
+        TableKit.SetRef(giver, "speech", bubbleComponent);
+        TableKit.SetRef(giver, "patrol", walker);
     }
 
     // URP Lit with the Rocketbox colour and normal maps (their 3ds Max export expects a white tint).

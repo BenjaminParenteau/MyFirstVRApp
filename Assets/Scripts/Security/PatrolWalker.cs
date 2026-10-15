@@ -24,6 +24,14 @@ namespace HighStakes.Security
 
         int next;
         float pauseLeft;
+        Vector3? lookAt;
+
+        /// <summary>Stops the patrol for a while and turns to face a point (someone talking to him), then carries on.</summary>
+        public void Pause(float seconds, Vector3 facing)
+        {
+            pauseLeft = Mathf.Max(pauseLeft, seconds);
+            lookAt = facing;
+        }
 
         void Update()
         {
@@ -33,6 +41,14 @@ namespace HighStakes.Security
             {
                 pauseLeft -= Time.deltaTime;
                 animator.SetBool(Walking, false);
+                if (lookAt.HasValue)
+                {
+                    var toward = lookAt.Value - transform.position;
+                    toward.y = 0f;
+                    if (toward.sqrMagnitude > 0.0001f)
+                        transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(toward), turnSpeed * Time.deltaTime);
+                }
+                if (pauseLeft <= 0f) lookAt = null;
                 return;
             }
 

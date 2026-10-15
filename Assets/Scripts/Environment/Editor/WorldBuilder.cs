@@ -107,6 +107,9 @@ public static class WorldBuilder
     /// The VIP portal goes on Ashton's existing VIP door; one STAFF ONLY door on the right wall near the cashier cage
     /// leads to the security hub, which branches to the three wings. Re-running replaces them.
     /// </summary>
+    /// <summary>Batch entry point: re-adds just the casino doors (and the VIP reader), leaving everything else as built.</summary>
+    public static void RebuildCasinoDoors() => AddCasinoDoors();
+
     static void AddCasinoDoors()
     {
         var kit = AssetDatabase.LoadAssetAtPath<SharedStyleKit>(KitPath);
@@ -122,7 +125,9 @@ public static class WorldBuilder
                     rig.transform.SetPositionAndRotation(CasinoStart, Quaternion.identity);
 
         // Ashton's VIP door: 1.9 m wide, its face at z 12.66, the player in front of it on -Z.
-        Portal(doors, "Door_Casino_VIP", new Vector3(-1.8f, 0f, 12.6f), 0f, 1.9f, "Casino_VIP", "VIP_HallStart", "MVP_VIP");
+        // Locked until the VIP keycard (from the Pit Boss) touches the reader where Ashton's reader plate is (-0.5, 1.3, 12.5).
+        var vip = Portal(doors, "Door_Casino_VIP", new Vector3(-1.8f, 0f, 12.6f), 0f, 1.9f, "Casino_VIP", "VIP_HallStart", "MVP_VIP");
+        AccessBuilder.AddVipReader(vip, new Vector3(1.3f, 1.3f, -0.1f));
 
         // Staff door: right wall (inner face x 8.8) between the pilasters at z 6 and 10.
         StaffDoor(kit, doors, "Door_Casino_Staff", new Vector3(8.8f, 0f, 8f), 90f, "STAFF ONLY", HallwayBuilder.CasinoStaffDoor, "Hub_Start", HallwayBuilder.HubScenePath);
