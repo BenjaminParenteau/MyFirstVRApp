@@ -197,6 +197,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot D log
 
+- 2026-10-14 · Security hub: the casino's three staff doors are now one **STAFF ONLY** door (right wall) into a new hub hallway `MVP_SecurityHall`, whose signed SECURITY / CAMERAS / VAULT doors lead into the existing wings (and each wing's start door leads back to the hub). **High Stakes > Build Security Hub (keeps wing lighting)** builds the hub, relinks the wings in place and adds the hub to the build list; **Build MVP World** builds the same layout. (slot-d/casino-textures)
+- 2026-10-14 · Casino textures: our own generated casino carpet (`tools/generate_casino_carpet.py`, kit palette) plus CC0 Poly Haven marble, wood-panel and wallpaper textures and an FBX picture frame in `Assets/Content/Environment/Casino/`; **High Stakes > Casino Textures > Build Casino Textures** makes kit Material Variants + Prefab Variants (`Env_CasinoFloor_Carpet/Marble`, `Env_CasinoWallPanel`, `Env_PictureFrame`), and **Apply Casino Textures To Open Scene** swaps them in (also textures `MVP_Casino`'s plain floor/wall boxes, tiled to size). Android import: ASTC 6x6, max 1024, mipmaps. (slot-d/casino-textures)
 - 2026-10-01 · Committed the built `MVP_Hallways.unity` (3 hallways + security rooms + stand-in casino with door portals); rebuilt against the restored casino prefabs and checked in the simulator. (slot-d/hallways)
 - 2026-10-01 · Added the two portal door prefabs (`Env_PortalDoor_Warm/Cool`) so the casino can place doors with ids `Casino_A/B/C`; `MVP_Hallways.unity` itself is not committed yet (needs a rebuild against the restored casino prefabs). (slot-d/hallways)
 - 2026-10-01 · Faster movement: simulator WASD walking set to 3 m/s (was 1) via `SoloTestRoot`; rig smooth-move speed target 3 m/s (was 2.5) as `StyleScale.MoveSpeed`, applied by the style-kit builder and set by hand on `Kit_PlayerRig` in the Editor. (slot-d/hallways)
@@ -257,8 +259,13 @@ Things the team agreed on that aren't obvious from the code.
 
 - **2026-10-01 · `dev` is the integration branch; `main` is always working.** Slot branches (`slot-<x>/<topic>`) merge by PR into `dev`. Zach tests `dev` (simulator + APK on Quest 3) and only then promotes `dev` into `main` by PR, so `main` is always a build that runs on the headset. No direct pushes to `main` after this (Zach's Day-0 and Progress commits were the last exceptions).
 - **2026-10-01 · Ashton may edit the shared style kit directly (temporary exception).** He built the full casino and needs kit changes (materials, prefabs, lighting). He edits `Assets/Content/StyleKit/` on a `slot-b/<topic>` branch; Zach does not touch the kit while he does, and nobody reruns **High Stakes > Build Style Kit** (it may overwrite prefabs, since it saves them with `SaveAsPrefabAsset`). Anything not specific to the casino still follows the normal rule (request to Zach, shipped as `stylekit-vN`). Ashton announces each kit change in Open questions so everyone knows when to pull.
+- **2026-10-14 · Casino textures are CC0 Material Variants in `Assets/Content/Environment/Casino/`.** They inherit from the kit materials (no new base materials) and the prefabs are variants of the kit floor tile and casino wall panel, so sizes and colliders match. Nothing in `Assets/Content/StyleKit/` changes, so this doesn't clash with Ashton's kit exception. Sources and licenses are in that folder's README.
 
 ## Open questions / blockers
+
+- **Ben / Ashton:** please bake `MVP_SecurityHall` (CPU lightmapper, like the wings). Its lights are Baked-only, so until then only the flat ambient lights it. Zach can't bake on his laptop.
+
+- **Ashton:** heads-up, `MVP_Casino` was textured by Zach (2026-10-14) with **High Stakes > Casino Textures > Apply Casino Textures To All Area Scenes**: `Casino_Carpet` is now the generated casino carpet, the side/back walls wallpaper, the wainscot/back paneling (and bar front, cashier counter, VIP door) wood panels, all Material Variants in `Content/Environment/Casino/Materials/Tiled/`. The three staff doors are now one STAFF ONLY door (`Casino_Doors`, from WorldBuilder). Pull `dev` before editing the casino again; re-running the menu is safe (it updates in place, Undo works).
 
 - **GDD:** update the game list to the two-room plan in `docs/plans/VrstakeGamesPort.md` (classics on the floor; Mines, Plinko, Dice and virtual games in the high-roller room).
 
