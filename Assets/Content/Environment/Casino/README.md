@@ -21,3 +21,32 @@ Credits: all other assets are CC0 (public domain, no attribution required) from 
 - T_Wallpaper_Normal "Floral Jacquard" normal map (colormass, Rico Cilliers)  https://polyhaven.com/a/floral_jacquard
 - fancy_picture_frame_01.fbx, T_PictureFrame_*, T_PictureCanvas_*
                      "Fancy Picture Frame 01" (Rob Tuytel, Rico Cilliers)     https://polyhaven.com/a/fancy_picture_frame_01
+
+Casino entrance
+---------------
+Env_CasinoEntrance.prefab closes the front wall at z = -9, with a wood-and-brass
+door, a small door pane and six large glass panels. The exterior is a complete 3D street district: 39 buildings at staggered depths,
+storefronts, roof details, sidewalks, crossings, lamps, benches, bollards and
+eight parked cars. The avenue extends approximately 130 m from the frontage.
+Buildings use brick color/normal maps; the road uses asphalt color/normal maps.
+The district is viewed through the windows; the entrance door stays closed.
+
+High Stakes > Environment > Build Casino Entrance rebuilds this prefab and its
+casino instance. Verify Casino Entrance checks collision coverage and glass.
+Render Entrance Preview writes two views to Temp/EntranceQA. Two shadow-free exterior point lights illuminate the nearest street. No player
+rigs are added. Geometry is combined by material into saved mesh assets to limit
+draw calls; the 1K brick/asphalt textures use mipmaps and Android ASTC 6x6.
+
+Exterior texture credit:
+- T_ExteriorBrick_Albedo / Normal: "Brick Wall 003", Dimitrios Savva and Rob Tuytel.
+  Source: https://polyhaven.com/a/brick_wall_003
+  License: CC0, https://polyhaven.com/license
+
+- T_ExteriorAsphalt_Albedo / Normal: "Asphalt 02", Poly Haven.
+  Source: https://polyhaven.com/a/asphalt_02
+  License: CC0, https://polyhaven.com/license
+- T_ExteriorNightSky.jpg: Greg Zaal, "Dikhololo Night", Poly Haven (CC0).
+  Source: https://polyhaven.com/a/dikhololo_night
+  Real night-sky photography with stars and the Milky Way, resized to 4096 x 2048;
+  rendered on an inward-facing dome around the district, with the ground hidden
+  by the modeled city. This does not replace the casino's lighting or global skybox.

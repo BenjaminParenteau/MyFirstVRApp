@@ -183,6 +183,12 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot B log
 
+- 2026-10-15 · Added a photographed starry night-sky dome (Poly Haven Dikhololo Night, CC0) around the 3D exterior district, replacing the flat sky walls while preserving casino lighting.
+
+- 2026-10-15 · Expanded the entrance exterior into a 3D street district with 39 varied buildings, storefronts, a 130 m avenue, sidewalks/crossings, street furniture and eight parked cars. Brick/asphalt color and normal textures, two shadow-free exterior lights, and geometry combined by material; all six entrance glass panels retained. Collision checks and rendered views passed; Quest 3 performance review remains pending.
+
+- 2026-10-15 · Enclosed the casino's open entrance with matching wallpaper, wood panels and brass trim; added a closed door with a small glass window and a 3D nighttime courtyard/city view. CasinoEntranceBuilder regenerates the prefab; 355 collision checks passed, with no new lights or player rigs. Rendered entrance and window views reviewed; headset review remains pending.
+
 - 2026-10-15 · Integrated the latest dev VIP keycard changes with the bar PIN puzzle; rebuilt the puzzle on the updated casino scene to preserve the Pit Boss and reader setup.
 
 - 2026-10-15 · Added a compact bar float PIN pad at the MVP_Casino bar: tilted brass/black housing, high-contrast keys, a closeout-slip clue and a one-time $500 session bonus through IChipWallet. Replaces the earlier recipe concept. Includes a prefab builder, reward/revisit checks and a passing live keypad Play check; headset reach/performance review remains pending.
