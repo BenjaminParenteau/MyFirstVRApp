@@ -181,6 +181,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot B log
 
+- 2026-10-15 · Added a compact bar float PIN pad at the MVP_Casino bar: tilted brass/black housing, high-contrast keys, a closeout-slip clue and a one-time $500 session bonus through IChipWallet. Replaces the earlier recipe concept. Includes a prefab builder, reward/revisit checks and a passing live keypad Play check; headset reach/performance review remains pending.
+
 ### Slot C log
 
 - 2026-10-03 · Committed the rebuilt `UI_WristDisplay.prefab` (watch on the back of the left controller); opened the wrist-display PR into `dev` (slot-c/wrist-display)
