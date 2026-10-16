@@ -279,7 +279,7 @@ public static class WristDisplayBuilder
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 
-    static GameObject Prim(string name, GameObject parent, PrimitiveType type, Vector3 pos, Vector3 scale, Material m)
+    internal static GameObject Prim(string name, GameObject parent, PrimitiveType type, Vector3 pos, Vector3 scale, Material m)
     {
         var go = GameObject.CreatePrimitive(type);
         go.name = name;
@@ -392,14 +392,14 @@ public static class WristDisplayBuilder
 
     // ---------------------------------------------------------------- helpers
 
-    static void Set(Object target, string field, Object value)
+    internal static void Set(Object target, string field, Object value)
     {
         var so = new SerializedObject(target);
         so.FindProperty(field).objectReferenceValue = value;
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 
-    static void EnsureFolder(string path)
+    internal static void EnsureFolder(string path)
     {
         if (AssetDatabase.IsValidFolder(path)) return;
         string parent = System.IO.Path.GetDirectoryName(path).Replace('\\', '/');
