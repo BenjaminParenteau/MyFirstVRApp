@@ -1,19 +1,24 @@
 using UnityEditor;
 
 /// <summary>
-/// First-import settings for the casino textures and models in Assets/Content/Environment/Casino/ (StyleGuide §7):
+/// First-import settings for the casino textures and models in Assets/Content/Environment/Casino/ and the security wing
+/// textures in Assets/Content/Environment/Security/ (StyleGuide §7):
 /// mipmaps on, repeat wrap, "_Normal" files as normal maps, and on Android ASTC 6x6 at max 1024.
 /// Only applied when a file has no .meta yet, so later hand changes in the Inspector (e.g. for the optimization pass)
 /// are kept.
 /// </summary>
 public class CasinoTextureImporter : AssetPostprocessor
 {
-    const string TextureFolder = "Assets/Content/Environment/Casino/Textures/";
+    static readonly string[] TextureFolders =
+    {
+        "Assets/Content/Environment/Casino/Textures/",
+        "Assets/Content/Environment/Security/Textures/",
+    };
     const string ModelFolder = "Assets/Content/Environment/Casino/Models/";
 
     void OnPreprocessTexture()
     {
-        if (!assetPath.StartsWith(TextureFolder) || !assetImporter.importSettingsMissing) return;
+        if (!System.Array.Exists(TextureFolders, f => assetPath.StartsWith(f)) || !assetImporter.importSettingsMissing) return;
         var importer = (TextureImporter)assetImporter;
 
         importer.textureType = assetPath.Contains("_Normal") ? TextureImporterType.NormalMap : TextureImporterType.Default;

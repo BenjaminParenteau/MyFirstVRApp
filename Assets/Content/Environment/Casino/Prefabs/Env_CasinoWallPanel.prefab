@@ -8,6 +8,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3000014, guid: 734144b30dbf40f5b55f252086d89204, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: b6562996d1e6fce43bad9c50cd664216, type: 2}
+    - target: {fileID: 3000019, guid: 734144b30dbf40f5b55f252086d89204, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 2c753280768473e468ad290df7cdc4c5, type: 2}
     - target: {fileID: 900000060, guid: 734144b30dbf40f5b55f252086d89204, type: 3}
       propertyPath: m_Name
       value: Env_CasinoWallPanel

@@ -15,7 +15,8 @@ using UnityEngine.Rendering;
 ///
 /// The hallways are 4 m wide and 3 m tall so NPCs can walk alongside the player. They use the casino look: the same red
 /// carpet floor, Ashton's casino wall panel (cream wall, wood wainscot, brass rail and crown), framed pictures and wall
-/// sconces, and chandeliers. The security rooms at the ends are cool (concrete, steel, glowing screens).
+/// sconces, and chandeliers. The security rooms at the ends are cool (concrete, steel, glowing screens), textured
+/// afterwards by <see cref="SecurityTextureBuilder"/>.
 ///
 /// Re-running overwrites the scenes, so after the first run edit them by hand.
 /// </summary>
@@ -83,6 +84,9 @@ public static class HallwayBuilder
         BuildWing(kit, door, doorCool, 2, "C", "Vault Antechamber", Room.Vault,
             Blocks((0, 0), (0, 1), (-1, 1), (-2, 1), (-2, 2), (-2, 3)), Side.PlusZ);
         BuildHub(kit, door);
+        // Cinder block, concrete, tread plate and drop ceiling in the rooms (skipped with a warning if the textures have
+        // not been generated yet).
+        SecurityTextureBuilder.BuildAndApplyToWings();
 
         AssetDatabase.SaveAssets();
         Debug.Log("[Hallways] Built the security hub and wings. Open one and press Play to walk it alone, or play MVP_Main and walk through the casino's STAFF ONLY door.");
