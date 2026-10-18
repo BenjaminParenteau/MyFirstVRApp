@@ -54,8 +54,8 @@ public static class CasinoTextureBuilder
 
         var carpet = Variant("M_CasinoCarpet", kit.carpetRed, "T_CasinoCarpet", CarpetTiling, Color.white, 0.05f);
         var marble = Variant("M_MarbleFloor", kit.plasterCream, "T_MarbleFloor", MarbleTiling, Color.white, 0.45f);
-        // Wallpaper keeps the kit cream colour and only adds the embossed floral relief.
-        var wallpaper = Variant("M_Wallpaper", kit.plasterCream, "T_Wallpaper", WallpaperTiling, null, null);
+        // Cream-and-gold damask (tools/generate_casino_wallpaper.py, already in the kit palette) on the embossed relief.
+        var wallpaper = Variant("M_Wallpaper", kit.plasterCream, "T_Wallpaper", WallpaperTiling, Color.white, null);
         var wood = Variant("M_WoodPanel", kit.woodDark, "T_WoodPanel", WainscotTiling, Color.white, 0.35f);
         var frame = Variant("M_PictureFrame", kit.brassGold, "T_PictureFrame", Vector2.one, Color.white, null);
         var canvas = Variant("M_PictureCanvas", kit.plasterCream, "T_PictureCanvas", Vector2.one, Color.white, 0.1f);
@@ -64,20 +64,43 @@ public static class CasinoTextureBuilder
         FloorVariant("Env_CasinoFloor_Marble", kit.floorTileWarm, marble);
         WallPanelVariant(kit.casinoWallPanel, wallpaper, wood);
         PictureFramePrefab(frame, canvas);
+        CasinoDetailTextures.Build(kit);   // ceiling, beams, furniture, tables, metalwork, lamps
+        RefreshTiledVariants(TiledFolder); // the parts already in scenes use these
 
         AssetDatabase.SaveAssets();
         Debug.Log("[CasinoTextures] Built materials in " + Mat + " and prefabs in " + Pre + ". Open a scene you own and run High Stakes > Casino Textures > Apply Casino Textures To Open Scene.");
     }
 
-    // The area scenes MVP_Main loads that use the warm casino look. MVP_VIP (Slot A) is left to its owner.
+    // The area scenes MVP_Main loads that use the warm casino look. MVP_VIP is Ben's (Slot A): he OK'd texture-only changes
+    // (2026-10-17, Progress_Vol1.md Decisions).
     static string[] AreaScenes()
     {
-        var list = new List<string> { "Assets/Scenes/MVP/MVP_Casino.unity", HallwayBuilder.HubScenePath };
+        var list = new List<string> { "Assets/Scenes/MVP/MVP_Casino.unity", "Assets/Scenes/MVP/MVP_VIP.unity", HallwayBuilder.HubScenePath };
         list.AddRange(HallwayBuilder.ScenePaths);
         return list.ToArray();
     }
 
-    const string ApplyDescription = "- warm kit floor tiles and casino wall panels become the textured variants\n- large plain floor/wall boxes using the kit carpet, cream or dark wood get the textured material, tiled to their size\n- primitive picture frames become the FBX frame\nCool back-of-house rooms are left as they are.";
+    /// <summary>
+    /// Textures and saves the given scenes without dialogs (WorldBuilder runs it after regenerating scenes, so rebuilt
+    /// areas keep their textures). Skips, with a warning, if the casino materials have not been built.
+    /// </summary>
+    public static void ApplyToScenes(params string[] paths)
+    {
+        if (AssetDatabase.LoadAssetAtPath<Material>(Mat + "M_CasinoCarpet.mat") == null)
+        {
+            Debug.LogWarning("[CasinoTextures] Casino materials not built; run High Stakes > Casino Textures > Build Casino Textures, then Apply Casino Textures To All Area Scenes.");
+            return;
+        }
+        foreach (var path in paths)
+        {
+            if (!System.IO.File.Exists(path)) continue;
+            var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
+            if (!ApplyTo(scene)) return;
+            EditorSceneManager.SaveScene(scene);
+        }
+    }
+
+    const string ApplyDescription = "- warm kit floor tiles and casino wall panels get the carpet, wallpaper and wood panel materials\n- large plain floor/wall boxes using the kit carpet, cream or dark wood get the textured material, tiled to their size\n- primitive picture frames become the FBX frame\n- details get textured materials: coffered ceiling (also on warm kit ceiling tiles), wood beams and pilasters, table felt and wood, leather seats, brushed brass and steel, slot cabinets, bar top, glowing lamps, the staff door\nCool back-of-house rooms are left as they are (see Security Textures).";
 
     [MenuItem("High Stakes/Casino Textures/Apply Casino Textures To Open Scene")]
     public static void ApplyToOpenScene()
@@ -94,7 +117,7 @@ public static class CasinoTextureBuilder
     {
         var scenes = AreaScenes();
         if (!EditorUtility.DisplayDialog("Apply casino textures to every area?",
-                "Opens, edits and saves:\n" + string.Join("\n", scenes) + "\n\n" + ApplyDescription + "\n\nMVP_Casino is Ashton's scene: tell him before committing it.",
+                "Opens, edits and saves:\n" + string.Join("\n", scenes) + "\n\n" + ApplyDescription + "\n\nMVP_Casino is Ashton's scene and MVP_VIP is Ben's (texture-only changes OK'd): tell them before committing.",
                 "Apply and save", "Cancel")) return;
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
 
@@ -111,10 +134,11 @@ public static class CasinoTextureBuilder
     static bool ApplyTo(UnityEngine.SceneManagement.Scene scene)
     {
         var kit = AssetDatabase.LoadAssetAtPath<SharedStyleKit>(KitPath);
-        var floor = AssetDatabase.LoadAssetAtPath<GameObject>(Pre + "Env_CasinoFloor_Carpet.prefab");
-        var wall = AssetDatabase.LoadAssetAtPath<GameObject>(Pre + "Env_CasinoWallPanel.prefab");
+        var carpet = AssetDatabase.LoadAssetAtPath<Material>(Mat + "M_CasinoCarpet.mat");
+        var wallpaper = AssetDatabase.LoadAssetAtPath<Material>(Mat + "M_Wallpaper.mat");
+        var wood = AssetDatabase.LoadAssetAtPath<Material>(Mat + "M_WoodPanel.mat");
         var picture = AssetDatabase.LoadAssetAtPath<GameObject>(Pre + "Env_PictureFrame.prefab");
-        if (kit == null || floor == null || wall == null || picture == null)
+        if (kit == null || carpet == null || wallpaper == null || wood == null || picture == null)
         {
             Debug.LogError("[CasinoTextures] Run High Stakes > Casino Textures > Build Casino Textures first.");
             return false;
@@ -122,19 +146,28 @@ public static class CasinoTextureBuilder
 
         int floors = 0, walls = 0, pictures = 0;
         int surfaces = TextureLooseSurfaces(kit);
-        var swaps = new List<(GameObject instance, GameObject target)>();
+        int details = CasinoDetailTextures.ApplyTo(kit);
+        // Kit warm floor tiles and casino wall panels: override the materials on the existing instance (the same ones
+        // as the Env_ prefab variants; the pieces are kit sizes, so the base materials' tiling fits). Swapping the prefab
+        // instead would give the pieces new identities and lose their baked lightmaps.
         foreach (var t in Object.FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
         {
             var go = t.gameObject;
             if (!PrefabUtility.IsOutermostPrefabInstanceRoot(go)) continue;
             var source = PrefabUtility.GetCorrespondingObjectFromSource(go);
-            if (source == kit.floorTileWarm) swaps.Add((go, floor));
-            else if (source == kit.casinoWallPanel) swaps.Add((go, wall));
-        }
-        foreach (var (instance, target) in swaps)
-        {
-            PrefabUtility.ReplacePrefabAssetOfPrefabInstance(instance, target, InteractionMode.UserAction);
-            if (target == floor) floors++; else walls++;
+            bool isFloor = source == kit.floorTileWarm;
+            if (!isFloor && source != kit.casinoWallPanel) continue;
+            bool changed = false;
+            foreach (var r in go.GetComponentsInChildren<MeshRenderer>(true))
+            {
+                var m = isFloor ? carpet : r.name.EndsWith("SideWall") ? wallpaper : r.name.EndsWith("Wainscot") ? wood : null;
+                if (m == null || r.sharedMaterial == m) continue;
+                Undo.RecordObject(r, "Apply casino textures");
+                r.sharedMaterial = m;
+                PrefabUtility.RecordPrefabInstancePropertyModifications(r);
+                changed = true;
+            }
+            if (changed) { if (isFloor) floors++; else walls++; }
         }
 
         // Primitive frames added by HallwayBuilder: a "PictureFrame" cube with a "PictureCanvas" cube next to it.
@@ -156,7 +189,7 @@ public static class CasinoTextureBuilder
 
         AssetDatabase.SaveAssets();
         EditorSceneManager.MarkSceneDirty(scene);
-        Debug.Log($"[CasinoTextures] {scene.path}: {floors} floor tiles, {walls} wall panels, {surfaces} large floor/wall surfaces, {pictures} picture frames textured.");
+        Debug.Log($"[CasinoTextures] {scene.path}: {floors} floor tiles, {walls} wall panels, {surfaces} large floor/wall surfaces, {pictures} picture frames, {details} details textured.");
         return true;
     }
 
@@ -212,24 +245,72 @@ public static class CasinoTextureBuilder
     }
 
     // A variant of one of our materials with a different tiling, reused for every surface of the same size.
-    static Material TiledVariant(Material parent, Vector2 tiling)
+    static Material TiledVariant(Material parent, Vector2 tiling) => TiledVariant(parent, tiling, TiledFolder);
+
+    /// <summary>A Material Variant of <paramref name="parent"/> with only the tiling changed, saved in (and reused from) <paramref name="folder"/>.</summary>
+    internal static Material TiledVariant(Material parent, Vector2 tiling, string folder)
     {
         tiling = new Vector2(Mathf.Round(tiling.x * 10f) / 10f, Mathf.Round(tiling.y * 10f) / 10f);
-        EnsureFolder(TiledFolder);
-        string path = $"{TiledFolder}/{parent.name}_{tiling.x:0.#}x{tiling.y:0.#}.mat";
+        EnsureFolder(folder);
+        string path = $"{folder}/{parent.name}_{tiling.x:0.#}x{tiling.y:0.#}.mat";
         var m = AssetDatabase.LoadAssetAtPath<Material>(path);
-        if (m != null) return m;
-        m = new Material(parent);
-        AssetDatabase.CreateAsset(m, path);
-        m.parent = parent;
-        m.SetTextureScale("_BaseMap", tiling);
-        EditorUtility.SetDirty(m);
+        if (m == null)
+        {
+            m = new Material(parent);
+            AssetDatabase.CreateAsset(m, path);
+            m.parent = parent;
+        }
+        SyncFromParent(m, tiling);
         return m;
     }
 
-    static Vector2 Tiling(Vector2 size, Vector2 repeat) => new Vector2(size.x / repeat.x, size.y / repeat.y);
+    /// <summary>
+    /// Re-syncs every tiled variant in <paramref name="folder"/> with its parent. A tiled variant overrides _BaseMap for
+    /// its tiling, and texture + tiling are one property, so a new albedo (or colour) on the parent would not reach it
+    /// on its own. Run after rebuilding the parent materials.
+    /// </summary>
+    internal static void RefreshTiledVariants(string folder)
+    {
+        if (!AssetDatabase.IsValidFolder(folder)) return;
+        foreach (var guid in AssetDatabase.FindAssets("t:Material", new[] { folder }))
+        {
+            var m = AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GUIDToAssetPath(guid));
+            if (m != null && m.parent != null) SyncFromParent(m, m.GetTextureScale("_BaseMap"));
+        }
+    }
 
-    static void EnsureFolder(string path)
+    static void SyncFromParent(Material m, Vector2 tiling)
+    {
+        var parent = m.parent;
+        m.SetTexture("_BaseMap", parent.GetTexture("_BaseMap"));
+        m.SetTextureScale("_BaseMap", tiling);
+        m.SetTexture("_BumpMap", parent.GetTexture("_BumpMap"));
+        if (parent.IsKeywordEnabled("_NORMALMAP")) m.EnableKeyword("_NORMALMAP"); else m.DisableKeyword("_NORMALMAP");
+        m.SetColor("_BaseColor", parent.GetColor("_BaseColor"));
+        m.SetFloat("_Smoothness", parent.GetFloat("_Smoothness"));
+        EditorUtility.SetDirty(m);
+    }
+
+    /// <summary>
+    /// <paramref name="material"/> tiled to the renderer's visible face (a scaled Unity cube: the thinnest axis is the one
+    /// the face looks along), as a tiled variant in <paramref name="folder"/>. Returns the material itself when its own
+    /// tiling already fits, e.g. on a standard kit piece.
+    /// </summary>
+    internal static Material FitToFace(Material material, Renderer r, Vector2 repeat, string folder)
+    {
+        var s = r.transform.lossyScale;
+        s = new Vector3(Mathf.Abs(s.x), Mathf.Abs(s.y), Mathf.Abs(s.z));
+        int thin = s.x <= s.y && s.x <= s.z ? 0 : (s.y <= s.z ? 1 : 2);
+        // Unity's cube UVs: X faces run (z, y), Y faces (x, z), Z faces (x, y).
+        var face = thin == 0 ? new Vector2(s.z, s.y) : thin == 1 ? new Vector2(s.x, s.z) : new Vector2(s.x, s.y);
+        var tiling = Tiling(face, repeat);
+        if ((material.GetTextureScale("_BaseMap") - tiling).sqrMagnitude < 0.01f) return material;
+        return TiledVariant(material, tiling, folder);
+    }
+
+    internal static Vector2 Tiling(Vector2 size, Vector2 repeat) => new Vector2(size.x / repeat.x, size.y / repeat.y);
+
+    internal static void EnsureFolder(string path)
     {
         if (AssetDatabase.IsValidFolder(path)) return;
         string parent = System.IO.Path.GetDirectoryName(path).Replace('\\', '/');
@@ -242,8 +323,16 @@ public static class CasinoTextureBuilder
     // A Material Variant of a kit material that overrides only the textures, tiling and (optionally) colour/smoothness.
     // Pass color null to keep the kit tint. The kit uses URP Simple Lit: _BaseMap, _BumpMap (+ _NORMALMAP keyword).
     static Material Variant(string name, Material parent, string texturePrefix, Vector2 tiling, Color? color, float? smoothness)
+        => Variant(Mat, Tex, name, parent, texturePrefix, tiling, color, smoothness);
+
+    /// <summary>
+    /// The same, saved as <paramref name="materialFolder"/>/name.mat with textures (prefix_Albedo / prefix_Normal, .jpg or
+    /// .png) from <paramref name="textureFolder"/>. Both folders end in '/'.
+    /// </summary>
+    internal static Material Variant(string materialFolder, string textureFolder, string name, Material parent, string texturePrefix,
+        Vector2 tiling, Color? color, float? smoothness)
     {
-        string path = Mat + name + ".mat";
+        string path = materialFolder + name + ".mat";
         var m = AssetDatabase.LoadAssetAtPath<Material>(path);
         if (m == null)
         {
@@ -252,8 +341,8 @@ public static class CasinoTextureBuilder
         }
         m.parent = parent;
 
-        var albedo = LoadTexture(texturePrefix + "_Albedo");
-        var normal = LoadTexture(texturePrefix + "_Normal");
+        var albedo = LoadTexture(textureFolder, texturePrefix + "_Albedo");
+        var normal = LoadTexture(textureFolder, texturePrefix + "_Normal");
         if (albedo != null)
         {
             m.SetTexture("_BaseMap", albedo);
@@ -278,11 +367,11 @@ public static class CasinoTextureBuilder
         return m;
     }
 
-    static Texture2D LoadTexture(string baseName)
+    static Texture2D LoadTexture(string folder, string baseName)
     {
         foreach (var ext in new[] { ".jpg", ".png" })
         {
-            var t = AssetDatabase.LoadAssetAtPath<Texture2D>(Tex + baseName + ext);
+            var t = AssetDatabase.LoadAssetAtPath<Texture2D>(folder + baseName + ext);
             if (t != null) return t;
         }
         return null;
@@ -294,7 +383,7 @@ public static class CasinoTextureBuilder
     {
         var instance = (GameObject)PrefabUtility.InstantiatePrefab(kitFloor);
         foreach (var r in instance.GetComponentsInChildren<MeshRenderer>()) r.sharedMaterial = material;
-        SaveVariant(instance, name);
+        SaveVariant(instance, Pre, name);
     }
 
     static void WallPanelVariant(GameObject kitPanel, Material wallpaper, Material wood)
@@ -302,10 +391,11 @@ public static class CasinoTextureBuilder
         var instance = (GameObject)PrefabUtility.InstantiatePrefab(kitPanel);
         foreach (var r in instance.GetComponentsInChildren<MeshRenderer>())
         {
-            if (r.name == "SideWall") r.sharedMaterial = wallpaper;
-            else if (r.name == "Wainscot") r.sharedMaterial = wood;
+            // The kit panel's parts are Casino_SideWall and Casino_Wainscot.
+            if (r.name.EndsWith("SideWall")) r.sharedMaterial = wallpaper;
+            else if (r.name.EndsWith("Wainscot")) r.sharedMaterial = wood;
         }
-        SaveVariant(instance, "Env_CasinoWallPanel");
+        SaveVariant(instance, Pre, "Env_CasinoWallPanel");
     }
 
     // The FBX frame, remapped to our materials, oriented to the kit convention (flat on the wall, front facing local
@@ -364,11 +454,12 @@ public static class CasinoTextureBuilder
         return bounds;
     }
 
-    static void SaveVariant(GameObject instance, string name)
+    /// <summary>Saves a kit prefab instance (with its overrides) as a static Prefab Variant at <paramref name="folder"/>/name.prefab, then destroys the instance.</summary>
+    internal static void SaveVariant(GameObject instance, string folder, string name)
     {
         instance.name = name;
         foreach (var t in instance.GetComponentsInChildren<Transform>()) t.gameObject.isStatic = true;
-        PrefabUtility.SaveAsPrefabAsset(instance, Pre + name + ".prefab");
+        PrefabUtility.SaveAsPrefabAsset(instance, folder + name + ".prefab");
         Object.DestroyImmediate(instance);
     }
 }

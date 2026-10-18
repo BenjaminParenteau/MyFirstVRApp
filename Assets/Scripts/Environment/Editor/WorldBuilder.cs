@@ -47,8 +47,12 @@ public static class WorldBuilder
         MinesTableBuilder.BuildPrefab();
         PlinkoTableBuilder.BuildPrefab();
         VipRoomBuilder.Build();
+        CasinoTextureBuilder.ApplyToScenes(VipPath); // regenerated scenes come back plain: re-texture before baking
         if (bake) Bake(VipPath);
-        HallwayBuilder.Build();
+        HallwayBuilder.Build();                      // also re-applies the security room textures
+        var hallScenes = new System.Collections.Generic.List<string> { HallwayBuilder.HubScenePath };
+        hallScenes.AddRange(HallwayBuilder.ScenePaths);
+        CasinoTextureBuilder.ApplyToScenes(hallScenes.ToArray());
         if (bake)
         {
             Bake(HallwayBuilder.HubScenePath);
@@ -56,6 +60,7 @@ public static class WorldBuilder
         }
         AddCasinoDoors();
         AddCasinoTables();
+        CasinoTextureBuilder.ApplyToScenes(CasinoPath); // the re-placed tables' felt, wood and rails
         BuildMain();
         SetBuildScenes();
 
