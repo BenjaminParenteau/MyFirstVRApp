@@ -30,7 +30,64 @@ Rules: see [Merge-conflict rules](#merge-conflict-rules) under the Milestone 2 p
 
 Consequences: the **standalone Android build is the primary target and test path** (it is also the real Quest 3 performance test); Quest Link / PC VR is a secondary, optional path that only Ashton and Ben can use. Shared lightmap bakes are done by Ben or Ashton, never Zach or Pak. See [docs/StyleGuide.md §9](docs/StyleGuide.md#9-testing-without-a-gpu).
 
-## Milestone 2 — MVP prototype (current assignment)
+## Milestone 3 — UI, inventory, dialogue + user testing (current assignment)
+
+**Assignment (CLC, group):** design and implement the game's **user interfaces and interactions**: intuitive **menus**, an **inventory system** and **dialogue boxes** that improve usability and immersion. **Run user tests, collect feedback and iterate** on the designs. Full brief: "GDT-120 Course Project" in Class Resources (check the rubric before starting).
+
+**Submit:**
+1. The joint GDD updated with the UI/interaction design and a **user testing** write-up: what we tested, who tested it, what they said, and what we changed because of it (before/after).
+2. **One individual video per member** (core concept, storyline, characters, unique features; professional setting and dress; recorded in-headset or cast to laptop). Every member's link goes in the GDD's team table.
+
+### Milestone 3 focus
+
+Everything stays **diegetic** (VisualReference.md): no floating HUD panels. One look and feel across all three UI kinds: the notebook's paper/leather, brass buttons, and the blue hologram materials for "tech" UI. Start from what's already built:
+
+| Asked for | What we already have | What Milestone 3 adds |
+|---|---|---|
+| Menus | Watch + hologram HUD (bankroll, tier) | A diegetic **pause/settings menu** (comfort: snap/smooth turn, turn angle, teleport/smooth move, vignette on/off, seated mode; resume / restart / quit) and a **start screen** in `MVP_Main` before the casino loads |
+| Inventory | Notebook (pickup prompt, two-page spread, card slot), prototype `NotebookPickups` | A real inventory backend raising `IInventoryEvents.ItemAdded` from `ItemData` assets (keycards, notes, passcode fragments); notebook polish from test feedback (item icons, clearer "take out / put back", a "new item" pulse on the watch) |
+| Dialogue boxes | Ben's `SpeechBubble` on the Pit Boss | One shared **dialogue box** in `Dialogue/`: speaker name, typed-out line, 1–3 reply choices pressed with the ray or by poking, advance/skip; the Pit Boss runs on it; the Guide's earpiece lines (`IGuideVoice`) show as subtitles on the watch |
+
+NPC dialogue is now in scope, but only the Pit Boss (already in the scene) plus the Guide's voice. Guards, suspicion and more NPCs stay out of scope.
+
+### Milestone 3 slices
+
+| Slot | Slice | Definition of done (simulator + Quest 3 APK) |
+|---|---|---|
+| A (Ben) | **Table and cashier UI** | Bet controls and table holograms pass the usability test (readable at arm's length, clear bet/clear/deal states); cashier cage buy-in / cash-out menu; Pit Boss lines moved onto the shared dialogue box |
+| B (Ashton) | **Inventory backend + tiers** | `Inventory` implements `IInventoryEvents` with `ItemData` assets in `Content/Progression/`; pickups go through it (Pak then removes `NotebookPickups`); the Pit Boss stops saying "your card's right there" once the card is in the notebook; `CharacterTier` (left over from Milestone 2) drives the watch |
+| C (Pak) | **Menus, dialogue box, notebook iteration** | Pause/settings menu with the comfort options; shared `DialogueBox` + `DialogueLine` data (speaker, text, choices) in `Dialogue/`; `IGuideVoice` implementation with watch subtitles and the first Guide line on first tier-up; notebook changes from round 1; GDD UI/interaction section |
+| D (Zach) | **Start flow, builds, testing** | Start screen in `MVP_Main`; menu/settings wired to the rig (turn/move providers, vignette); an APK for each test round; runs the user test sessions and writes the GDD testing section |
+
+### User testing (all)
+
+- **Testers:** at least **5 per round**, at least 3 of them outside the team, and ideally someone who has never used VR. Two rounds: round 1 on the first playable build, round 2 after the fixes.
+- **Script (≈10 min, same for everyone):** open the menu and switch to snap turn → get chips and place one bet → talk to the Pit Boss and pick a reply → take the VIP card and find it in the notebook → take it out and open the VIP door → find the staff-door code. The observer stays quiet and only notes where the tester hesitates, asks for help or fails.
+- **Record per tester:** each task done / done with help / failed, time taken, comfort (any nausea, 1–5), then a short questionnaire: ease of the menu, notebook and dialogue (1–5 each), immersion (1–5), "what confused you?", "what would you change?".
+- **Log:** results in `docs/UserTesting.md` (one table per round), every change made because of it under Decisions as `Playtest R1 → change`. The before/after goes into the GDD and the videos.
+
+### Milestone 3 checklist
+
+| Item | Owner | Status |
+|---|---|---|
+| Pause/settings menu with comfort options | C (+D wiring) | ⬜ |
+| Start screen in `MVP_Main` | D | ⬜ |
+| Shared dialogue box + Pit Boss conversation with choices | C (+A content) | ⬜ |
+| Guide voice line + watch subtitles | C | ⬜ |
+| Inventory backend replaces `NotebookPickups` | B (+C) | ⬜ |
+| Cashier cage menu, table UI readability | A | ⬜ |
+| User testing round 1 (≥ 5 testers) logged in `docs/UserTesting.md` | D (all help) | ⬜ |
+| Fixes from round 1 | All | ⬜ |
+| User testing round 2 logged | D (all help) | ⬜ |
+| GDD: UI/interaction design section | C | ⬜ |
+| GDD: user testing results + iterations | D | ⬜ |
+| Individual video — Zachary Scheer, link in GDD | Zachary | ⬜ |
+| Individual video — Ashton Calkins, link in GDD | Ashton | ⬜ |
+| Individual video — Pakrinha Sim, link in GDD | Pakrinha | ⬜ |
+| Individual video — Benjamin Parenteau, link in GDD | Benjamin | ⬜ |
+| Rubric reviewed and GDD checked against it | All | ⬜ |
+
+## Milestone 2 — MVP prototype (previous assignment)
 
 **Assignment (CLC, group):** implement and test the game's core features **on the headset** to catch platform-compatibility issues early. The prototype must include **basic player movement, environment interaction, and user-interface navigation**. Also address: *what storytelling, worldbuilding and mechanics can be communicated through the evolutionary design of the character?*
 
@@ -237,6 +294,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 - 2026-09-30 · Day-0 gate: generated the style kit (`Assets/Content/StyleKit/`) and `Assets/Scenes/MVP/MVP_Template.unity` with the XR Interaction Simulator; added contracts in `Assets/Scripts/Core/Contracts/` (`IChipWallet`, `ICharacterTier`, `IInventoryEvents`, `IGuideVoice`, `TierDefinition`, `ItemData`); reserved layers `Interactable` (6), `PlayerBody` (7) and tags `Chip`, `Keycard`, `Restricted`; created `Assets/Content/{Tables,Progression,UI,Environment}/`; added `docs/SimulatorControls.md`.
 
 ### Setup
+
+- 2026-10-22 · Added the Milestone 3 plan (menus, inventory, dialogue boxes, two rounds of user testing, individual videos): slices per slot, testing script and checklist; Milestone 2 marked as previous; CLAUDE.md milestone focus updated.
 
 - 2026-10-08 · Pit Boss walk no longer snaps backwards: the Rocketbox walk still moved the hips 1.20 m forward per 1.47 s loop and jumped back each loop; the hips (`Bip01`) are now the clip's root node so that travel becomes root motion and is dropped, and the builder sets the patrol speed from the clip's own stride (0.82 m/s) so the feet don't slide. Headless check: over 19 s of walking the hips never left the feet (0 m drift, 0 m jump).
 
