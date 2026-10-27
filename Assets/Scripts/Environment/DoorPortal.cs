@@ -53,6 +53,7 @@ namespace HighStakes.Environment
 
         void OnEnable()
         {
+            if (HighStakes.Security.SecurityMonitorWall.LoadingRemote) return;
             if (string.IsNullOrEmpty(portalId)) return;
             if (Registry.TryGetValue(portalId, out var other) && other != null && other != this)
                 Debug.LogWarning($"[DoorPortal] Two doors share the id '{portalId}'. The newest one wins.", this);

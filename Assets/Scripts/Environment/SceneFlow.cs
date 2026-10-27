@@ -67,6 +67,8 @@ namespace HighStakes.Environment
             var old = CurrentScene;
             if (old != scene)
             {
+                // A CCTV room is loaded for observation only; release it before loading a playable copy.
+                yield return HighStakes.Security.SecurityMonitorWall.ReleaseBeforeTravel();
                 yield return Load(scene);
                 CurrentScene = scene;
                 if (old != null) yield return SceneManager.UnloadSceneAsync(old);
