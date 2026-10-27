@@ -12,8 +12,9 @@ namespace HighStakes.Security
 {
     /// <summary>
     /// A breaker panel with four colour-coded sockets and four loose patch wires (<see cref="WirePlug"/>). Every wire
-    /// seated in the socket of its own colour restores the circuit: pays a chip reward (claim follows the wallet
-    /// across area visits, like Inventory/BarPuzzle) and swings open a cabinet with a note inside, dropped once per
+    /// seated in the socket of its own colour reroutes the circuit: pays a chip reward (claim follows the wallet
+    /// across area visits, like Inventory/BarPuzzle), cuts the vault camera feed (<see cref="CctvOutage"/>), shows a
+    /// "task complete" card and swings open a cabinet with a note inside, dropped once per
     /// session (like UI/Puzzles/CartLockbox) so leaving and coming back doesn't pay out or drop the note twice.
     /// </summary>
     public sealed class WirePanelPuzzle : MonoBehaviour
@@ -29,10 +30,14 @@ namespace HighStakes.Security
         [Tooltip("Where the note sits inside the open cabinet.")]
         [SerializeField] Transform noteSeat;
         [SerializeField] int reward = 300;
+        [Tooltip("Floats over the panel for a few seconds on solve.")]
+        [SerializeField] HighStakes.Dialogue.SpeechBubble completeCard;
+        [Tooltip("Area scene whose CCTV feed goes dark on solve (see CctvOutage).")]
+        [SerializeField] string cutFeedScene = "MVP_Vault";
 
         const string IdleStatus = "CROSS-WIRED / CONNECT BY COLOUR";
         const string CheckingStatus = "CHECKING CIRCUIT...";
-        const string SolvedStatus = "CIRCUIT RESTORED";
+        const string SolvedStatus = "REROUTED / VAULT CAM OFFLINE";
 
         static ConditionalWeakTable<IChipWallet, Claim> claims = new ConditionalWeakTable<IChipWallet, Claim>();
         sealed class Claim { public bool Paid; }
@@ -107,6 +112,9 @@ namespace HighStakes.Security
             solved = true;
             Show(SolvedStatus);
             Pay();
+            CctvOutage.Cut(cutFeedScene);
+            if (completeCard != null)
+                completeCard.Say("<b>TASK COMPLETE</b>\n<size=70%>Breaker panel re-wired\n+" + reward + " chips\nVault camera offline</size>", 8f);
             StartCoroutine(OpenLid());
             SpawnNoteIfMissing();
         }

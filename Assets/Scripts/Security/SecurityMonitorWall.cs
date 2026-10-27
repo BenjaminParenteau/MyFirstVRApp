@@ -23,6 +23,7 @@ namespace HighStakes.Security
             public TMP_Text caption;
             [NonSerialized] public RenderTexture texture;
             [NonSerialized] public int layer;
+            [NonSerialized] public bool offline;
         }
 
         public Feed[] feeds = Array.Empty<Feed>();
@@ -83,7 +84,9 @@ namespace HighStakes.Security
                 f.texture.Create();
                 f.screen.sharedMaterial = screenMaterial;
                 Bind(f);
+                if (CctvOutage.IsDown(f.sceneName)) BlackOut(f);
             }
+            CctvOutage.WentDown += OnOutage;
             due = 0f;
             StartCoroutine(LoadRooms());
         }
@@ -188,11 +191,28 @@ namespace HighStakes.Security
             f.screen.SetPropertyBlock(block);
         }
 
+        void OnOutage(string sceneName)
+        {
+            foreach (var f in feeds)
+                if (f.screen && f.sceneName == sceneName) BlackOut(f);
+        }
+
+        // A cut camera shows a black screen and is no longer rendered.
+        void BlackOut(Feed f)
+        {
+            f.offline = true;
+            f.screen.GetPropertyBlock(block);
+            block.SetTexture(BaseMap, Texture2D.blackTexture);
+            block.SetTexture(EmissionMap, Texture2D.blackTexture);
+            f.screen.SetPropertyBlock(block);
+            if (f.caption) f.caption.text = f.label + "  /  NO SIGNAL";
+        }
+
         public void TogglePause()
         {
             paused = !paused;
             foreach (var f in feeds)
-                if (f.caption) f.caption.text = f.label + (paused ? "  /  HOLD" : "  /  LIVE");
+                if (f.caption && !f.offline) f.caption.text = f.label + (paused ? "  /  HOLD" : "  /  LIVE");
         }
 
         void LateUpdate()
@@ -204,7 +224,7 @@ namespace HighStakes.Security
             due = Time.unscaledTime + 1f / (Mathf.Max(1, updatesPerFeed) * feeds.Length);
             var f = feeds[next];
             next = (next + 1) % feeds.Length;
-            if (f.layer==0 || !f.texture) return;
+            if (f.layer==0 || !f.texture || f.offline) return;
             capture.cullingMask=1 << f.layer;
             capture.transform.position = f.position;
             capture.transform.LookAt(f.lookAt);
@@ -222,6 +242,7 @@ namespace HighStakes.Security
         void OnDisable()
         {
             ready=false;
+            CctvOutage.WentDown-=OnOutage;
             SceneManager.sceneLoaded-=PrepareRoom;
             if(instance==this) instance=null;
             LoadingRemote=false;

@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HighStakes.Core.ItemData
   id: breaker_log
   displayName: Breaker Log
-  description: 'Panel re-wired. Colour order left to right: RED, BLUE, YELLOW, GREEN.
-    - Maintenance.'
+  description: 'Panel re-wired: +300 chips. The vault approach camera (feed 04) is
+    on this breaker and is now dark. The way to the vault is unwatched.'
   icon: {fileID: 0}

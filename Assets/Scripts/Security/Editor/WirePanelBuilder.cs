@@ -13,7 +13,8 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 /// Builds the "breaker panel" wire-matching puzzle for the security office: four loose colour-coded plugs on a
 /// shelf, four sockets on the panel above, each needing the plug of its own colour (red, blue, yellow, green, left
 /// to right). The panel starts cross-wired (the shelf order doesn't match the sockets). Restoring the circuit pays a
-/// chip reward and pops a drawer open with a note inside, to be picked up into the notebook.
+/// chip reward, cuts the monitor wall's vault camera feed, shows a "task complete" card and pops a drawer open with
+/// a note inside, to be picked up into the notebook. Shelf, plugs and drawer are on the front (-Z), the player's side.
 ///
 /// Plugs are discrete tokens, not a simulated flexible cable (no existing pattern for that in the project, and a
 /// simple token is what the staff-door lockbox and VIP keycard already use). Wires use a plain XRSocketInteractor
@@ -62,7 +63,7 @@ public static class WirePanelBuilder
         TableKit.EnsureFolder(ContentRoot);
         var colors = WireColors(kit);
         var noteItem = NotebookBuilder.ItemAt(NoteItemPath, "breaker_log", "Breaker Log",
-            "Panel re-wired. Colour order left to right: RED, BLUE, YELLOW, GREEN. - Maintenance.");
+            "Panel re-wired: +" + Reward + " chips. The vault approach camera (feed 04) is on this breaker and is now dark. The way to the vault is unwatched.");
         AssetDatabase.SaveAssets();
 
         var note = BuildNote(kit, noteItem);
@@ -145,27 +146,27 @@ public static class WirePanelBuilder
             label.text = ColorNames[i];
         }
 
-        // Drawer below the panel; its lid hinges open on solve to reveal the note.
-        var drawerTop = new Vector3(0f, 0.55f, 0.13f);
-        Part(kit.steelCool, root.transform, "DrawerInside", PrimitiveType.Cube, drawerTop + new Vector3(0f, -0.03f, 0f), new Vector3(0.46f, 0.02f, 0.2f));
+        // Tray on the front below the panel, outside the body's collider so the note can be looked at and picked up.
+        // Its lid lies flat over it, hinged at the cabinet face, and swings up on solve to reveal the note.
+        Part(kit.steelCool, root.transform, "DrawerInside", PrimitiveType.Cube, new Vector3(0f, 0.5f, -0.25f), new Vector3(0.46f, 0.02f, 0.2f));
+        Part(kit.steelCool, root.transform, "DrawerLip", PrimitiveType.Cube, new Vector3(0f, 0.525f, -0.345f), new Vector3(0.46f, 0.05f, 0.01f));
         var lid = new GameObject("DrawerLid").transform;
         lid.SetParent(root.transform, false);
-        lid.localPosition = drawerTop;
-        Part(kit.steelCool, lid, "DrawerLidPlate", PrimitiveType.Cube, new Vector3(0f, 0f, 0.1f), new Vector3(0.48f, 0.28f, 0.02f));
+        lid.localPosition = new Vector3(0f, 0.56f, -0.14f);
+        Part(kit.steelCool, lid, "DrawerLidPlate", PrimitiveType.Cube, new Vector3(0f, 0f, -0.11f), new Vector3(0.48f, 0.02f, 0.22f));
         var noteSeat = new GameObject("NoteSeat").transform;
         noteSeat.SetParent(root.transform, false);
-        noteSeat.localPosition = drawerTop + new Vector3(0f, -0.02f, 0f);
-        noteSeat.localRotation = Quaternion.Euler(90f, 0f, 0f); // note face (-Z) up
+        noteSeat.localPosition = new Vector3(0f, 0.515f, -0.25f); // the note prefab already lies flat, text up
 
-        // Shelf holding the four plugs, cross-wired relative to the sockets above.
-        Part(kit.steelCool, root.transform, "Shelf", PrimitiveType.Cube, new Vector3(0f, 0.9f, 0.1f), new Vector3(0.6f, 0.03f, 0.18f));
+        // Shelf on the front holding the four plugs, cross-wired relative to the sockets above.
+        Part(kit.steelCool, root.transform, "Shelf", PrimitiveType.Cube, new Vector3(0f, 0.9f, -0.23f), new Vector3(0.6f, 0.03f, 0.18f));
         var plugs = new GameObject[4];
         for (int i = 0; i < 4; i++)
         {
             int color = ShelfOrder[i];
             var plugGo = new GameObject("Wire_" + ColorNames[color]) { layer = layer };
             plugGo.transform.SetParent(root.transform, false);
-            plugGo.transform.localPosition = new Vector3(socketX[i], 0.945f, 0.1f);
+            plugGo.transform.localPosition = new Vector3(socketX[i], 0.945f, -0.23f);
             var collider = plugGo.AddComponent<BoxCollider>();
             collider.size = new Vector3(0.04f, 0.04f, 0.1f);
             var body = plugGo.AddComponent<Rigidbody>();
@@ -180,6 +181,26 @@ public static class WirePanelBuilder
             plugs[i] = plugGo;
         }
 
+        // "Task complete" card that floats above the panel for a few seconds on solve, turned to the player. Same
+        // hologram backing and SpeechBubble as the Pit Boss's lines (PitBossBuilder.AddKeycardGiver).
+        var glass = AssetDatabase.LoadAssetAtPath<Material>("Assets/Content/UI/UI_Hologram.mat");
+        var card = new GameObject("CompleteCard").transform;
+        card.SetParent(root.transform, false);
+        var cardPanel = new GameObject("Panel").transform;
+        cardPanel.SetParent(card, false);
+        cardPanel.localPosition = new Vector3(0f, 1.95f, -0.2f);
+        var backing = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        backing.name = "Backing";
+        Object.DestroyImmediate(backing.GetComponent<Collider>());
+        backing.transform.SetParent(cardPanel, false);
+        backing.transform.localScale = new Vector3(0.7f, 0.36f, 1f);
+        backing.GetComponent<Renderer>().sharedMaterial = glass;
+        var cardText = TableKit.Text(cardPanel, "Line", new Vector3(0f, 0f, -0.002f), Quaternion.identity, new Vector2(0.64f, 0.32f), 0.05f, 0.5f, Color.white);
+        cardText.textWrappingMode = TextWrappingModes.Normal;
+        var completeCard = card.gameObject.AddComponent<HighStakes.Dialogue.SpeechBubble>();
+        TableKit.SetRef(completeCard, "bubble", cardPanel.gameObject);
+        TableKit.SetRef(completeCard, "text", cardText);
+
         var puzzle = root.AddComponent<HighStakes.Security.WirePanelPuzzle>();
         TableKit.SetRefs(puzzle, "sockets", sockets);
         TableKit.Set(puzzle, "socketColors", p =>
@@ -189,10 +210,12 @@ public static class WirePanelBuilder
         });
         TableKit.SetRef(puzzle, "status", status);
         TableKit.SetRef(puzzle, "cabinetLid", lid);
-        TableKit.Set(puzzle, "cabinetOpenAngle", p => p.floatValue = 100f);
+        TableKit.Set(puzzle, "cabinetOpenAngle", p => p.floatValue = 80f); // up against the cabinet face
         TableKit.SetRef(puzzle, "notePrefab", notePrefab);
         TableKit.SetRef(puzzle, "noteSeat", noteSeat);
         TableKit.Set(puzzle, "reward", p => p.intValue = Reward);
+        TableKit.SetRef(puzzle, "completeCard", completeCard);
+        TableKit.Set(puzzle, "cutFeedScene", p => p.stringValue = "MVP_Vault");
 
         return TableKit.SavePrefab(root, PanelPath);
     }
@@ -208,7 +231,7 @@ public static class WirePanelBuilder
         title.text = "BREAKER LOG";
         title.fontStyle = FontStyles.Bold;
         var body = TableKit.Text(root.transform, "Body", new Vector3(0f, 0.0025f, -0.01f), flat, new Vector2(0.1f, 0.09f), 0.02f, 0.1f, Color.black);
-        body.text = "Re-wired.\nOrder, left to right:\n\nRED  BLUE  YELLOW  GREEN";
+        body.text = "Re-wired.  +" + Reward + " chips\n\nCAM 04 / VAULT APPROACH\non this breaker: DARK\n\nVault is unwatched.";
         TableKit.SetRef(root.AddComponent<PickupItem>(), "item", item);
         return TableKit.SavePrefab(root, NotePath);
     }
