@@ -15,6 +15,7 @@ namespace HighStakes.Environment
 
         void Awake()
         {
+            if (HighStakes.Security.SecurityMonitorWall.LoadingRemote) return;
             if (simulator != null)
                 simulator.SetActive(SoloTestRoot.SimulatorAllowed() &&
                     FindFirstObjectByType<XRInteractionSimulator>() == null);
