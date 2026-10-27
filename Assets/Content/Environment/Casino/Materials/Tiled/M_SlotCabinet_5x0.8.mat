@@ -49,12 +49,13 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 2800000, guid: 7fd063b7aab95b748b79f2517183d2d2, type: 3}
-        m_Scale: {x: 1, y: 1}
+        m_Scale: {x: 5, y: 0.8}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _Smoothness: 0.55
     m_Colors:
     - _BaseColor: {r: 0.101960756, g: 0.101960756, b: 0.101960756, a: 1}
+    - _Color: {r: 0.101960726, g: 0.101960726, b: 0.101960726, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
