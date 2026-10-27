@@ -183,6 +183,10 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot B log
 
+- 2026-10-22 · Improved security-office readability: fitted terminal/board text, moved CCTV captions above equipment and the title ahead of the cable tray, and increased live/editor screen emission to 2.5x.
+
+- 2026-10-22 · Furnished the existing security office with six live CCTV channels, operator consoles, equipment racks, dispatch terminal, lockers, incident board, evidence storage and baked cool lighting. Actual remote rooms load with isolated physics and dormant interactions; existing patrol animation stays live. Play checks verify feed updates, hold/resume, one rig/wallet and office-hub-revisit cleanup; authored-room style validation passes. Quest 3 APK performance review remains pending.
+
 - 2026-10-15 · Added a photographed starry night-sky dome (Poly Haven Dikhololo Night, CC0) around the 3D exterior district, replacing the flat sky walls while preserving casino lighting.
 
 - 2026-10-15 · Expanded the entrance exterior into a 3D street district with 39 varied buildings, storefronts, a 130 m avenue, sidewalks/crossings, street furniture and eight parked cars. Brick/asphalt color and normal textures, two shadow-free exterior lights, and geometry combined by material; all six entrance glass panels retained. Collision checks and rendered views passed; Quest 3 performance review remains pending.
