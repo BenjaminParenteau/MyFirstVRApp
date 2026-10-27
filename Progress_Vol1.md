@@ -185,6 +185,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot B log
 
+- 2026-10-27 - Added isolated vault treasury dressing: 834 cash bundles, 212 gold bars, 168 deposit drawers, three carts, counting station/open till and a reinforced circular door facade; generated cash texture, feature-owned PBR lighting and material-batched geometry (63,630 triangles, ten renderers). Visual, clear-aisle and room travel/reload checks passed; shared scenes unchanged; headset performance pending.
+
 - 2026-10-22 · Improved security-office readability: fitted terminal/board text, moved CCTV captions above equipment and the title ahead of the cable tray, and increased live/editor screen emission to 2.5x.
 
 - 2026-10-22 · Furnished the existing security office with six live CCTV channels, operator consoles, equipment racks, dispatch terminal, lockers, incident board, evidence storage and baked cool lighting. Actual remote rooms load with isolated physics and dormant interactions; existing patrol animation stays live. Play checks verify feed updates, hold/resume, one rig/wallet and office-hub-revisit cleanup; authored-room style validation passes. Quest 3 APK performance review remains pending.
