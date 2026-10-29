@@ -189,7 +189,7 @@ public static class StaffDoorPuzzleBuilder
     {
         var root = new GameObject("Puzzle_ShiftNote");
         root.AddComponent<BoxCollider>().size = new Vector3(0.15f, 0.01f, 0.2f);
-        Part(kit.chipWhite, root.transform, "Paper", PrimitiveType.Cube, new Vector3(0f, 0.001f, 0f), new Vector3(0.15f, 0.002f, 0.2f));
+        Part(UITextures.Paper(kit), root.transform, "Paper", PrimitiveType.Cube, new Vector3(0f, 0.001f, 0f), new Vector3(0.15f, 0.002f, 0.2f));
         var flat = Quaternion.Euler(90f, 0f, 0f);
         var title = TableKit.Text(root.transform, "Title", new Vector3(0f, 0.0025f, 0.075f), flat, new Vector2(0.13f, 0.02f), 0.02f, 0.18f, Color.black);
         title.text = "HOUSEKEEPING";

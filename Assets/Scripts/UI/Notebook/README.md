@@ -21,7 +21,7 @@ E isn't used because the simulator already uses it to move up. The bindings are 
 
 ## Pieces
 
-- **NotebookOpen.cs**: the open/close button and animation. On open it appears ~40 cm ahead and 15 cm below your
+- **NotebookOpen.cs**: the open/close button and animation. On open it appears ~32 cm ahead and 10 cm below your
   eyes, the spine centred and the pages turned toward you, and follows you while open (it trails smoothly as you walk and swings back in front
   only once you turn your head more than 30° away, so glancing around doesn't drag it); the cover swings a full 180° about the spine (0.45 s open,
   0.3 s close) to become the left page, and both pages' text appears once it is mostly open. Reuses the hologram's `StepOpen` / `EaseOut` easing.
@@ -39,6 +39,9 @@ E isn't used because the simulator already uses it to move up. The bindings are 
 - **../Mocks/MockInventoryEvents.cs**: Inspector "Pick up" buttons in `MVP_UI`. Mock items are listed but can't be
   taken into the hand (there's no object).
 - **../Editor/NotebookBuilder.cs**: the **High Stakes > UI > Build Notebook** menu.
+- **../Editor/UITextures.cs**: burgundy leather covers (reusing the casino's `T_Leather`) and paper pages (a small
+  generated `Content/UI/Textures/T_Paper_Albedo.png`), as Material Variants of kit materials in `Content/UI/Materials/`.
+  **High Stakes > UI > Apply UI Textures** puts them on the existing notebook and shift note prefabs without touching scenes.
 
 ## Build and test
 

@@ -203,6 +203,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot C log
 
+- 2026-10-17 · UI textures: notebook covers in burgundy leather (reuses the casino `T_Leather`, +0 MB) and paper pages / shift note (new 512² generated `T_Paper`, ASTC 6x6 on Android ≈ 0.15 MB with mips), as Material Variants of kit materials in `Content/UI/Materials/`; **High Stakes > UI > Apply UI Textures** updates the prefabs only, no scene edits; the open notebook now sits closer (32 cm) with larger, bold page text (slot-c/ui-textures)
+
 - 2026-10-17 · Merged the latest `dev` (VIP/security textures, city-street entrance) into slot-c/notebook-staff-door-puzzle and re-ran **Build Notebook** + **Build Staff Door Puzzle** on the fresh scenes: notebook in `MVP_Main`, cart / shift note / table stands / STAFF reader in `MVP_Casino`, dice stand in `MVP_VIP`. Play-tested the full chain in the simulator (VIP card → note → 472 → staff card → door opens)
 
 - 2026-10-15 · Staff door puzzle ("housekeeping cart", from the GDD): the STAFF ONLY door needs a STAFF keycard from a cleaning cart's lockbox; the code (472) comes from a shift note (CARDS > WHEEL > DICE) and brass table-number stands at blackjack, roulette and the high-roller dice table. Reuses the notebook, Slot B's keycard/reader and the PressableButton keypad; collected notes no longer reappear after a door trip; 12 lockbox test cases. Run **High Stakes > Puzzles > Build Staff Door Puzzle**

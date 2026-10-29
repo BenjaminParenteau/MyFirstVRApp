@@ -132,7 +132,14 @@ namespace HighStakes.UI
                 pageText.text = page;
             }
             if (screenText != null)
-                screenText.text = "<size=60%>ITEM</size>\n" + NotebookLogic.FormatScreen(entries, selected);
+            {
+                // Name large, note smaller underneath
+                string screen = NotebookLogic.FormatScreen(entries, selected);
+                int split = screen.IndexOf('\n');
+                string name = split < 0 ? screen : screen.Substring(0, split);
+                string note = split < 0 ? "" : "\n" + screen.Substring(split + 1);
+                screenText.text = "<size=60%>ITEM</size>\n<size=130%>" + name + "</size>" + note;
+            }
             if (slotCard != null)
                 slotCard.SetActive(NotebookLogic.ShowsCard(entries, heldKey));
         }
