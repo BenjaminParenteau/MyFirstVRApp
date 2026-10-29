@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using HighStakes.Environment;
 
 namespace HighStakes.Security
 {
@@ -28,6 +29,27 @@ namespace HighStakes.Security
             instance.name="VaultDressingModule";
             instance.transform.position=new Vector3(40f,0,0);
             SceneManager.MoveGameObjectToScene(instance,scene);
+            var entrance=Resources.Load<GameObject>("VaultEntranceDoor");
+            foreach(var root in scene.GetRootGameObjects())
+            {
+                foreach(var t in root.GetComponentsInChildren<Transform>(true))
+                    if(t.name=="VaultDoor_Placeholder")t.gameObject.SetActive(false);
+                foreach(var portal in root.GetComponentsInChildren<DoorPortal>(true))
+                {
+                    if(portal.portalId!="RoomC_Door" && portal.portalId!="HallC_End")continue;
+                    if(!entrance)continue;
+                    // Only replace the plain visual leaf; readers, arrival points and triggers stay intact.
+                    var leaf=portal.transform.Find("Leaf");
+                    if(leaf && leaf.TryGetComponent<Renderer>(out var renderer))renderer.enabled=false;
+                    if(portal.portalId=="HallC_End")
+                    {
+                        var outside=Instantiate(entrance,portal.transform);
+                        outside.name="Treasury entrance - hallway side";
+                        outside.transform.localPosition=Vector3.zero;
+                        outside.transform.localRotation=Quaternion.identity;
+                    }
+                }
+            }
         }
     }
 }

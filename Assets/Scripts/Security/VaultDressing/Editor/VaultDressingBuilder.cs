@@ -52,7 +52,10 @@ public static class VaultDressingBuilder
             }
             Cabinets(root.transform,new Vector3(.38f,0,6.62f),0,2,6);
             Cabinets(root.transform,new Vector3(5.65f,0,6.62f),0,2,6);
-            VaultDoor(root.transform);
+            // Keep the entrance reusable for the hallway side of the portal as well.
+            var entrance=VaultDoor(root.transform);
+            var doorPrefab=PrefabUtility.SaveAsPrefabAsset(entrance.gameObject,Folder+"/Resources/VaultEntranceDoor.prefab");
+            Object.DestroyImmediate(entrance.gameObject);
             Cart(root.transform,new Vector3(.8f,0,2.05f),-8,false);
             Cart(root.transform,new Vector3(5.1f,0,2.5f),12,true);
             Cart(root.transform,new Vector3(.9f,0,4.2f),8,false);
@@ -62,6 +65,9 @@ public static class VaultDressingBuilder
             CashCrate(root.transform,new Vector3(5.25f,0,.35f));
             CashPile(root.transform,new Vector3(1.65f,.018f,3.25f),2,2,2);
             Combine(root.transform);
+            var roomDoor=(GameObject)PrefabUtility.InstantiatePrefab(doorPrefab,root.transform);
+            roomDoor.transform.localPosition=new Vector3(3,0,-1);
+            roomDoor.transform.localRotation=Quaternion.Euler(0,180,0);
             PrefabUtility.SaveAsPrefabAsset(root,Folder+"/Resources/VaultDressingModule.prefab");
             AssetDatabase.SaveAssets();
             Debug.Log($"[VaultDressing] {manifest.cashBundles} cash bundles, {manifest.goldBars} gold bars, {manifest.depositDrawers} deposit drawers, {manifest.cashCarts} carts; {manifest.triangles} triangles. Shared scenes unchanged.");
@@ -130,9 +136,9 @@ public static class VaultDressingBuilder
         Box(g,"Cabinet kick plate",new Vector3(0,.085f,-.26f),new Vector3(width,.10f,.03f),steel);
     }
 
-    static void VaultDoor(Transform p)
+    static Transform VaultDoor(Transform p)
     {
-        var g=Group(p,"Reinforced treasury door",new Vector3(3,0,6.5f));
+        var g=Group(p,"Reinforced treasury door",Vector3.zero);
         Box(g,"Armored door surround",new Vector3(0,1.42f,.19f),new Vector3(3.05f,2.84f,.18f),dark);
         var slab=Part(g,"Circular steel door",PrimitiveType.Cylinder,new Vector3(0,1.4f,0),new Vector3(2.52f,.13f,2.52f),steel);slab.transform.localRotation=Quaternion.Euler(90,0,0);
         MeshPart(g,"Machined outer ring",new Vector3(0,1.4f,-.15f),ring,dark,Quaternion.identity);
@@ -152,6 +158,7 @@ public static class VaultDressingBuilder
         Box(g,"Door serial plate",new Vector3(0,.77f,-.17f),new Vector3(.58f,.16f,.018f),dark);
         Label(g,"MERIDIAN RESERVE",new Vector3(0,2.82f,-.19f),.10f,new Vector2(2.4f,.13f),new Color(.73f,.8f,.84f),Quaternion.identity);
         Label(g,"VAULT 03  /  AUTHORIZED ACCESS",new Vector3(0,.77f,-.185f),.043f,new Vector2(.55f,.10f),Color.white,Quaternion.identity);
+        return g;
     }
 
     static void CashPile(Transform p,Vector3 origin,int nx,int nz,int layers)
