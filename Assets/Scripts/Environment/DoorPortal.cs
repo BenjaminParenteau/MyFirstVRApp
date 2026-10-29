@@ -27,6 +27,8 @@ namespace HighStakes.Environment
         public Transform arrival;
         [Tooltip("A locked door does nothing. Slot B's keycard reader can call SetLocked(false).")]
         public bool locked;
+        [Tooltip("This doorway connects real adjoining geometry; retain arrival lookup without teleporting across it.")]
+        public bool physicalPassage;
         [Tooltip("Width of the activation zone in front of the door (m).")]
         public float triggerWidth = 1f;
         [Tooltip("How far in front of the door the player has to step to use it (m).")]
@@ -68,7 +70,7 @@ namespace HighStakes.Environment
 
         void Update()
         {
-            if (locked || Time.time < s_blockedUntil) return;
+            if (physicalPassage || locked || Time.time < s_blockedUntil) return;
             var origin = FindOrigin();
             if (origin == null || origin.Camera == null) return;
 

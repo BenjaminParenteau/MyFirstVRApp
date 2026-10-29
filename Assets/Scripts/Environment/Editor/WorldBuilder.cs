@@ -53,6 +53,7 @@ public static class WorldBuilder
         var hallScenes = new System.Collections.Generic.List<string> { HallwayBuilder.HubScenePath };
         hallScenes.AddRange(HallwayBuilder.ScenePaths);
         CasinoTextureBuilder.ApplyToScenes(hallScenes.ToArray());
+        VaultConnectionBuilder.Build();              // Ashton's: the vault room adjoins its hallway again
         BackOfHouseBuilder.FurnishAll();             // the regenerated wings come back empty
         if (bake)
         {
