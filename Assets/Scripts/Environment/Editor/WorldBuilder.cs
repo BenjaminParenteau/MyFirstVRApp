@@ -53,6 +53,7 @@ public static class WorldBuilder
         var hallScenes = new System.Collections.Generic.List<string> { HallwayBuilder.HubScenePath };
         hallScenes.AddRange(HallwayBuilder.ScenePaths);
         CasinoTextureBuilder.ApplyToScenes(hallScenes.ToArray());
+        BackOfHouseBuilder.FurnishAll();             // the regenerated wings come back empty
         if (bake)
         {
             Bake(HallwayBuilder.HubScenePath);

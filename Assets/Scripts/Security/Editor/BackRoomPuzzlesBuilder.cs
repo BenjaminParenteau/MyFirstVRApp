@@ -45,10 +45,13 @@ public static class BackRoomPuzzlesBuilder
     const string BreakerItemPath = ContentRoot + "/SO_Item_BreakerLog.asset"; // made by WirePanelBuilder
 
     static readonly Vector3 RoomOrigin = new Vector3(40f, 0f, 0f);
-    // Camera room: console desk in front of the monitor wall (screens at z 6.9), behind the room's chair (3, 0, 4.4).
-    static readonly Vector3 DeskLocal = new Vector3(3f, 0f, 5.9f);
-    // Archive table along the left wall, relative to the desk: room (0.2, 0, 3.6), long side along Z, facing +X.
-    static readonly Vector3 ArchiveFromDesk = new Vector3(-2.8f, 0f, -2.3f);
+    // Camera room (12 x 12 m; the live CCTV wall and consoles take the back wall, racks the right wall): the playback
+    // desk stands against the left wall facing into the room (+X), the archive table across a 2 m aisle facing it.
+    static readonly Vector3 DeskLocal = new Vector3(-0.55f, 0f, 4.5f);
+    const float DeskYaw = -90f;
+    // In the desk's own space (front is -Z): 2.85 m in front of it, turned round to face it.
+    static readonly Vector3 ArchiveFromDesk = new Vector3(0f, 0f, -2.85f);
+    const float ArchiveYaw = 180f;
     // Vault: right of the centre aisle, in front of the treasury door (3, 0, 6.5); clear of the bullion pallet
     // (5.25, 0, 5.25) and the cash trolley (5.1, 0, 2.5).
     static readonly Vector3 ConsoleLocal = new Vector3(3.9f, 0f, 5.3f);
@@ -111,9 +114,9 @@ public static class BackRoomPuzzlesBuilder
         var clearance = BuildClearance(kit, breakerItem, stillItem);
 
         EditScene(HallwayBuilder.ScenePaths[1], scene =>
-            PlaceRoot(scene, archive, "Puzzle_TapeArchive", RoomOrigin + DeskLocal));
+            PlaceRoot(scene, archive, "Puzzle_TapeArchive", RoomOrigin + DeskLocal, DeskYaw));
         EditScene(HallwayBuilder.ScenePaths[2], scene =>
-            PlaceRoot(scene, console, "Puzzle_VaultConsole", RoomOrigin + ConsoleLocal));
+            PlaceRoot(scene, console, "Puzzle_VaultConsole", RoomOrigin + ConsoleLocal, 0f));
         EditScene(HallwayBuilder.HubScenePath, scene => PlaceClearance(scene, clearance));
 
         AssetDatabase.SaveAssets();
@@ -163,7 +166,7 @@ public static class BackRoomPuzzlesBuilder
         var table = new GameObject("ArchiveTable").transform;
         table.SetParent(root.transform, false);
         table.localPosition = ArchiveFromDesk;
-        table.localRotation = Quaternion.Euler(0f, -90f, 0f); // front (-Z) faces +X, into the room
+        table.localRotation = Quaternion.Euler(0f, ArchiveYaw, 0f); // front (-Z) faces the desk across the aisle
         Desk(kit, table, 2f, 0.7f);
         var plaque = TableKit.Text(table, "Plaque", new Vector3(0f, top - 0.05f, -0.352f), Quaternion.identity, new Vector2(0.8f, 0.05f), 0.02f, 0.25f, kit.brassGold.color);
         plaque.text = "TAPE ARCHIVE";
@@ -438,13 +441,13 @@ public static class BackRoomPuzzlesBuilder
         if (opened) EditorSceneManager.CloseScene(scene, true);
     }
 
-    static void PlaceRoot(Scene scene, GameObject prefab, string name, Vector3 position)
+    static void PlaceRoot(Scene scene, GameObject prefab, string name, Vector3 position, float yaw)
     {
         foreach (var root in scene.GetRootGameObjects())
             if (root.name == name) Object.DestroyImmediate(root);
         var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, scene);
         instance.name = name;
-        instance.transform.position = position;
+        instance.transform.SetPositionAndRotation(position, Quaternion.Euler(0f, yaw, 0f));
     }
 
     static Transform FindInScene(Scene scene, string name)

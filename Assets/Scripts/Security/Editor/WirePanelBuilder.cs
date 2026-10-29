@@ -39,8 +39,9 @@ public static class WirePanelBuilder
 
     // HallwayBuilder.cs: the office room's content sits at this offset within MVP_SecurityOffice.unity.
     static readonly Vector3 RoomOrigin = new Vector3(40f, 0f, 0f);
-    // Clear of the table (3,0,3.2), its chairs and the door opening (around x 2-6, z 0); near the room's near corner.
-    static readonly Vector3 PanelLocal = new Vector3(1f, 0f, 1.3f);
+    // On the back wall of the 12 x 12 m security & count room's staff side (back wall inner face at z 10.925), facing
+    // the door; clear of the noticeboard on the left wall and the supervisor booth in the back-right corner.
+    static readonly Vector3 PanelLocal = new Vector3(2f, 0f, 10.6f);
 
     // Red, blue, yellow, green, in socket (and label) order.
     const int Red = 0, Blue = 1, Yellow = 2, Green = 3;

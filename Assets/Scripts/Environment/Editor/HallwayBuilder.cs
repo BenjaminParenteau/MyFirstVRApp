@@ -48,6 +48,16 @@ public static class HallwayBuilder
 
     enum Room { Office, Cameras, Vault }
 
+    // Hallway paths are lists of 4 m blocks, (x, z). One path each, no branches. All start at block (0, 0).
+    // Room size is in 2 m cells: the security & count room and the camera room are 12 x 12 m; the vault stays 8 x 8 m
+    // because Security/VaultDressing is laid out for that.
+    static readonly (string letter, string roomName, Room kind, int cells, (int, int)[] path, Side endSide)[] Wings =
+    {
+        ("A", "Security Office", Room.Office, 6, new[] { (0, 0), (0, 1), (0, 2), (0, 3), (0, 4) }, Side.PlusZ),
+        ("B", "Camera Room", Room.Cameras, 6, new[] { (0, 0), (0, 1), (0, 2), (1, 2), (2, 2) }, Side.PlusX),
+        ("C", "Vault Antechamber", Room.Vault, 4, new[] { (0, 0), (0, 1), (-1, 1), (-2, 1), (-2, 2), (-2, 3) }, Side.PlusZ),
+    };
+
     /// <summary>Scene paths of the three wings, in hub door A/B/C order (SECURITY, CAMERAS, VAULT).</summary>
     public static readonly string[] ScenePaths =
     {
@@ -76,13 +86,7 @@ public static class HallwayBuilder
         var door = PortalDoorPrefab(kit, true);
         var doorCool = PortalDoorPrefab(kit, false);
 
-        // Hallway paths are lists of 4 m blocks, (x, z). One path each, no branches. All start at block (0, 0).
-        BuildWing(kit, door, doorCool, 0, "A", "Security Office", Room.Office,
-            Blocks((0, 0), (0, 1), (0, 2), (0, 3), (0, 4)), Side.PlusZ);
-        BuildWing(kit, door, doorCool, 1, "B", "Camera Room", Room.Cameras,
-            Blocks((0, 0), (0, 1), (0, 2), (1, 2), (2, 2)), Side.PlusX);
-        BuildWing(kit, door, doorCool, 2, "C", "Vault Antechamber", Room.Vault,
-            Blocks((0, 0), (0, 1), (-1, 1), (-2, 1), (-2, 2), (-2, 3)), Side.PlusZ);
+        for (int i = 0; i < ScenePaths.Length; i++) BuildWing(kit, door, doorCool, i);
         BuildHub(kit, door);
         // Cinder block, concrete, tread plate and drop ceiling in the rooms (skipped with a warning if the textures have
         // not been generated yet).
@@ -90,6 +94,25 @@ public static class HallwayBuilder
 
         AssetDatabase.SaveAssets();
         Debug.Log("[Hallways] Built the security hub and wings. Open one and press Play to walk it alone, or play MVP_Main and walk through the casino's STAFF ONLY door.");
+    }
+
+    /// <summary>
+    /// Regenerates only the given wings (indices into <see cref="ScenePaths"/>) and re-textures them, leaving the hub,
+    /// the other wings and their baked lighting alone. The regenerated wings come back empty and unbaked: furnish them
+    /// with BackOfHouseBuilder and have them baked again.
+    /// </summary>
+    public static bool RebuildWings(params int[] wings)
+    {
+        var kit = AssetDatabase.LoadAssetAtPath<SharedStyleKit>(KitPath);
+        if (kit == null || kit.casinoWallPanel == null) { Debug.LogError("[Hallways] Style kit or casino furnishings missing."); return false; }
+        EnsureFolder(PrefabFolder);
+        var door = AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabFolder}/Env_PortalDoor_Warm.prefab");
+        var doorCool = AssetDatabase.LoadAssetAtPath<GameObject>($"{PrefabFolder}/Env_PortalDoor_Cool.prefab");
+        if (door == null) door = PortalDoorPrefab(kit, true);
+        if (doorCool == null) doorCool = PortalDoorPrefab(kit, false);
+        foreach (int i in wings) BuildWing(kit, door, doorCool, i);
+        SecurityTextureBuilder.BuildAndApplyToWings();
+        return true;
     }
 
     /// <summary>
@@ -195,9 +218,9 @@ public static class HallwayBuilder
         sign.color = kit.brassGold.color;
     }
 
-    static void BuildWing(SharedStyleKit kit, GameObject door, GameObject doorCool, int index, string letter, string roomName,
-        Room roomKind, List<Vector2Int> blocks, Side endSide)
+    static void BuildWing(SharedStyleKit kit, GameObject door, GameObject doorCool, int index)
     {
+        var (letter, roomName, roomKind, roomSize, path, endSide) = Wings[index];
         var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         RenderSettings.skybox = null;
         RenderSettings.ambientMode = AmbientMode.Flat;
@@ -208,7 +231,7 @@ public static class HallwayBuilder
         // Solo spawn: just past the start door's arrival point, at the hallway's first block facing in (+Z).
         BuildSoloTest(kit, new Vector3(1f, 0f, 1.2f));
         var content = new GameObject($"Wing{letter}_Content").transform;
-        BuildHallway(kit, door, doorCool, content, letter, roomName, roomKind, blocks, endSide);
+        BuildHallway(kit, door, doorCool, content, letter, roomName, roomKind, roomSize, Blocks(path), endSide);
 
         EditorSceneManager.SaveScene(scene, ScenePaths[index]);
     }
@@ -238,7 +261,7 @@ public static class HallwayBuilder
     // ------------------------------------------------------------------ hallways and rooms
 
     static void BuildHallway(SharedStyleKit kit, GameObject door, GameObject doorCool, Transform parent,
-        string letter, string roomName, Room roomKind, List<Vector2Int> blocks, Side endSide)
+        string letter, string roomName, Room roomKind, int roomSize, List<Vector2Int> blocks, Side endSide)
     {
         // The hallway and its room sit on their own islands so nothing is ever physically connected.
         var hallOrigin = Vector3.zero;
@@ -272,16 +295,24 @@ public static class HallwayBuilder
             Place(kit.lightWarmFloor, hall, centre + Vector3.up * 2.6f, 0);
         }
 
-        // Security room: 4x4 cells (8 x 8 m), cool, entered through its own door.
+        // Security room: roomSize x roomSize cells, cool, entered through its own door in the middle of the near (-Z) wall.
         var roomCells = new List<Vector2Int>();
-        for (int x = 0; x < 4; x++)
-            for (int z = 0; z < 4; z++)
+        for (int x = 0; x < roomSize; x++)
+            for (int z = 0; z < roomSize; z++)
                 roomCells.Add(new Vector2Int(x, z));
+        int doorCell = roomSize / 2 - 1;
         var room = BuildArea(kit, doorCool, doorCool, parent, $"Room{letter} ({roomName})", roomOrigin, roomCells, new HashSet<Vector2Int>(),
-            new[] { new DoorSpec(new Vector2Int(1, 0), new Vector2Int(2, 0), Side.MinusZ, $"Room{letter}_Door", $"Hall{letter}_End") });
-        Place(kit.lightCoolCorridor, room, new Vector3(2f, 2.7f, 2f), 0);
-        Place(kit.lightCoolCorridor, room, new Vector3(4f, 2.7f, 4f), 0);
-        Furnish(kit, room, roomKind);
+            new[] { new DoorSpec(new Vector2Int(doorCell, 0), new Vector2Int(doorCell + 1, 0), Side.MinusZ, $"Room{letter}_Door", $"Hall{letter}_End") });
+        // Baked cool lights: two on the diagonal of an 8 m room, four in the corners' quarter-points of a bigger one.
+        float mid = (roomSize - 1) * T / 2f, spread = roomSize > 4 ? 3f : 1f;
+        Place(kit.lightCoolCorridor, room, new Vector3(mid - spread, 2.7f, mid - spread), 0);
+        Place(kit.lightCoolCorridor, room, new Vector3(mid + spread, 2.7f, mid + spread), 0);
+        if (roomSize > 4)
+        {
+            Place(kit.lightCoolCorridor, room, new Vector3(mid - spread, 2.7f, mid + spread), 0);
+            Place(kit.lightCoolCorridor, room, new Vector3(mid + spread, 2.7f, mid - spread), 0);
+        }
+        Furnish(kit, room, roomKind, mid);
     }
 
     // Builds floor, ceiling and walls for a set of grid cells. A wall goes on every side with no neighbouring cell; a
@@ -354,22 +385,25 @@ public static class HallwayBuilder
         Detail(kit.steelCool, wall, "SteelBandTop", PrimitiveType.Cube, new Vector3(0f, 2.6f, -0.09f), new Vector3(2f, 0.04f, 0.03f));
     }
 
-    static void Furnish(SharedStyleKit kit, Transform room, Room kind)
+    // Placeholder furniture, replaced by the furnishing builders (Security/Editor/SecurityOfficeBuilder, CountRoomBuilder).
+    static void Furnish(SharedStyleKit kit, Transform room, Room kind, float mid)
     {
-        // Room cells are (0..3, 0..3): the middle is (3, 3) and the +Z wall's inner face is at z = 6.925.
+        // Cells are 2 m centred on even numbers from 0, so the middle is (mid, mid) and the +Z wall's inner face is at
+        // z = 2 * mid + 0.925 (6.925 for an 8 m room). Offsets below are from the middle of the back wall.
+        var back = new Vector3(mid, 0f, 2f * mid + 0.9f);
         switch (kind)
         {
             case Room.Office:
-                Place(kit.tableRound, room, new Vector3(3f, 0, 3.2f), 0);
-                Place(kit.chair, room, new Vector3(3f, 0, 2.2f), 0);
-                Place(kit.chair, room, new Vector3(3f, 0, 4.2f), 180);
-                for (int i = 0; i < 3; i++) Screen(kit, room, new Vector3(1.5f + i * 1.5f, 1.7f, 6.9f), new Vector3(1.3f, 0.75f, 0.03f));
+                Place(kit.tableRound, room, new Vector3(mid, 0, mid + 0.2f), 0);
+                Place(kit.chair, room, new Vector3(mid, 0, mid - 0.8f), 0);
+                Place(kit.chair, room, new Vector3(mid, 0, mid + 1.2f), 180);
+                for (int i = 0; i < 3; i++) Screen(kit, room, back + new Vector3(-1.5f + i * 1.5f, 1.7f, 0f), new Vector3(1.3f, 0.75f, 0.03f));
                 break;
             case Room.Cameras:
-                Place(kit.chair, room, new Vector3(3f, 0, 4.4f), 180);
+                Place(kit.chair, room, new Vector3(mid, 0, mid + 1.4f), 180);
                 for (int row = 0; row < 2; row++)
                     for (int i = 0; i < 5; i++)
-                        Screen(kit, room, new Vector3(0.6f + i * 1.45f, 1.3f + row * 0.8f, 6.9f), new Vector3(1.3f, 0.7f, 0.03f));
+                        Screen(kit, room, back + new Vector3(-2.4f + i * 1.45f, 1.3f + row * 0.8f, 0f), new Vector3(1.3f, 0.7f, 0.03f));
                 break;
             case Room.Vault:
                 var door = GameObject.CreatePrimitive(PrimitiveType.Cube);

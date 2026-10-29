@@ -32,12 +32,12 @@ public static class SecurityOfficeVerification
             if(state==PlayModeStateChange.EnteredEditMode && SessionState.GetBool(Pending,false))
             {
                 SessionState.SetBool(Pending,false);
-                EditorSceneManager.OpenScene(SecurityOfficeBuilder.ScenePath);
+                EditorSceneManager.OpenScene(SecurityOfficeBuilder.CameraScenePath);
             }
         };
     }
 
-    [MenuItem("High Stakes/Security/Run Office Live Feed Play Check")]
+    [MenuItem("High Stakes/Security/Run Camera Room Live Feed Play Check")]
     public static void Run()
     {
         if(EditorApplication.isPlayingOrWillChangePlaymode) return;
@@ -58,7 +58,7 @@ public static class SecurityOfficeVerification
             if(!flow || flow.Busy) return;
             if(stage==0)
             {
-                Require(flow.Go("MVP_SecurityOffice","RoomA_Door"),"Office travel failed"); stage=1; return;
+                Require(flow.Go("MVP_CameraRoom","RoomB_Door"),"Camera room travel failed"); stage=1; return;
             }
             if(stage==1 || stage==6)
             {
@@ -67,7 +67,7 @@ public static class SecurityOfficeVerification
                 Require(Object.FindObjectsByType<XROrigin>(FindObjectsSortMode.None).Length==1,"Duplicate player rigs");
                 Require(Object.FindObjectsByType<HighStakes.Economy.ChipWallet>(FindObjectsSortMode.None).Length==1,"Duplicate wallets");
                 Require(Camera.main && (Camera.main.cullingMask & (15<<26))==0,"Remote rooms visible to player camera");
-                if(stage==6) { Finish("PASS: Six updating live feeds; one rig and wallet; hold/resume; office -> hub -> office; remote scenes released and reloaded."); return; }
+                if(stage==6) { Finish("PASS: Six updating live feeds; one rig and wallet; hold/resume; camera room -> hub -> camera room; remote scenes released and reloaded."); return; }
                 for(int i=0;i<wall.feeds.Length;i++)
                 {
                     var f=wall.feeds[i]; Require(f.texture && f.texture.IsCreated(),"Missing render target "+i);
@@ -88,14 +88,14 @@ public static class SecurityOfficeVerification
             if(stage==3)
             {
                 Require(wall.RenderedFrames>frames,"Resumed feeds stopped rendering");
-                Require(flow.Go("MVP_SecurityHall","Hub_A"),"Hub travel failed"); stage=4; return;
+                Require(flow.Go("MVP_SecurityHall","Hub_B"),"Hub travel failed"); stage=4; return;
             }
             if(stage==4)
             {
                 Require(SceneManager.sceneCount==2,"Capture scenes remained loaded after exit: "+SceneManager.sceneCount);
                 Require(Object.FindObjectsByType<XROrigin>(FindObjectsSortMode.None).Length==1,"Duplicate rigs after exit");
                 Require((Camera.main.cullingMask & (15<<26))==(15<<26),"Player camera mask was not restored");
-                Require(flow.Go("MVP_SecurityOffice","RoomA_Door"),"Revisit failed"); stage=6;
+                Require(flow.Go("MVP_CameraRoom","RoomB_Door"),"Revisit failed"); stage=6;
             }
         }
         catch(Exception e) { Debug.LogException(e); Finish("FAIL: "+e); }
@@ -106,15 +106,15 @@ public static class SecurityOfficeVerification
         var go=new GameObject("QA mono overview"); var camera=go.AddComponent<Camera>();
         camera.enabled=false;
         camera.cullingMask=Camera.main.cullingMask; camera.fieldOfView=78; camera.nearClipPlane=.05f;
-        camera.transform.position=new Vector3(43,1.75f,.3f);
-        camera.transform.LookAt(new Vector3(43,1.5f,5.3f));
+        camera.transform.position=new Vector3(45,1.75f,4.3f);
+        camera.transform.LookAt(new Vector3(45,1.5f,9.3f));
         camera.GetUniversalAdditionalCameraData().renderPostProcessing=false;
         camera.GetUniversalAdditionalCameraData().allowXRRendering=false;
         var target=new RenderTexture(1600,1000,24); target.Create();
         RenderPipeline.SubmitRenderRequest(camera,new UniversalRenderPipeline.SingleCameraRequest {destination=target});
         Save(target,"Temp/SecurityOfficeQA/office.png");
-        camera.transform.position=new Vector3(45.5f,1.7f,5.4f);
-        camera.transform.LookAt(new Vector3(40.5f,1.3f,1.3f));
+        camera.transform.position=new Vector3(46,1.7f,6.5f);
+        camera.transform.LookAt(new Vector3(50.4f,1.2f,8.2f));
         RenderPipeline.SubmitRenderRequest(camera,new UniversalRenderPipeline.SingleCameraRequest {destination=target});
         Save(target,"Temp/SecurityOfficeQA/office-storage.png");
         target.Release(); Object.Destroy(target); Object.Destroy(go);

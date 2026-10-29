@@ -13,12 +13,23 @@ using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
-/// <summary>Additive furnishing pass: preserves the security office shell, doors, rig and lighting.</summary>
+/// <summary>
+/// Additive furnishing pass: preserves the room shells, doors, rig and lighting. Both rooms are 12 x 12 m
+/// (HallwayBuilder): inner walls at -0.925 and 10.925, door centred on x 5 in the near (-Z) wall.
+/// The security & count room (MVP_SecurityOffice) gets the staff side: lockers, incident desk, noticeboard and evidence
+/// cabinet along the left and near walls; its right half and back are the count floor and supervisor booth
+/// (Environment/Editor/CountRoomBuilder). The camera room (MVP_CameraRoom) gets the live CCTV wall, operator consoles,
+/// HOLD button and equipment racks.
+/// </summary>
 public static class SecurityOfficeBuilder
 {
     public const string ScenePath = "Assets/Scenes/MVP/MVP_SecurityOffice.unity";
+    public const string CameraScenePath = "Assets/Scenes/MVP/MVP_CameraRoom.unity";
     public const string Folder = "Assets/Content/Progression/SecurityOffice";
     const string RootName = "SecurityOffice_Operations";
+    const string CameraRootName = "CameraRoom_Operations";
+    // The CCTV wall and consoles were laid out for an 8 m room; this moves them to the middle of the 12 m room's back wall.
+    static readonly Vector3 WallShift = new Vector3(2,0,4);
     static SharedStyleKit kit;
     static Material dark, steel, cyan, paper, green, feedMaterial;
 
@@ -28,9 +39,10 @@ public static class SecurityOfficeBuilder
         if (EditorApplication.isPlayingOrWillChangePlaymode) return;
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
         BuildOffice();
+        BuildCameraRoom();
     }
 
-    public static void BuildOffice()
+    static void LoadMaterials()
     {
         Directory.CreateDirectory(Folder);
         AssetDatabase.Refresh();
@@ -43,15 +55,20 @@ public static class SecurityOfficeBuilder
         feedMaterial.EnableKeyword("_EMISSION");
         feedMaterial.SetColor("_EmissionColor", Color.white * 2.5f);
         feedMaterial.SetFloat("_Smoothness", 0f);
+    }
 
-        var scene = EditorSceneManager.GetSceneByPath(ScenePath);
-        if (!scene.isLoaded) scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Additive);
+    // Opens the scene, gives the room the cool ambient and concrete ceiling, removes HallwayBuilder's placeholder
+    // furniture and any previous pass, and returns a fresh content root inside the room.
+    static Transform Prepare(string scenePath, string roomName, string rootName, out Scene scene)
+    {
+        scene = EditorSceneManager.GetSceneByPath(scenePath);
+        if (!scene.isLoaded) scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
         SceneManager.SetActiveScene(scene);
         Transform room = null;
         foreach (var root in scene.GetRootGameObjects())
             foreach (var t in root.GetComponentsInChildren<Transform>(true))
-                if (t.name == "RoomA (Security Office)") room = t;
-        if (!room) throw new InvalidOperationException("Security office room anchor not found.");
+                if (t.name == roomName) room = t;
+        if (!room) throw new InvalidOperationException(roomName + " anchor not found in " + scenePath + ".");
         RenderSettings.ambientMode=AmbientMode.Flat;
         RenderSettings.ambientLight=new Color(.3f,.36f,.44f);
         foreach(var renderer in room.GetComponentsInChildren<MeshRenderer>())
@@ -60,71 +77,42 @@ public static class SecurityOfficeBuilder
                 renderer.sharedMaterial=kit.concreteCool;
                 PrefabUtility.RecordPrefabInstancePropertyModifications(renderer);
             }
-        var existing = room.Find(RootName);
+        var existing = room.Find(rootName);
         if (existing) Object.DestroyImmediate(existing.gameObject);
         // Remove only the original placeholder furniture; leave architecture and baked lights alone.
         var remove = new List<GameObject>();
         foreach (Transform t in room)
             if (t.name == "Screen" || t.name.StartsWith("Kit_Table_Round") || t.name.StartsWith("Kit_Chair")) remove.Add(t.gameObject);
         foreach (var go in remove) Object.DestroyImmediate(go);
-        var content = new GameObject(RootName).transform;
+        var content = new GameObject(rootName).transform;
         content.SetParent(room, false);
+        return content;
+    }
 
-        // Rear wall: six 16:9 monitors, steel recess, ceiling cable tray and cyan header.
-        Box(content,"Monitor wall backing",new Vector3(3,1.85f,6.68f),new Vector3(5.9f,2.05f,.16f),steel);
-        Text(content,"MERIDIAN / SECURITY OPERATIONS",new Vector3(3,2.87f,5.97f),new Vector2(5.7f,.12f),.12f,kit.accentCyan);
-        var wall = content.gameObject.AddComponent<SecurityMonitorWall>();
-        wall.screenMaterial = feedMaterial;
-        wall.feeds = new SecurityMonitorWall.Feed[6];
-        string[] names = {"01 / CASINO FLOOR", "02 / VIP LOUNGE", "03 / STAFF HALL", "04 / VAULT APPROACH", "05 / CASHIER", "06 / VIP TABLES"};
-        string[] scenes = {"MVP_Casino","MVP_VIP","MVP_SecurityHall","MVP_Vault","MVP_Casino","MVP_VIP"};
-        Vector3[] positions = {new Vector3(-7,2.65f,-6), new Vector3(-4,2.65f,10),new Vector3(-.65f,2.65f,2),new Vector3(40.3f,2.65f,-.1f),new Vector3(8,2.65f,6.5f),new Vector3(5,2.65f,19)};
-        Vector3[] targets = {new Vector3(0,.9f,4), new Vector3(2,.8f,17),new Vector3(1.5f,1.1f,9),new Vector3(43,1.1f,6),new Vector3(6.7f,1,10.3f),new Vector3(0,.8f,14)};
-        for (int i=0;i<6;i++)
-        {
-            float x=1.1f+(i%3)*1.9f, y=i<3?2.24f:1.21f;
-            Box(content,"Monitor "+(i+1)+" bezel",new Vector3(x,y,6.53f),new Vector3(1.79f,1f,.12f),dark);
-            var screen=GameObject.CreatePrimitive(PrimitiveType.Quad);
-            screen.name="CCTV "+names[i]; screen.transform.SetParent(content,false);
-            screen.transform.localPosition=new Vector3(x,y+.035f,6.46f);
-            screen.transform.localScale=new Vector3(1.68f,.945f,1);
-            Object.DestroyImmediate(screen.GetComponent<Collider>());
-            screen.GetComponent<Renderer>().sharedMaterial=feedMaterial;
-            var caption=Text(content,names[i]+"  /  LIVE",new Vector3(x,y+.39f,6.42f),new Vector2(1.59f,.12f),.068f,Color.white);
-            Box(content,"Online indicator",new Vector3(x-.8f,y-.39f,6.43f),new Vector3(.025f,.025f,.015f),green);
-            wall.feeds[i]=new SecurityMonitorWall.Feed {label=names[i],sceneName=scenes[i],position=positions[i],lookAt=targets[i],screen=screen.GetComponent<Renderer>(),caption=caption};
-        }
-        // Operator console: two workstations; a clear centre aisle leads all the way back to the portal.
-        for(int i=0;i<2;i++)
-        {
-            float x=1.55f+i*2.9f;
-            Desk(content,x,5.65f);
-            Chair(content,new Vector3(x,0,4.35f));
-            Keyboard(content,new Vector3(x,.79f,5.36f));
-            Box(content,"Mouse mat",new Vector3(x+.67f,.77f,5.33f),new Vector3(.31f,.015f,.3f),dark);
-            Box(content,"Mouse",new Vector3(x+.67f,.8f,5.33f),new Vector3(.065f,.045f,.1f),steel);
-            Box(content,"Dispatch panel",new Vector3(x-.73f,.81f,5.6f),new Vector3(.34f,.12f,.27f),dark);
-            for(int k=0;k<3;k++) Box(content,"Radio channel",new Vector3(x-.82f+k*.09f,.88f,5.54f),new Vector3(.04f,.012f,.04f),k==0?green:steel);
-            Box(content,"Radio antenna",new Vector3(x-.82f,1.02f,5.66f),new Vector3(.015f,.33f,.015f),dark);
-        }
-        var hold=Box(content,"HOLD LIVE FEEDS button",new Vector3(3,.84f,5.3f),new Vector3(.4f,.12f,.28f),cyan,true);
-        var press=hold.AddComponent<PressableButton>();
-        UnityEventTools.AddPersistentListener(press.Pressed,wall.TogglePause);
-        Text(content,"LIVE / HOLD",new Vector3(3,.93f,5.1f),new Vector2(.65f,.15f),.075f,Color.white);
-        // Right wall equipment racks with individual servers, ventilation, patch sockets and cable routing.
-        for(int rack=0;rack<2;rack++)
-        {
-            float z=4.8f-rack*1.25f;
-            Box(content,"Equipment rack",new Vector3(6.36f,1.08f,z),new Vector3(.85f,2.16f,1f),dark,true);
-            for(int u=0;u<8;u++)
+    static void Finish(Scene scene, Transform content, string meshPrefix, Vector3 lookAt, string message)
+    {
+        // Purely emissive strip fixtures: no additional realtime lights.
+        for(int i=0;i<3;i++)
+            for(int j=0;j<2;j++)
             {
-                float y=.24f+u*.23f;
-                Box(content,"Recorder / network unit",new Vector3(5.91f,y,z),new Vector3(.035f,.18f,.89f),steel);
-                for(int v=0;v<5;v++) Box(content,"Rack vent",new Vector3(5.885f,y,z-.29f+v*.13f),new Vector3(.015f,.025f,.075f),dark);
-                Box(content,"Status LED",new Vector3(5.88f,y+.045f,z+.36f),new Vector3(.015f,.025f,.025f),u%3==0?cyan:green);
+                Box(content,"Fluorescent housing",new Vector3(1.5f+i*3.5f,2.87f,3+j*4.5f),new Vector3(.25f,.09f,2.2f),steel);
+                Box(content,"Cool diffuser",new Vector3(1.5f+i*3.5f,2.815f,3+j*4.5f),new Vector3(.17f,.025f,2.05f),cyan);
             }
-        }
-        // Left: staff storage and an evidence/incident desk.
+        CombineDetails(content,meshPrefix);
+        EditorSceneManager.MarkSceneDirty(scene);
+        EditorSceneManager.SaveScene(scene);
+        AssetDatabase.SaveAssets();
+        Selection.activeGameObject=content.gameObject;
+        SceneView.lastActiveSceneView?.LookAt(content.position+lookAt,Quaternion.Euler(18,0,0),7);
+        Debug.Log(message);
+    }
+
+    public static void BuildOffice()
+    {
+        LoadMaterials();
+        var content = Prepare(ScenePath, "RoomA (Security Office)", RootName, out var scene);
+
+        // Left: staff storage by the door and an incident desk.
         for(int i=0;i<3;i++)
         {
             float z=.2f+i*.67f;
@@ -145,36 +133,89 @@ public static class SecurityOfficeBuilder
         Box(side,"Incident report",new Vector3(.72f,.809f,-.08f),new Vector3(.25f,.006f,.34f),paper);
         Box(side,"Desk phone base",new Vector3(-.7f,.83f,.09f),new Vector3(.3f,.15f,.27f),dark);
         Box(side,"Telephone handset",new Vector3(-.7f,.93f,.09f),new Vector3(.36f,.06f,.075f),steel);
-        // Shift board faces the room from the right wall; grounded narrative dressing, no puzzle state.
-        var board=new GameObject("Duty board").transform; board.SetParent(content,false);
-        board.localPosition=new Vector3(6.8f,1.85f,1.2f); board.localRotation=Quaternion.Euler(0,90,0);
+        // Noticeboard on the left wall past the desk, facing into the room.
+        var board=new GameObject("Shift noticeboard").transform; board.SetParent(content,false);
+        board.localPosition=new Vector3(-.85f,1.85f,6.6f); board.localRotation=Quaternion.Euler(0,-90,0);
         Box(board,"Noticeboard frame",Vector3.zero,new Vector3(2.5f,1.25f,.08f),steel);
         Box(board,"Noticeboard face",new Vector3(0,0,-.05f),new Vector3(2.35f,1.1f,.025f),dark);
         Text(board,"NIGHT SHIFT / OPERATIONS",new Vector3(0,.38f,-.075f),new Vector2(2.2f,.2f),.12f,kit.accentCyan);
-        Text(board,"01   CASINO & CASHIER\n02   VIP ACCESS CHECKS\n03   STAFF HALL / VAULT\n\nLOG INCIDENTS BEFORE HANDOVER",new Vector3(0,-.09f,-.075f),new Vector2(2.1f,.7f),.1f,Color.white);
-        // Storage cabinet and evidence trays at the front, leaving the 2 m door opening unobstructed.
-        Box(content,"Evidence cabinet",new Vector3(5.65f,.58f,-.35f),new Vector3(1.6f,1.16f,.7f),steel,true);
+        Text(board,"01   CASINO & CASHIER\n02   VIP ACCESS CHECKS\n03   COUNT ROOM / VAULT\n\nLOG INCIDENTS BEFORE HANDOVER",new Vector3(0,-.09f,-.075f),new Vector2(2.1f,.7f),.1f,Color.white);
+        // Near wall, left of the door: evidence cabinet with archive boxes.
+        Box(content,"Evidence cabinet",new Vector3(1.9f,.58f,-.35f),new Vector3(1.6f,1.16f,.7f),steel,true);
         for(int d=0;d<3;d++)
         {
-            Box(content,"File drawer",new Vector3(5.65f,.22f+d*.35f,.018f),new Vector3(1.48f,.29f,.025f),dark);
-            Box(content,"Drawer pull",new Vector3(5.65f,.22f+d*.35f,.05f),new Vector3(.25f,.035f,.04f),kit.steelCool);
+            Box(content,"File drawer",new Vector3(1.9f,.22f+d*.35f,.018f),new Vector3(1.48f,.29f,.025f),dark);
+            Box(content,"Drawer pull",new Vector3(1.9f,.22f+d*.35f,.05f),new Vector3(.25f,.035f,.04f),kit.steelCool);
         }
-        for(int i=0;i<3;i++) Box(content,"Evidence archive box",new Vector3(5.13f+i*.5f,1.32f,-.35f),new Vector3(.44f,.3f,.5f),paper);
-        Box(content,"Ceiling cable tray",new Vector3(3,2.87f,6.15f),new Vector3(6.8f,.1f,.3f),steel);
-        Box(content,"Cable riser",new Vector3(6.53f,1.55f,6.35f),new Vector3(.12f,2.5f,.12f),dark);
-        // Purely emissive strip fixtures: no additional realtime lights.
-        for(int i=0;i<3;i++)
+        for(int i=0;i<3;i++) Box(content,"Evidence archive box",new Vector3(1.38f+i*.5f,1.32f,-.35f),new Vector3(.44f,.3f,.5f),paper);
+
+        Finish(scene,content,"Office_",new Vector3(3,1.4f,3),"[SecurityOffice] Security side of the security & count room saved; the count floor is CountRoomBuilder's.");
+    }
+
+    public static void BuildCameraRoom()
+    {
+        LoadMaterials();
+        var content = Prepare(CameraScenePath, "RoomB (Camera Room)", CameraRootName, out var scene);
+        var w = WallShift;
+
+        // Rear wall: six 16:9 monitors, steel recess, ceiling cable tray and cyan header.
+        Box(content,"Monitor wall backing",w+new Vector3(3,1.85f,6.68f),new Vector3(5.9f,2.05f,.16f),steel);
+        Text(content,"MERIDIAN / SECURITY OPERATIONS",w+new Vector3(3,2.87f,5.97f),new Vector2(5.7f,.12f),.12f,kit.accentCyan);
+        var wall = content.gameObject.AddComponent<SecurityMonitorWall>();
+        wall.screenMaterial = feedMaterial;
+        wall.feeds = new SecurityMonitorWall.Feed[6];
+        string[] names = {"01 / CASINO FLOOR", "02 / VIP LOUNGE", "03 / STAFF HALL", "04 / VAULT APPROACH", "05 / CASHIER", "06 / VIP TABLES"};
+        string[] scenes = {"MVP_Casino","MVP_VIP","MVP_SecurityHall","MVP_Vault","MVP_Casino","MVP_VIP"};
+        Vector3[] positions = {new Vector3(-7,2.65f,-6), new Vector3(-4,2.65f,10),new Vector3(-.65f,2.65f,2),new Vector3(40.3f,2.65f,-.1f),new Vector3(8,2.65f,6.5f),new Vector3(5,2.65f,19)};
+        Vector3[] targets = {new Vector3(0,.9f,4), new Vector3(2,.8f,17),new Vector3(1.5f,1.1f,9),new Vector3(43,1.1f,6),new Vector3(6.7f,1,10.3f),new Vector3(0,.8f,14)};
+        for (int i=0;i<6;i++)
         {
-            Box(content,"Fluorescent housing",new Vector3(1+i*2,2.87f,3),new Vector3(.25f,.09f,2.2f),steel);
-            Box(content,"Cool diffuser",new Vector3(1+i*2,2.815f,3),new Vector3(.17f,.025f,2.05f),cyan);
+            float x=1.1f+(i%3)*1.9f, y=i<3?2.24f:1.21f;
+            Box(content,"Monitor "+(i+1)+" bezel",w+new Vector3(x,y,6.53f),new Vector3(1.79f,1f,.12f),dark);
+            var screen=GameObject.CreatePrimitive(PrimitiveType.Quad);
+            screen.name="CCTV "+names[i]; screen.transform.SetParent(content,false);
+            screen.transform.localPosition=w+new Vector3(x,y+.035f,6.46f);
+            screen.transform.localScale=new Vector3(1.68f,.945f,1);
+            Object.DestroyImmediate(screen.GetComponent<Collider>());
+            screen.GetComponent<Renderer>().sharedMaterial=feedMaterial;
+            var caption=Text(content,names[i]+"  /  LIVE",w+new Vector3(x,y+.39f,6.42f),new Vector2(1.59f,.12f),.068f,Color.white);
+            Box(content,"Online indicator",w+new Vector3(x-.8f,y-.39f,6.43f),new Vector3(.025f,.025f,.015f),green);
+            wall.feeds[i]=new SecurityMonitorWall.Feed {label=names[i],sceneName=scenes[i],position=positions[i],lookAt=targets[i],screen=screen.GetComponent<Renderer>(),caption=caption};
         }
-        CombineDetails(content);
-        EditorSceneManager.MarkSceneDirty(scene);
-        EditorSceneManager.SaveScene(scene);
-        AssetDatabase.SaveAssets();
-        Selection.activeGameObject=content.gameObject;
-        SceneView.lastActiveSceneView?.LookAt(room.position+new Vector3(3,1.4f,3),Quaternion.Euler(18,0,0),7);
-        Debug.Log("[SecurityOffice] Furnished office saved. Six live cameras observe four isolated remote scenes, with live patrol animation and dormant interactions.");
+        // Operator console: two workstations; a clear centre aisle leads all the way back to the portal.
+        for(int i=0;i<2;i++)
+        {
+            float x=w.x+1.55f+i*2.9f;
+            Desk(content,x,w.z+5.65f);
+            Chair(content,new Vector3(x,0,w.z+4.35f));
+            Keyboard(content,new Vector3(x,.79f,w.z+5.36f));
+            Box(content,"Mouse mat",new Vector3(x+.67f,.77f,w.z+5.33f),new Vector3(.31f,.015f,.3f),dark);
+            Box(content,"Mouse",new Vector3(x+.67f,.8f,w.z+5.33f),new Vector3(.065f,.045f,.1f),steel);
+            Box(content,"Dispatch panel",new Vector3(x-.73f,.81f,w.z+5.6f),new Vector3(.34f,.12f,.27f),dark);
+            for(int k=0;k<3;k++) Box(content,"Radio channel",new Vector3(x-.82f+k*.09f,.88f,w.z+5.54f),new Vector3(.04f,.012f,.04f),k==0?green:steel);
+            Box(content,"Radio antenna",new Vector3(x-.82f,1.02f,w.z+5.66f),new Vector3(.015f,.33f,.015f),dark);
+        }
+        var hold=Box(content,"HOLD LIVE FEEDS button",w+new Vector3(3,.84f,5.3f),new Vector3(.4f,.12f,.28f),cyan,true);
+        var press=hold.AddComponent<PressableButton>();
+        UnityEventTools.AddPersistentListener(press.Pressed,wall.TogglePause);
+        Text(content,"LIVE / HOLD",w+new Vector3(3,.93f,5.1f),new Vector2(.65f,.15f),.075f,Color.white);
+        // Right wall equipment racks with individual servers, ventilation, patch sockets and cable routing.
+        for(int rack=0;rack<2;rack++)
+        {
+            float z=8.8f-rack*1.25f;
+            Box(content,"Equipment rack",new Vector3(10.36f,1.08f,z),new Vector3(.85f,2.16f,1f),dark,true);
+            for(int u=0;u<8;u++)
+            {
+                float y=.24f+u*.23f;
+                Box(content,"Recorder / network unit",new Vector3(9.91f,y,z),new Vector3(.035f,.18f,.89f),steel);
+                for(int v=0;v<5;v++) Box(content,"Rack vent",new Vector3(9.885f,y,z-.29f+v*.13f),new Vector3(.015f,.025f,.075f),dark);
+                Box(content,"Status LED",new Vector3(9.88f,y+.045f,z+.36f),new Vector3(.015f,.025f,.025f),u%3==0?cyan:green);
+            }
+        }
+        Box(content,"Ceiling cable tray",w+new Vector3(3,2.87f,6.15f),new Vector3(6.8f,.1f,.3f),steel);
+        Box(content,"Cable riser",new Vector3(10.53f,1.55f,10.35f),new Vector3(.12f,2.5f,.12f),dark);
+
+        Finish(scene,content,"CameraRoom_",new Vector3(5,1.4f,7),"[SecurityOffice] Camera room saved. Six live cameras observe four isolated remote scenes, with live patrol animation and dormant interactions.");
     }
 
     static Material Variant(string name,Material parent,Color color)
@@ -191,14 +232,14 @@ public static class SecurityOfficeBuilder
     {
         if(EditorApplication.isPlayingOrWillChangePlaymode) return;
         var wall=Object.FindFirstObjectByType<SecurityMonitorWall>();
-        if(!wall) throw new InvalidOperationException("Open the security office first.");
+        if(!wall) throw new InvalidOperationException("Open the camera room first.");
         foreach(var text in wall.GetComponentsInChildren<TMP_Text>())
         {
-            if(text.text=="LIVE / HOLD") PlaceText(text,new Vector3(3,.93f,5.1f));
+            if(text.text=="LIVE / HOLD") PlaceText(text,WallShift+new Vector3(3,.93f,5.1f));
             if(text.text.StartsWith("MERIDIAN / DISPATCH")) PlaceText(text,new Vector3(0,1.27f,.23f));
             if(text.text=="MERIDIAN / SECURITY OPERATIONS")
             {
-                PlaceText(text,new Vector3(3,2.87f,5.97f));
+                PlaceText(text,WallShift+new Vector3(3,2.87f,5.97f));
                 text.rectTransform.sizeDelta=new Vector2(5.7f,.12f);
             }
             FitText(text);
@@ -211,7 +252,7 @@ public static class SecurityOfficeBuilder
         {
             var pos=f.screen.transform.localPosition;
             pos.y=f.screen.transform.localPosition.y+.355f;
-            pos.z=6.42f;
+            pos.z=WallShift.z+6.42f;
             PlaceText(f.caption,pos);
         }
         for(int i=0;i<wall.feeds.Length;i++)
@@ -240,7 +281,7 @@ public static class SecurityOfficeBuilder
         EditorSceneManager.SaveScene(wall.gameObject.scene);
         AssetDatabase.SaveAssets();
         var view=SceneView.lastActiveSceneView;
-        if(view) view.LookAt(new Vector3(43,1.65f,4.4f),Quaternion.Euler(8,0,0),2.5f);
+        if(view) view.LookAt(new Vector3(45,1.65f,8.4f),Quaternion.Euler(8,0,0),2.5f);
         // The stock test rig uses built-in Default-Line ray materials; validate authored room content.
         var solo=Array.Find(wall.gameObject.scene.GetRootGameObjects(),root=>root.name=="_SoloTest");
         bool wasActive=solo && solo.activeSelf;
@@ -322,7 +363,7 @@ public static class SecurityOfficeBuilder
         Box(parent,"Space bar",pos+new Vector3(0,.024f,.075f),new Vector3(.25f,.012f,.025f),steel);
     }
 
-    static void CombineDetails(Transform root)
+    static void CombineDetails(Transform root,string prefix)
     {
         var groups=new Dictionary<Material,List<CombineInstance>>();
         var originals=new List<MeshRenderer>();
@@ -338,7 +379,7 @@ public static class SecurityOfficeBuilder
         }
         foreach(var pair in groups)
         {
-            var mesh=new Mesh {name="Office_"+pair.Key.name,indexFormat=IndexFormat.UInt32};
+            var mesh=new Mesh {name=prefix+pair.Key.name,indexFormat=IndexFormat.UInt32};
             mesh.CombineMeshes(pair.Value.ToArray());
             Unwrapping.GenerateSecondaryUVSet(mesh);
             string path=Folder+"/"+mesh.name+".asset";
