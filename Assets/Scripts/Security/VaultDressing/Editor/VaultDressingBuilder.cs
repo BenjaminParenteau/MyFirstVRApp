@@ -65,9 +65,6 @@ public static class VaultDressingBuilder
             CashCrate(root.transform,new Vector3(5.25f,0,.35f));
             CashPile(root.transform,new Vector3(1.65f,.018f,3.25f),2,2,2);
             Combine(root.transform);
-            var roomDoor=(GameObject)PrefabUtility.InstantiatePrefab(doorPrefab,root.transform);
-            roomDoor.transform.localPosition=new Vector3(3,0,-1);
-            roomDoor.transform.localRotation=Quaternion.Euler(0,180,0);
             PrefabUtility.SaveAsPrefabAsset(root,Folder+"/Resources/VaultDressingModule.prefab");
             AssetDatabase.SaveAssets();
             Debug.Log($"[VaultDressing] {manifest.cashBundles} cash bundles, {manifest.goldBars} gold bars, {manifest.depositDrawers} deposit drawers, {manifest.cashCarts} carts; {manifest.triangles} triangles. Shared scenes unchanged.");

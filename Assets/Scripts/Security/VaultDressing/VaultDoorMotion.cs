@@ -18,13 +18,16 @@ namespace HighStakes.Security
             Leaf.SetParent(transform, false);Leaf.localPosition = new Vector3(-1.38f, 0, 0);
             foreach (var child in children)
                 if (!child.name.StartsWith("Armored door surround") && child.name != "Marking MERIDIAN RESERVE") child.SetParent(Leaf, true);
+            OpenFraction = 1;
+            Leaf.localRotation = Quaternion.Euler(0, 90, 0);
         }
 
         void Update()
         {
             if (!Leaf) return;
-            OpenFraction = Mathf.MoveTowards(OpenFraction, VaultKeySession.Lock.IsOpen ? 1 : 0, Time.deltaTime / 2.4f);
-            Leaf.localRotation = Quaternion.Euler(0, -100 * Mathf.SmoothStep(0, 1, OpenFraction), 0);
+            OpenFraction = 1;
+            // +Y swings the leaf into the hallway (-Z), staying alongside its left wall when fully open.
+            Leaf.localRotation = Quaternion.Euler(0, 90 * Mathf.SmoothStep(0, 1, OpenFraction), 0);
         }
     }
 }

@@ -153,7 +153,7 @@ namespace HighStakes.UI
             for (var t = hit; t != null; t = t.parent)
             {
                 var pickup = t.GetComponent<PickupItem>();
-                if (pickup != null && pickup.isActiveAndEnabled && pickup.Item != null)
+                if (pickup != null && pickup.Item != null)
                 {
                     owner = t.gameObject;
                     item = pickup.Item;
@@ -216,8 +216,6 @@ namespace HighStakes.UI
             if (!stored.Exists(s => s.Object == obj))
                 stored.Add(entry);
             collected.Add(entry.Key);
-            var pickup = obj.GetComponent<PickupItem>();
-            if (pickup != null) pickup.Collected.Invoke();
             ItemAdded?.Invoke(item);
             Changed?.Invoke();
         }
@@ -265,19 +263,6 @@ namespace HighStakes.UI
             }
             held = null;
             heldBy = null;
-            Changed?.Invoke();
-        }
-
-        /// <summary>Transfers a held collectable into a world mechanism, leaving its notebook record as history.</summary>
-        public void ReleaseToWorld(GameObject obj)
-        {
-            if (held != null && held.Object == obj)
-            {
-                if (heldBy != null && heldBy.isPerformingManualInteraction) heldBy.EndManualInteraction();
-                held = null; heldBy = null;
-            }
-            stored.RemoveAll(s => s.Object == obj);
-            DropFromAnyHand(obj);
             Changed?.Invoke();
         }
 
