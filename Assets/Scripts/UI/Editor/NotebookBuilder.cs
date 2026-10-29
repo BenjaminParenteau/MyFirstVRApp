@@ -30,7 +30,7 @@ public static class NotebookBuilder
     const float Length = 0.21f;  // along Z (top of the page is -Z)
     const float Thickness = 0.015f;
     const float CoverThickness = 0.003f;
-    const float Margin = 0.012f;
+    const float Margin = 0.01f;
 
     // Page text lies flat, readable from +Y with its top toward -Z (the 180 about Y spins it on the page so it reads
     // upright the way NotebookOpen turns the notebook; without it the text reads upside down).
@@ -85,14 +85,16 @@ public static class NotebookBuilder
         visuals.transform.SetParent(root.transform, false);
         float pagesTop = Thickness - CoverThickness; // pages end where the closed front cover begins
         float rightX = -Width / 2f;
+        var leather = UITextures.Leather(kit);
+        var paper = UITextures.Paper(kit);
 
-        // Back cover and the block of cream pages: the right page of the open spread
+        // Leather back cover and the block of paper pages (UITextures): the right page of the open spread
         WristDisplayBuilder.Prim("BackCover", visuals, PrimitiveType.Cube, new Vector3(rightX, CoverThickness / 2f, 0),
-            new Vector3(Width, CoverThickness, Length), kit.woodDark);
+            new Vector3(Width, CoverThickness, Length), leather);
         WristDisplayBuilder.Prim("Pages", visuals, PrimitiveType.Cube, new Vector3(rightX, (CoverThickness + pagesTop) / 2f, 0),
-            new Vector3(Width - 0.008f, pagesTop - CoverThickness, Length - 0.008f), kit.plasterCream);
+            new Vector3(Width - 0.008f, pagesTop - CoverThickness, Length - 0.008f), paper);
         WristDisplayBuilder.Prim("Spine", visuals, PrimitiveType.Cube, new Vector3(0, Thickness / 2f, 0),
-            new Vector3(0.006f, Thickness, Length), kit.woodDark);
+            new Vector3(0.006f, Thickness, Length), leather);
 
         // Card slot near the bottom of the right page: a brass-edged pocket with a keycard tucked into it
         float slotZ = Length / 2f - 0.035f;
@@ -118,7 +120,7 @@ public static class NotebookBuilder
         lid.transform.SetParent(visuals.transform, false);
         lid.transform.localPosition = new Vector3(0, pagesTop, 0);
         WristDisplayBuilder.Prim("FrontCover", lid, PrimitiveType.Cube, new Vector3(-Width / 2f, CoverThickness / 2f, 0),
-            new Vector3(Width, CoverThickness, Length), kit.woodDark);
+            new Vector3(Width, CoverThickness, Length), leather);
         WristDisplayBuilder.Prim("Clasp", lid, PrimitiveType.Cube, new Vector3(-Width + 0.008f, CoverThickness, 0),
             new Vector3(0.016f, 0.003f, 0.024f), kit.brassGold);
         WristDisplayBuilder.Prim("Ribbon", lid, PrimitiveType.Cube, new Vector3(-Width / 2f, CoverThickness, 0),
@@ -135,7 +137,7 @@ public static class NotebookBuilder
         var leftPage = new GameObject("LeftPage");
         leftPage.transform.SetParent(lid.transform, false);
         var screenText = PageText("ScreenText", leftPage, new Vector3(-Width / 2f, -0.0012f, 0),
-            Quaternion.Inverse(CoverOpen) * PageTextRotation, new Vector2(Width - 2f * Margin - 0.008f, Length - 2f * Margin - 0.01f),
+            Quaternion.Inverse(CoverOpen) * PageTextRotation, new Vector2(Width - 0.024f - 0.008f, Length - 0.03f - 0.008f),
             kit.accentCyan, NotebookLogic.EmptyScreen);
 
         var open = root.AddComponent<NotebookOpen>();
@@ -147,6 +149,8 @@ public static class NotebookBuilder
         content.GetArrayElementAtIndex(0).objectReferenceValue = rightPage;
         content.GetArrayElementAtIndex(1).objectReferenceValue = leftPage;
         openSo.FindProperty("openAngle").floatValue = 180f;
+        openSo.FindProperty("distance").floatValue = 0.32f; // close enough to read without leaning in
+        openSo.FindProperty("drop").floatValue = 0.1f;
         openSo.ApplyModifiedPropertiesWithoutUndo();
 
         // Prototype inventory: look at Slot B's keycard (matched by its component name) and press the button
@@ -212,9 +216,10 @@ public static class NotebookBuilder
         tmp.color = color;
         tmp.alignment = TextAlignmentOptions.TopLeft;
         tmp.textWrappingMode = TextWrappingModes.Normal;
-        tmp.enableAutoSizing = true; // fits the page's lines into the box, whatever the font's units
+        tmp.fontStyle = FontStyles.Bold; // reads on the paper texture and the blue glass
+        tmp.enableAutoSizing = true; // grows the page's lines to fill the box, whatever the font's units
         tmp.fontSizeMin = 0.001f;
-        tmp.fontSizeMax = 0.05f;
+        tmp.fontSizeMax = 0.3f;
         tmp.margin = Vector4.zero;
         return tmp;
     }
