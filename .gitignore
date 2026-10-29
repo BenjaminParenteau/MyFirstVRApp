@@ -115,3 +115,6 @@ InitTestScene*.unity*
 
 # Per-developer personal notes (each team member keeps their own local copy)
 /Personal.md
+
+# Unity crash-recovery scenes (local only; never part of the project)
+/[Aa]ssets/_[Rr]ecovery/

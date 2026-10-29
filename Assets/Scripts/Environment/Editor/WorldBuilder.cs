@@ -30,7 +30,7 @@ public static class WorldBuilder
     public static void BuildMenu()
     {
         if (!EditorUtility.DisplayDialog("Build MVP world?",
-                "Rebuilds MVP_Main, MVP_VIP and the security wings, re-adds the casino doors and sets the build scene list. Hand edits to the generated scenes are lost. Lightmaps are not re-baked (use the batch entry point for that).",
+                "Rebuilds MVP_Main, MVP_VIP and the security wings, re-adds the casino doors and sets the build scene list. Hand edits to the generated scenes are lost. Lightmaps are not re-baked (use the batch entry point for that); occlusion culling is (CPU only, a few minutes).",
                 "Build", "Cancel")) return;
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
         Build(bake: false);
@@ -63,6 +63,7 @@ public static class WorldBuilder
         CasinoTextureBuilder.ApplyToScenes(CasinoPath); // the re-placed tables' felt, wood and rails
         BuildMain();
         SetBuildScenes();
+        RenderingOptimizer.OptimizeAll(); // regenerated renderers need fresh occlusion data and culling LODs
 
         AssetDatabase.SaveAssets();
         Debug.Log("[World] Built. Open MVP_Main and press Play: you start in the casino; walk into a door to change area.");
@@ -82,20 +83,23 @@ public static class WorldBuilder
         if (!HallwayBuilder.BuildHubAndRelinkWings()) return;
         AddCasinoDoors();
         SetBuildScenes();
+        RenderingOptimizer.OptimizeScenes(new[] { HallwayBuilder.HubScenePath });
         AssetDatabase.SaveAssets();
         Debug.Log("[World] Security hub built. Open MVP_Main and press Play: walk through the casino's STAFF ONLY door into the hub, then SECURITY / CAMERAS / VAULT.");
     }
 
+    /// <summary>Every area scene SceneFlow can load (MVP_Main excluded), in build order.</summary>
+    public static string[] AreaScenePaths()
+    {
+        var paths = new System.Collections.Generic.List<string> { CasinoPath, VipPath, HallwayBuilder.HubScenePath };
+        paths.AddRange(HallwayBuilder.ScenePaths);
+        return paths.ToArray();
+    }
+
     static void SetBuildScenes()
     {
-        var scenes = new System.Collections.Generic.List<EditorBuildSettingsScene>
-        {
-            new EditorBuildSettingsScene(MainPath, true),
-            new EditorBuildSettingsScene(CasinoPath, true),
-            new EditorBuildSettingsScene(VipPath, true),
-            new EditorBuildSettingsScene(HallwayBuilder.HubScenePath, true),
-        };
-        foreach (var path in HallwayBuilder.ScenePaths) scenes.Add(new EditorBuildSettingsScene(path, true));
+        var scenes = new System.Collections.Generic.List<EditorBuildSettingsScene> { new EditorBuildSettingsScene(MainPath, true) };
+        foreach (var path in AreaScenePaths()) scenes.Add(new EditorBuildSettingsScene(path, true));
         EditorBuildSettings.scenes = scenes.ToArray();
     }
 

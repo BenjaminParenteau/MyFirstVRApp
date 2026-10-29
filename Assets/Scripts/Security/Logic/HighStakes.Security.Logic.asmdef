@@ -1,0 +1,14 @@
+{
+    "name": "HighStakes.Security.Logic",
+    "rootNamespace": "HighStakes.Security",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

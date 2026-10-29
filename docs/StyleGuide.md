@@ -117,6 +117,7 @@ In VR there are no camera angles: the camera is the player's head and only the p
 - Target **72 fps** (90 if it holds).
 - Under ~100k visible triangles, ~100 draw calls, few unique materials (the kit keeps this low).
 - Textures compressed (ASTC), mipmaps on, max 1024 unless justified.
+- Culling: anything that never moves must be marked **Static** (it is then static-batched, occlusion-culled and, if small, distance-culled). After adding or moving static geometry in an area scene, run **High Stakes > Rendering > Optimize Open Scene (LOD + Occlusion)**: it gives small details (< 0.8 m, or small prefabs such as chairs) a culling LOD at ~10 px on screen, makes big opaque surfaces occluders and re-bakes occlusion culling. The bake is CPU-only, so anyone can run it. Moving objects (chips, cards, the roulette ball) stay non-static.
 - No realtime shadows, no post effects beyond the shared volume, no transparent overdraw-heavy effects.
 - Test on the device (APK) before merging anything that adds meshes or lights. Quest Link is fine too, but only Ashton and Ben can use it. Judge framerate on the APK, since Link renders on the PC GPU and is not representative.
 
