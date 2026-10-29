@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f68eef4a3729554e86dfcb47afc5bcd, type: 3}
+  m_Name: SO_Item_Cam04Still
+  m_EditorClassIdentifier: Assembly-CSharp::HighStakes.Core.ItemData
+  id: cam04_still
+  displayName: CAM 04 Still
+  description: "Printed from the CAM 04 \xB7 02:40 tape: the night manager at the
+    VAULT 03 keypad. First key 5, last key 3. His hand hides the middle two."
+  icon: {fileID: 0}

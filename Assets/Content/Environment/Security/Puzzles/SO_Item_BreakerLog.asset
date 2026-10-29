@@ -15,5 +15,7 @@ MonoBehaviour:
   id: breaker_log
   displayName: Breaker Log
   description: 'Panel re-wired: +300 chips. The vault approach camera (feed 04) is
-    on this breaker and is now dark. The way to the vault is unwatched.'
+    on this breaker and is now dark. Tech note: the VAULT 03 keypad is on this circuit
+    too. Worn keys: 1, 3, 5, 8. The 8 sticks; it is always pressed right after the
+    first key.'
   icon: {fileID: 0}
