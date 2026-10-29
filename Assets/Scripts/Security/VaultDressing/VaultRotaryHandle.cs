@@ -28,7 +28,12 @@ namespace HighStakes.Security
             if (!interactable) return;
             interactable.selectEntered.RemoveListener(Grab);interactable.selectExited.RemoveListener(Release);
         }
-        void Grab(SelectEnterEventArgs args) { hand = args.interactorObject; tracking = false; }
+        void Grab(SelectEnterEventArgs args)
+        {
+            hand = args.interactorObject; tracking = false;
+            // A normal ray click or direct grab completes the short assisted turn; wrist precision is optional.
+            if (owner) { if (keyCylinder) owner.UseKey(); else owner.UseWheel(); }
+        }
         void Release(SelectExitEventArgs _) { hand = null; tracking = false; }
         void Update()
         {
@@ -45,7 +50,7 @@ namespace HighStakes.Security
                 float delta = -Vector2.SignedAngle(previous, current);
                 // Clockwise, viewed from the -Z approach, is negative local Z rotation.
                 delta = Mathf.Clamp(delta, -180 * Time.deltaTime, 180 * Time.deltaTime);
-                if (keyCylinder) owner.TurnKey(delta); else owner.TurnWheel(delta);
+                if (keyCylinder) owner.TurnKey(Mathf.Abs(delta)); else owner.TurnWheel(Mathf.Abs(delta));
             }
             previous = current;tracking = true;
         }

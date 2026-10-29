@@ -2,17 +2,16 @@ using System;
 
 namespace HighStakes.Security
 {
-    /// <summary>Mechanical interlock: seat the correct key, hold its quarter turn, then withdraw the bolts.</summary>
+    /// <summary>Seat the correct key, make a short turn, then turn the wheel to release the door.</summary>
     public sealed class VaultLockLogic
     {
         public const string KeyCode = "meridian_reserve_03";
-        public const float KeyTravel = 90f, WheelTravel = 270f, HoldSeconds = .6f;
+        public const float KeyTravel = 45f, WheelTravel = 90f;
         public bool KeySeated { get; private set; }
         public bool Armed { get; private set; }
         public bool IsOpen { get; private set; }
         public float KeyAngle { get; private set; }
         public float WheelAngle { get; private set; }
-        float dwell;
 
         public bool Insert(string code)
         {
@@ -25,22 +24,7 @@ namespace HighStakes.Security
         {
             if (!KeySeated || Armed || IsOpen || float.IsNaN(degrees) || float.IsInfinity(degrees)) return;
             KeyAngle = Clamp(KeyAngle + degrees, 0, KeyTravel);
-            if (KeyAngle < KeyTravel - 1) dwell = 0;
-        }
-
-        public void Tick(float seconds, bool holdingKey)
-        {
-            if (!KeySeated || Armed || IsOpen || seconds <= 0 || float.IsNaN(seconds) || float.IsInfinity(seconds)) return;
-            if (holdingKey && KeyAngle >= KeyTravel - 1)
-            {
-                dwell += seconds;
-                if (dwell >= HoldSeconds) { Armed = true; KeyAngle = KeyTravel; }
-            }
-            else
-            {
-                dwell = 0;
-                if (!holdingKey) KeyAngle = Math.Max(0, KeyAngle - seconds * 120);
-            }
+            Armed = KeyAngle >= KeyTravel;
         }
 
         public void TurnWheel(float degrees)

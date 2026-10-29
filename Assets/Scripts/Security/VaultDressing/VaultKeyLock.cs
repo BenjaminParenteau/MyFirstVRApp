@@ -1,5 +1,4 @@
 using HighStakes.Environment;
-using TMPro;
 using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -11,7 +10,6 @@ namespace HighStakes.Security
     {
         public Transform socket, cylinder, wheelVisual;
         public Transform[] bolts;
-        public TMP_Text status;
         public Renderer indicator;
         public Material lockedMaterial, armedMaterial, openMaterial;
         public VaultRotaryHandle keyHandle, wheelHandle;
@@ -25,6 +23,7 @@ namespace HighStakes.Security
         float nextFeedback;
         XROrigin origin;
         HighStakes.UI.NotebookOpen notebook;
+        bool turningKey, turningWheel;
         VaultLockLogic State => VaultKeySession.Lock;
 
         public static void Install(GameObject entrance, DoorPortal door)
@@ -70,35 +69,45 @@ namespace HighStakes.Security
             portal.SetLocked(!State.IsOpen || !motion || motion.OpenFraction < .9f);
             bool near = (!notebook || !notebook.IsOpen) && LookingAtLock();
             var keyboard = Keyboard.current;
-            bool keyboardTurn = near && keyboard != null && keyboard.rightArrowKey.isPressed;
             if (!State.KeySeated)
             {
                 var key = VaultKeySession.Key;
                 if (key && key.gameObject.activeInHierarchy && !key.Seated)
                 {
-                    // The key's tip is 12 cm along +Z; the wards must enter straight, with the bow upright.
-                    var tip = key.transform.TransformPoint(new Vector3(0, 0, .12f));
-                    bool aligned = Vector3.Distance(tip, socket.position + socket.forward * .12f) < .045f
-                        && Vector3.Dot(key.transform.forward, socket.forward) > .94f
-                        && Vector3.Dot(key.transform.up, socket.up) > .85f;
-                    bool assisted = near && keyboard != null && keyboard.enterKey.wasPressedThisFrame
-                        && VaultKeySession.HasKey && Vector3.Distance(key.transform.position, socket.position) < 2;
-                    if ((aligned || assisted) && key.GetComponent<XRGrabInteractable>().isSelected && State.Insert(key.keyCode))
-                    {
-                        key.Seat(socket);Play(latch);
-                    }
+                    bool close = Vector3.Distance(key.transform.position, socket.position) < .3f;
+                    if (close && (key.GetComponent<XRGrabInteractable>().isSelected || VaultKeySession.HasKey)) UseKey();
                 }
             }
-            if (near && keyboard != null && State.KeySeated && !State.IsOpen)
+            if (near && keyboard != null && !State.IsOpen)
             {
-                float step = (keyboard.rightArrowKey.isPressed ? 1 : 0) - (keyboard.leftArrowKey.isPressed ? 1 : 0);
-                if (!State.Armed) TurnKey(step * 65 * Time.deltaTime);
-                else TurnWheel(step * 85 * Time.deltaTime);
+                if (keyboard.enterKey.wasPressedThisFrame) UseKey();
+                if (keyboard.rightArrowKey.wasPressedThisFrame) UseWheel();
             }
-            State.Tick(Time.deltaTime, keyHandle.Held || keyboardTurn);
+            if (turningKey && !State.Armed) TurnKey(150 * Time.deltaTime);
+            if (turningWheel && State.Armed && !State.IsOpen) TurnWheel(140 * Time.deltaTime);
             if (State.Armed && !wasArmed) { Play(latch); wasArmed = true; }
             if (State.IsOpen && !wasOpen) { Play(latch);wasOpen = true; }
             Refresh();
+        }
+
+        public bool UseKey()
+        {
+            if (!State.KeySeated)
+            {
+                var key = VaultKeySession.Key;
+                if (!key || (!VaultKeySession.HasKey && !key.GetComponent<XRGrabInteractable>().isSelected)) return false;
+                if (!State.Insert(key.keyCode)) return false;
+                // Works with a key in hand OR safely stored in the notebook; no menu fiddling at the door.
+                key.Seat(socket);key.gameObject.SetActive(true);Play(latch);
+            }
+            turningKey = true;
+            return true;
+        }
+
+        public void UseWheel()
+        {
+            if (!UseKey()) return;
+            turningWheel = true;
         }
 
         bool LookingAtLock()
@@ -140,12 +149,6 @@ namespace HighStakes.Security
                 for (int i = 0; i < bolts.Length; i++)
                     bolts[i].localPosition = boltRest[i] + Vector3.left * (.18f * State.WheelAngle / VaultLockLogic.WheelTravel);
             indicator.sharedMaterial = State.IsOpen ? openMaterial : State.Armed ? armedMaterial : lockedMaterial;
-            if (State.IsOpen) status.text = "BOLTS CLEAR\nVAULT RELEASED";
-            else if (State.Armed) status.text = "KEY CAPTURED / SAFETY RELEASED\nTURN HANDWHEEL CLOCKWISE\n" + Mathf.RoundToInt(State.WheelAngle / 270 * 100) + "%  BOLTS WITHDRAWN";
-            else if (State.KeySeated) status.text = "TURN KEY CLOCKWISE 90\u00b0\nHOLD AGAINST THE STOP\nTHEN RELEASE AND GRIP THE WHEEL";
-            else status.text = VaultKeySession.HasKey
-                ? "CUSTODIAN KEY LOCATED\nTAKE KEY OUT OF NOTEBOOK\nINSERT STRAIGHT / BOW UPRIGHT"
-                : "CUSTODIAN KEY REQUIRED\nSECURITY OFFICE / KEY CUSTODY\nINSERT STRAIGHT / BOW UPRIGHT";
         }
 
         void Play(AudioClip clip) { if (audioSource && clip) audioSource.PlayOneShot(clip, .55f); }

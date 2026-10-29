@@ -54,6 +54,7 @@ public static class VaultKeyVerification
             {
                 var key = VaultKeySession.Key;if (!key) return;
                 Require(!VaultKeySession.HasKey && !VaultKeySession.Lock.IsOpen, "Key or vault granted before collection");
+                Require(Mathf.Abs(key.transform.position.y - .766f) < .01f, "Key is not lying on the office counter");
                 var inventory = Object.FindFirstObjectByType<NotebookPickups>();Require(inventory, "Missing notebook inventory");
                 Capture(key.transform.position + new Vector3(0, .42f, -1.4f), key.transform.position + Vector3.up * .18f, "office-key");
                 typeof(NotebookPickups).GetMethod("PickUp", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(inventory, new object[] { key.gameObject, key.GetComponent<PickupItem>().Item });
@@ -67,13 +68,21 @@ public static class VaultKeyVerification
                 Require(mechanism.portal.locked, "Vault entry bypassed key lock");
                 mechanism.TurnWheel(270);Require(!VaultKeySession.Lock.IsOpen, "Wheel bypassed key interlock");
                 Capture(mechanism.transform.TransformPoint(new Vector3(.2f, 1.6f, -2.6f)), mechanism.transform.TransformPoint(new Vector3(.15f, 1.4f, 0)), "locked-vault");
-                var inventory = Object.FindFirstObjectByType<NotebookPickups>();Require(inventory.TakeOut(VaultLockLogic.KeyCode), "Could not take key from notebook");
-                var key = VaultKeySession.Key;key.transform.SetPositionAndRotation(mechanism.socket.position, mechanism.socket.rotation);
-                typeof(VaultKeyLock).GetMethod("Update", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(mechanism, null);
-                Require(VaultKeySession.Lock.KeySeated && key.Seated, "Aligned held key did not seat");
+                Require(mechanism.GetComponentsInChildren<TMPro.TMP_Text>().Length == 0, "Written instructions remain on the lock");
+                var inventory = Object.FindFirstObjectByType<NotebookPickups>();
+                // Exercise the actual XR selection event: no exact pose, manual angle, or artificial dwell.
+                mechanism.keyHandle.GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRSimpleInteractable>()
+                    .selectEntered.Invoke(new UnityEngine.XR.Interaction.Toolkit.SelectEnterEventArgs());
+                var key = VaultKeySession.Key;
+                Require(VaultKeySession.Lock.KeySeated && key.Seated && key.gameObject.activeSelf, "Keyhole selection did not insert the stored key");
                 Require(inventory.HeldKey == null && key.transform.parent == mechanism.socket, "Notebook did not transfer key ownership");
-                mechanism.TurnKey(90);VaultKeySession.Lock.Tick(.61f, true);
-                Require(VaultKeySession.Lock.Armed, "Key interlock failed");mechanism.TurnWheel(270);
+                stage = 20;next = EditorApplication.timeSinceStartup + .7;return;
+            }
+            if (stage == 20)
+            {
+                Require(VaultKeySession.Lock.Armed, "Keyhole selection did not finish the easy key turn");
+                mechanism.wheelHandle.GetComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRSimpleInteractable>()
+                    .selectEntered.Invoke(new UnityEngine.XR.Interaction.Toolkit.SelectEnterEventArgs());
                 stage = 3;next = EditorApplication.timeSinceStartup + 3;return;
             }
             if (stage == 3)
@@ -101,7 +110,7 @@ public static class VaultKeyVerification
                 Require(VaultKeySession.Key && VaultKeySession.Key.Seated, "Revisit lost the captive key");
                 foreach (var door in Object.FindObjectsByType<DoorPortal>(FindObjectsSortMode.None))
                     if (door.portalId == "RoomC_Door") Require(!door.locked, "Vault exit trapped the player");
-                Finish("PASS: office key -> notebook -> vault; held-key alignment; captive handoff; safety interlock; bolts and opening; office/vault revisit; free exit.");
+                Finish("PASS: key lying on office counter; no lock instructions; notebook key inserted through XR keyhole selection; short key and wheel turns through XR selection events; both doors open; revisit and free exit.");
             }
         }
         catch (Exception error) { Finish("FAIL at stage " + stage + ": " + error); }

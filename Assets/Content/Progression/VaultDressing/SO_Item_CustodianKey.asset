@@ -14,8 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HighStakes.Core.ItemData
   id: meridian_reserve_03
   displayName: Reserve 03 Custodian Key
-  description: A heavy, serial-matched double-bit treasury key from Security Operations.
-    Insert with its bow upright; turn clockwise to the quarter-turn stop and hold
-    until the safety latch clicks. The key remains captive. Then turn the vault handwheel
-    clockwise three quarters of a revolution to withdraw the bolts.
+  description: A brass vault key found on the security-office counter. Use it at
+    the vault keyhole, then turn the wheel.
   icon: {fileID: 0}

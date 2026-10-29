@@ -160,8 +160,6 @@ public static class VaultDressingBuilder
         var grip=Part(g,"Handwheel crank grip",PrimitiveType.Cylinder,new Vector3(.28f,1.4f,-.44f),new Vector3(.045f,.07f,.045f),dark);grip.transform.localRotation=Quaternion.Euler(90,0,0);
         for(int n=0;n<3;n++){Box(g,"Heavy hinge",new Vector3(-1.38f,.55f+n*.85f,-.04f),new Vector3(.18f,.27f,.29f),steel);}
         Box(g,"Door serial plate",new Vector3(0,.77f,-.17f),new Vector3(.58f,.16f,.018f),dark);
-        Label(g,"MERIDIAN RESERVE",new Vector3(0,2.82f,-.19f),.10f,new Vector2(2.4f,.13f),new Color(.73f,.8f,.84f),Quaternion.identity);
-        Label(g,"VAULT 03  /  AUTHORIZED ACCESS",new Vector3(0,.77f,-.185f),.043f,new Vector2(.55f,.10f),Color.white,Quaternion.identity);
         return g;
     }
 
