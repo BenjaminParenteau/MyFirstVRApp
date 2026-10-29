@@ -113,7 +113,13 @@ public static class BackRoomPuzzlesBuilder
         EditScene(HallwayBuilder.ScenePaths[1], scene =>
             PlaceRoot(scene, archive, "Puzzle_TapeArchive", RoomOrigin + DeskLocal));
         EditScene(HallwayBuilder.ScenePaths[2], scene =>
-            PlaceRoot(scene, console, "Puzzle_VaultConsole", RoomOrigin + ConsoleLocal));
+        {
+            Vector3 position=RoomOrigin+ConsoleLocal;
+            foreach(var root in scene.GetRootGameObjects())
+                foreach(var t in root.GetComponentsInChildren<Transform>(true))
+                    if(t.name=="RoomC (Vault Antechamber)")position=t.TransformPoint(ConsoleLocal);
+            PlaceRoot(scene,console,"Puzzle_VaultConsole",position);
+        });
         EditScene(HallwayBuilder.HubScenePath, scene => PlaceClearance(scene, clearance));
 
         AssetDatabase.SaveAssets();

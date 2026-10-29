@@ -27,6 +27,12 @@ public static class VaultConnectionBuilder
             var rotation=destination*Quaternion.Inverse(inside.transform.rotation);
             room.rotation=rotation*room.rotation;
             room.position+=hall.transform.position-inside.transform.position;
+            foreach(var root in scene.GetRootGameObjects())
+                if(root.name=="Puzzle_VaultConsole")
+                {
+                    root.transform.SetPositionAndRotation(room.TransformPoint(new Vector3(3.9f,0,5.3f)),room.rotation);
+                    PrefabUtility.RecordPrefabInstancePropertyModifications(root.transform);
+                }
             hall.physicalPassage=inside.physicalPassage=true;
             PrefabUtility.RecordPrefabInstancePropertyModifications(hall);
             PrefabUtility.RecordPrefabInstancePropertyModifications(inside);
