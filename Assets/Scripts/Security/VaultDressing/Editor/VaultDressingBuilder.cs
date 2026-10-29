@@ -139,7 +139,11 @@ public static class VaultDressingBuilder
     static Transform VaultDoor(Transform p)
     {
         var g=Group(p,"Reinforced treasury door",Vector3.zero);
-        Box(g,"Armored door surround",new Vector3(0,1.42f,.19f),new Vector3(3.05f,2.84f,.18f),dark);
+        // A real open frame: the original solid backing would remain across the opening when the leaf swings.
+        foreach(float side in new[]{-1f,1f})
+            Box(g,"Armored door surround jamb",new Vector3(side*1.425f,1.42f,.19f),new Vector3(.2f,2.84f,.18f),dark);
+        Box(g,"Armored door surround lintel",new Vector3(0,2.75f,.19f),new Vector3(3.05f,.18f,.18f),dark);
+        Box(g,"Armored door surround threshold",new Vector3(0,.04f,.19f),new Vector3(3.05f,.08f,.18f),dark);
         var slab=Part(g,"Circular steel door",PrimitiveType.Cylinder,new Vector3(0,1.4f,0),new Vector3(2.52f,.13f,2.52f),steel);slab.transform.localRotation=Quaternion.Euler(90,0,0);
         MeshPart(g,"Machined outer ring",new Vector3(0,1.4f,-.15f),ring,dark,Quaternion.identity);
         for(int n=0;n<12;n++)

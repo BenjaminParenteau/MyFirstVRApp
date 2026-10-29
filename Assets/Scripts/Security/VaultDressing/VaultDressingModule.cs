@@ -4,7 +4,7 @@ using HighStakes.Environment;
 
 namespace HighStakes.Security
 {
-    /// <summary>Self-contained vault set dressing; no changes to portals, rewards, inventory or source scene.</summary>
+    /// <summary>Installs vault dressing and the mechanical entrance interlock without regenerating source scenes.</summary>
     public sealed class VaultDressingModule : MonoBehaviour
     {
         public int cashBundles, goldBars, depositDrawers, cashCarts, triangles;
@@ -29,6 +29,8 @@ namespace HighStakes.Security
             instance.name="VaultDressingModule";
             instance.transform.position=new Vector3(40f,0,0);
             SceneManager.MoveGameObjectToScene(instance,scene);
+            var insideDoor=instance.transform.Find("VaultEntranceDoor");
+            if(insideDoor)insideDoor.gameObject.AddComponent<VaultDoorMotion>().Prepare();
             var entrance=Resources.Load<GameObject>("VaultEntranceDoor");
             foreach(var root in scene.GetRootGameObjects())
             {
@@ -47,6 +49,7 @@ namespace HighStakes.Security
                         outside.name="Treasury entrance - hallway side";
                         outside.transform.localPosition=Vector3.zero;
                         outside.transform.localRotation=Quaternion.identity;
+                        VaultKeyLock.Install(outside,portal);
                     }
                 }
             }

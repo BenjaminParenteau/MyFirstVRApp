@@ -12,5 +12,7 @@ namespace HighStakes.UI
         [SerializeField] private ItemData item;
 
         public ItemData Item => item;
+
+        public UnityEngine.Events.UnityEvent Collected = new UnityEngine.Events.UnityEvent();
     }
 }

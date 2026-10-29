@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f68eef4a3729554e86dfcb47afc5bcd, type: 3}
+  m_Name: SO_Item_CustodianKey
+  m_EditorClassIdentifier: Assembly-CSharp::HighStakes.Core.ItemData
+  id: meridian_reserve_03
+  displayName: Reserve 03 Custodian Key
+  description: A heavy, serial-matched double-bit treasury key from Security Operations.
+    Insert with its bow upright; turn clockwise to the quarter-turn stop and hold
+    until the safety latch clicks. The key remains captive. Then turn the vault handwheel
+    clockwise three quarters of a revolution to withdraw the bolts.
+  icon: {fileID: 0}
