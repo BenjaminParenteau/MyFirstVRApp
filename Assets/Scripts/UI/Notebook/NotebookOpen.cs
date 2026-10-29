@@ -26,9 +26,9 @@ namespace HighStakes.UI
         [Tooltip("The page text appears once the cover is this far open (0-1).")]
         [SerializeField, Range(0f, 1f)] private float textAt = 0.8f;
         [Tooltip("How far in front of the eyes the notebook opens (metres). The open spread is about 30 cm wide.")]
-        [SerializeField] private float distance = 0.45f;
+        [SerializeField] private float distance = 0.32f;
         [Tooltip("How far below eye height the notebook opens (metres).")]
-        [SerializeField] private float drop = 0.15f;
+        [SerializeField] private float drop = 0.1f;
         [Tooltip("How quickly the open notebook catches up as you move (higher = tighter, lower = floatier).")]
         [SerializeField, Min(0.1f)] private float followSpeed = 8f;
         [Tooltip("Turn your head more than this away from the notebook (degrees) and it swings back in front.")]
