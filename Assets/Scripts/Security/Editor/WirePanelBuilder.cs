@@ -15,6 +15,8 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 /// to right). The panel starts cross-wired (the shelf order doesn't match the sockets). Restoring the circuit pays a
 /// chip reward, cuts the monitor wall's vault camera feed, shows a "task complete" card and pops a drawer open with
 /// a note inside, to be picked up into the notebook. Shelf, plugs and drawer are on the front (-Z), the player's side.
+/// The note (Breaker Log) is one of the two vault-code clues: BackRoomPuzzlesBuilder makes the other, and
+/// VaultCodeLogicTests checks that together they leave exactly one code.
 ///
 /// Plugs are discrete tokens, not a simulated flexible cable (no existing pattern for that in the project, and a
 /// simple token is what the staff-door lockbox and VIP keycard already use). Wires use a plain XRSocketInteractor
@@ -63,7 +65,8 @@ public static class WirePanelBuilder
         TableKit.EnsureFolder(ContentRoot);
         var colors = WireColors(kit);
         var noteItem = NotebookBuilder.ItemAt(NoteItemPath, "breaker_log", "Breaker Log",
-            "Panel re-wired: +" + Reward + " chips. The vault approach camera (feed 04) is on this breaker and is now dark. The way to the vault is unwatched.");
+            "Panel re-wired: +" + Reward + " chips. The vault approach camera (feed 04) is on this breaker and is now dark. " +
+            "Tech note: the VAULT 03 keypad is on this circuit too. Worn keys: 1, 3, 5, 8. The 8 sticks; it is always pressed right after the first key.");
         AssetDatabase.SaveAssets();
 
         var note = BuildNote(kit, noteItem);
@@ -230,8 +233,8 @@ public static class WirePanelBuilder
         var title = TableKit.Text(root.transform, "Title", new Vector3(0f, 0.0025f, 0.055f), flat, new Vector2(0.1f, 0.02f), 0.02f, 0.16f, Color.black);
         title.text = "BREAKER LOG";
         title.fontStyle = FontStyles.Bold;
-        var body = TableKit.Text(root.transform, "Body", new Vector3(0f, 0.0025f, -0.01f), flat, new Vector2(0.1f, 0.09f), 0.02f, 0.1f, Color.black);
-        body.text = "Re-wired.  +" + Reward + " chips\n\nCAM 04 / VAULT APPROACH\non this breaker: DARK\n\nVault is unwatched.";
+        var body = TableKit.Text(root.transform, "Body", new Vector3(0f, 0.0025f, -0.015f), flat, new Vector2(0.11f, 0.115f), 0.02f, 0.1f, Color.black);
+        body.text = "Re-wired.  +" + Reward + " chips\nCAM 04 / VAULT APPROACH: DARK\n\nTECH NOTE: VAULT 03 keypad\non this circuit. Worn keys\n1  3  5  8\nThe 8 sticks: always pressed\nright after the first key.";
         TableKit.SetRef(root.AddComponent<PickupItem>(), "item", item);
         return TableKit.SavePrefab(root, NotePath);
     }

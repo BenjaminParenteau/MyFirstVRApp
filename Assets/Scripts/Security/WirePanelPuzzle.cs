@@ -1,6 +1,4 @@
 using System.Collections;
-using System.Runtime.CompilerServices;
-using HighStakes.Core;
 using HighStakes.UI;
 using TMPro;
 using UnityEngine;
@@ -12,10 +10,9 @@ namespace HighStakes.Security
 {
     /// <summary>
     /// A breaker panel with four colour-coded sockets and four loose patch wires (<see cref="WirePlug"/>). Every wire
-    /// seated in the socket of its own colour reroutes the circuit: pays a chip reward (claim follows the wallet
-    /// across area visits, like Inventory/BarPuzzle), cuts the vault camera feed (<see cref="CctvOutage"/>), shows a
-    /// "task complete" card and swings open a cabinet with a note inside, dropped once per
-    /// session (like UI/Puzzles/CartLockbox) so leaving and coming back doesn't pay out or drop the note twice.
+    /// seated in the socket of its own colour reroutes the circuit: pays a chip reward once (<see cref="PuzzleSession"/>),
+    /// cuts the vault camera feed (<see cref="CctvOutage"/>), shows a "task complete" card and swings open a cabinet with
+    /// the Breaker Log inside, which holds half of the vault code and comes back after a door trip until it is collected.
     /// </summary>
     public sealed class WirePanelPuzzle : MonoBehaviour
     {
@@ -39,20 +36,12 @@ namespace HighStakes.Security
         const string CheckingStatus = "CHECKING CIRCUIT...";
         const string SolvedStatus = "REROUTED / VAULT CAM OFFLINE";
 
-        static ConditionalWeakTable<IChipWallet, Claim> claims = new ConditionalWeakTable<IChipWallet, Claim>();
-        sealed class Claim { public bool Paid; }
         static bool solved;
-        static bool noteSpawned;
         UnityAction<SelectEnterEventArgs>[] enterHandlers;
         UnityAction<SelectExitEventArgs>[] exitHandlers;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetSession()
-        {
-            claims = new ConditionalWeakTable<IChipWallet, Claim>();
-            solved = false;
-            noteSpawned = false;
-        }
+        static void ResetSession() => solved = false;
 
         void Start()
         {
@@ -70,7 +59,7 @@ namespace HighStakes.Security
             {
                 SetLid(1f);
                 Show(SolvedStatus);
-                SpawnNoteIfMissing();
+                PuzzleSession.SpawnUncollected(notePrefab, noteSeat, transform);
             }
             else
             {
@@ -111,31 +100,12 @@ namespace HighStakes.Security
         {
             solved = true;
             Show(SolvedStatus);
-            Pay();
+            PuzzleSession.PayOnce("wire_panel", reward);
             CctvOutage.Cut(cutFeedScene);
             if (completeCard != null)
                 completeCard.Say("<b>TASK COMPLETE</b>\n<size=70%>Breaker panel re-wired\n+" + reward + " chips\nVault camera offline</size>", 8f);
             StartCoroutine(OpenLid());
-            SpawnNoteIfMissing();
-        }
-
-        void Pay()
-        {
-            IChipWallet wallet = null;
-            foreach (var component in FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None))
-                if (component is IChipWallet candidate) { wallet = candidate; break; }
-            if (wallet == null) return;
-            var claim = claims.GetValue(wallet, _ => new Claim());
-            if (claim.Paid || wallet.Balance > int.MaxValue - reward) return;
-            claim.Paid = true;
-            wallet.Add(reward);
-        }
-
-        void SpawnNoteIfMissing()
-        {
-            if (noteSpawned || notePrefab == null || noteSeat == null) return;
-            noteSpawned = true;
-            Instantiate(notePrefab, noteSeat.position, noteSeat.rotation, transform);
+            PuzzleSession.SpawnUncollected(notePrefab, noteSeat, transform);
         }
 
         IEnumerator OpenLid()

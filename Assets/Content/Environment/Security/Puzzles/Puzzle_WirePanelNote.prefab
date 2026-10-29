@@ -367,7 +367,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2825018536387509088}
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: -0.01}
+  m_LocalPosition: {x: 0, y: 0, z: -0.015}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -376,7 +376,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0.0025}
-  m_SizeDelta: {x: 0.1, y: 0.09}
+  m_SizeDelta: {x: 0.11, y: 0.115}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &6823019386235573558
 MeshRenderer:
@@ -449,14 +449,20 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'Re-wired.  +300 chips
 
-
-    CAM 04 / VAULT APPROACH
-
-    on this breaker:
-    DARK
+    CAM 04 / VAULT APPROACH: DARK
 
 
-    Vault is unwatched.'
+    TECH NOTE:
+    VAULT 03 keypad
+
+    on this circuit. Worn keys
+
+    1  3  5  8
+
+    The 8 sticks:
+    always pressed
+
+    right after the first key.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
