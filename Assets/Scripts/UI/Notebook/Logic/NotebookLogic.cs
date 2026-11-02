@@ -87,22 +87,41 @@ namespace HighStakes.UI
             if (entries.Count == 0 || maxVisible <= 0)
                 return EmptyPage;
 
-            int first = selected >= maxVisible ? selected - maxVisible + 1 : 0;
-            int last = Math.Min(entries.Count, first + maxVisible);
-
+            VisibleRange(entries.Count, selected, maxVisible, out int first, out int last);
             var page = new StringBuilder();
             for (int i = first; i < last; i++)
             {
                 if (i > first)
                     page.Append('\n');
                 var entry = entries[i];
-                page.Append(i == selected ? "> " : "   ").Append(entry.Title.ToUpperInvariant());
-                if (SameKey(entry.Id, heldKey))
-                    page.Append("  (IN HAND)");
+                page.Append(i == selected ? "> " : "   ").Append(RowLabel(entry, heldKey));
                 if (showSelectedNote && i == selected && entry.Body.Length > 0)
                     page.Append("\n   ").Append(entry.Body);
             }
             return page.ToString();
+        }
+
+        /// <summary>
+        /// The entries shown on a page of <paramref name="maxVisible"/> rows: [first, last), scrolled so the selected
+        /// one is on the page.
+        /// </summary>
+        public static void VisibleRange(int count, int selected, int maxVisible, out int first, out int last)
+        {
+            first = maxVisible > 0 && selected >= maxVisible ? Math.Min(selected, count - 1) - maxVisible + 1 : 0;
+            last = Math.Min(count, first + Math.Max(0, maxVisible));
+        }
+
+        /// <summary>One row of the item list: the title in capitals, "(IN HAND)" after the held one.</summary>
+        public static string RowLabel(NotebookEntry entry, string heldKey)
+        {
+            string label = entry.Title.ToUpperInvariant();
+            return SameKey(entry.Id, heldKey) ? label + "  (IN HAND)" : label;
+        }
+
+        /// <summary>The caption under an item's name: KEYCARD for keycards, NOTE for everything else.</summary>
+        public static string KindOf(string id)
+        {
+            return !string.IsNullOrEmpty(id) && id.IndexOf(CardKeyword, StringComparison.OrdinalIgnoreCase) >= 0 ? "KEYCARD" : "NOTE";
         }
 
         /// <summary>

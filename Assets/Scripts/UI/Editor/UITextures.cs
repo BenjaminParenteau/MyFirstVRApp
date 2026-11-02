@@ -15,6 +15,8 @@ public static class UITextures
     const string TextureFolder = "Assets/Content/UI/Textures/";
     const string CasinoTextureFolder = "Assets/Content/Environment/Casino/Textures/";
     const string PaperPath = TextureFolder + "T_Paper_Albedo.png";
+    const string PageEdgePath = TextureFolder + "T_PageEdge_Albedo.png";
+    const string PagePath = TextureFolder + "T_NotebookPage_Albedo.png";
     const string KitPath = "Assets/Content/StyleKit/SharedStyleKit.asset";
     const string NotebookPath = "Assets/Content/UI/UI_Notebook.prefab";
     const string ShiftNotePath = "Assets/Content/UI/Puzzles/Puzzle_ShiftNote.prefab";
@@ -36,6 +38,48 @@ public static class UITextures
         if (AssetDatabase.LoadAssetAtPath<Texture2D>(PaperPath) == null)
             WritePaperTexture();
         return CasinoTextureBuilder.Variant(MaterialFolder, TextureFolder, "M_UI_Paper", kit.plasterCream, "T_Paper",
+            Vector2.one, Color.white, 0.05f);
+    }
+
+    /// <summary>The notebook's dark-brown ink, for text colour (lines use <see cref="Ink"/>).</summary>
+    public static readonly Color InkColor = new Color(0.24f, 0.16f, 0.09f);
+
+    /// <summary>Dark-brown ink for the notebook's lines: page frames, underlines, the map.</summary>
+    public static Material Ink(SharedStyleKit kit)
+    {
+        EnsureFolders();
+        return CasinoTextureBuilder.Variant(MaterialFolder, TextureFolder, "M_UI_Ink", kit.chipBlack, "T_UI_Ink",
+            Vector2.one, InkColor, 0.1f);
+    }
+
+    /// <summary>Pencil-brown for the notebook's faint boxes and the outlines of rooms not yet visited on the map.</summary>
+    public static Material Rule(SharedStyleKit kit)
+    {
+        EnsureFolders();
+        return CasinoTextureBuilder.Variant(MaterialFolder, TextureFolder, "M_UI_Rule", kit.plasterCream, "T_UI_Rule",
+            Vector2.one, new Color(0.7f, 0.55f, 0.38f), 0.05f);
+    }
+
+    /// <summary>
+    /// The notebook's page surface: tan kraft paper with a dashed border and small dots at the corners and edge
+    /// midpoints, all in one generated texture (one quad per page instead of dozens of line pieces).
+    /// </summary>
+    public static Material Page(SharedStyleKit kit)
+    {
+        EnsureFolders();
+        if (AssetDatabase.LoadAssetAtPath<Texture2D>(PagePath) == null)
+            WritePageTexture();
+        return CasinoTextureBuilder.Variant(MaterialFolder, TextureFolder, "M_UI_Page", kit.plasterCream, "T_NotebookPage",
+            Vector2.one, Color.white, 0.05f);
+    }
+
+    /// <summary>The side of the paper block: thin cream and tan stripes, so it reads as a stack of pages.</summary>
+    public static Material PageEdge(SharedStyleKit kit)
+    {
+        EnsureFolders();
+        if (AssetDatabase.LoadAssetAtPath<Texture2D>(PageEdgePath) == null)
+            WritePageEdgeTexture();
+        return CasinoTextureBuilder.Variant(MaterialFolder, TextureFolder, "M_UI_PageEdge", kit.plasterCream, "T_PageEdge",
             Vector2.one, Color.white, 0.05f);
     }
 
@@ -131,6 +175,90 @@ public static class UITextures
         System.IO.File.WriteAllBytes(PaperPath, texture.EncodeToPNG());
         Object.DestroyImmediate(texture);
         AssetDatabase.ImportAsset(PaperPath); // UITextureImporter sets mipmaps, repeat and Android ASTC
+    }
+
+    // One page, 512 x 728 (the page's 14.2 x 20.2 cm): kraft tan with soft blotches and grain, darkening toward the
+    // edges, a dashed border 20 px in and 4 px dots at the corners and edge midpoints. Fixed seed, so reruns match.
+    static void WritePageTexture()
+    {
+        const int w = 512, h = 728, inset = 20, dotInset = 9;
+        var rng = new System.Random(2718);
+        var lattice = new float[64 * 64];
+        for (int i = 0; i < lattice.Length; i++) lattice[i] = (float)rng.NextDouble();
+
+        var kraft = new Color(0.86f, 0.69f, 0.5f);
+        var dash = new Color(0.56f, 0.39f, 0.24f);
+        var dot = new Color(0.42f, 0.28f, 0.17f);
+        var pixels = new Color[w * h];
+        for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+            {
+                float u = (float)x / w, v = (float)y / h;
+                float blotch = Noise(lattice, u, v, 4) * 0.5f + Noise(lattice, u, v, 8) * 0.3f + Noise(lattice, u, v, 16) * 0.2f;
+                float d = (blotch - 0.5f) * 0.07f + (Noise(lattice, u, v, 64) - 0.5f) * 0.035f;
+                int edge = Mathf.Min(Mathf.Min(x, w - 1 - x), Mathf.Min(y, h - 1 - y));
+                if (edge < 16) d -= 0.07f * (1f - edge / 16f);
+                pixels[y * w + x] = new Color(kraft.r + d, kraft.g + d, kraft.b + d * 0.8f);
+            }
+
+        // Dashed border: 8 px dashes, 6 px gaps, 2 px thick
+        for (int i = inset; i < w - inset; i++)
+            if ((i - inset) % 14 < 8)
+                for (int k = 0; k < 2; k++)
+                {
+                    pixels[(inset + k) * w + i] = dash;
+                    pixels[(h - 1 - inset - k) * w + i] = dash;
+                }
+        for (int j = inset; j < h - inset; j++)
+            if ((j - inset) % 14 < 8)
+                for (int k = 0; k < 2; k++)
+                {
+                    pixels[j * w + inset + k] = dash;
+                    pixels[j * w + w - 1 - inset - k] = dash;
+                }
+
+        // Dots at the corners and edge midpoints
+        int[] xs = { dotInset, w / 2, w - 1 - dotInset }, ys = { dotInset, h / 2, h - 1 - dotInset };
+        foreach (int cx in xs)
+            foreach (int cy in ys)
+            {
+                if (cx == w / 2 && cy == h / 2) continue; // not in the middle of the page
+                for (int dy = -2; dy < 2; dy++)
+                    for (int dx = -2; dx < 2; dx++)
+                        pixels[(cy + dy) * w + cx + dx] = dot;
+            }
+
+        var texture = new Texture2D(w, h, TextureFormat.RGB24, false);
+        texture.SetPixels(pixels);
+        texture.Apply();
+        System.IO.File.WriteAllBytes(PagePath, texture.EncodeToPNG());
+        Object.DestroyImmediate(texture);
+        AssetDatabase.ImportAsset(PagePath); // UITextureImporter sets mipmaps and Android ASTC (512 max there)
+    }
+
+    // 64 x 64 page edges: rows of cream paper with a darker gap every few pixels (rows run along the page, so on a quad
+    // standing on the book's side they read as stacked sheets), slightly uneven so it doesn't look printed. Fixed seed.
+    static void WritePageEdgeTexture()
+    {
+        const int size = 64;
+        var rng = new System.Random(4471);
+        var cream = new Color(0.93f, 0.90f, 0.82f);
+        var pixels = new Color[size * size];
+        for (int y = 0; y < size; y++)
+        {
+            float row = y % 3 == 2 ? -0.12f : (float)rng.NextDouble() * 0.04f - 0.02f; // every third row is a gap
+            for (int x = 0; x < size; x++)
+            {
+                float d = row + (float)rng.NextDouble() * 0.02f - 0.01f;
+                pixels[y * size + x] = new Color(cream.r + d, cream.g + d, cream.b + d * 1.1f);
+            }
+        }
+        var texture = new Texture2D(size, size, TextureFormat.RGB24, false);
+        texture.SetPixels(pixels);
+        texture.Apply();
+        System.IO.File.WriteAllBytes(PageEdgePath, texture.EncodeToPNG());
+        Object.DestroyImmediate(texture);
+        AssetDatabase.ImportAsset(PageEdgePath); // UITextureImporter sets mipmaps, repeat and Android ASTC
     }
 
     // Smooth value noise with <paramref name="cells"/> cells across, periodic so it tiles.
