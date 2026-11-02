@@ -24,7 +24,7 @@ public static class WorldBuilder
     const string FadeMaterialPath = "Assets/Content/Environment/Materials/Env_ScreenFade.mat";
 
     // Ashton's casino spawn (its _SoloTest rig): the entrance end of the centre aisle, facing the tables.
-    static readonly Vector3 CasinoStart = new Vector3(0f, 0f, -7.7f);
+    internal static readonly Vector3 CasinoStart = new Vector3(0f, 0f, -7.7f);
 
     [MenuItem("High Stakes/Build MVP World (all scenes)")]
     public static void BuildMenu()
@@ -303,6 +303,7 @@ public static class WorldBuilder
         if (wrist != null) PrefabUtility.InstantiatePrefab(wrist);
         else Debug.LogWarning("[World] " + WristDisplayPath + " not found; MVP_Main has no wrist display.");
 
+        StartScreenBuilder.AddTo(scene, CasinoStart);
         EditorSceneManager.SaveScene(scene, MainPath);
     }
 

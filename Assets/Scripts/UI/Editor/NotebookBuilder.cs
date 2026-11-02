@@ -126,13 +126,15 @@ public static class NotebookBuilder
             new Vector3(blockWidth, 0.0004f, blockLength), paper);
         PageSurface(leftFace, blockWidth, blockLength, page);
 
-        // Spreads: 0 = items, 1 = case file (map + leads). Their content only shows once the cover is mostly open.
+        // Spreads: 0 = items, 1 = case file (map + leads), 2 = settings. Their content only shows once the cover is mostly open.
         var rightPage = Child("RightPage", rightFace);
         var rightItems = Child("Items", rightPage);
         var rightCase = Child("CaseFile", rightPage);
         var leftPage = Child("LeftPage", leftFace);
         var leftItems = Child("Items", leftPage);
         var leftCase = Child("CaseFile", leftPage);
+        var rightSettings = Child("Settings", rightPage);
+        var leftSettings = Child("Settings", leftPage);
 
         // ITEMS (right): boxed rows, then the card case
         Title(rightItems, "ITEMS");
@@ -184,6 +186,31 @@ public static class NotebookBuilder
         WristDisplayBuilder.Set(caseFile, "noLeadsText", noLeads);
         WristDisplayBuilder.Set(caseFile, "guideQuote", guideQuote);
 
+        // COMFORT (left): one pressable row per choice, then what the last-pressed choice does
+        Title(leftSettings, "COMFORT");
+        var comfortRows = Rows(leftSettings, SettingsLogic.Rows, m);
+        Divider(leftSettings, "WHAT IT DOES", 0.004f, m);
+        var settingsNote = InfoBox(leftSettings, "SettingsNote", 0.04f, 0.05f, m);
+        settingsNote.text = SettingsLogic.Intro;
+        var settingsHint = Note(leftSettings, "Hint", 0f, 0.078f, RowWidth, 0.01f, "POINT AT A LINE AND PULL THE TRIGGER", 0.045f);
+        settingsHint.alignment = TextAlignmentOptions.Center;
+
+        // GAME (right): RESUME and QUIT GAME rows, then the controls
+        Title(rightSettings, "GAME");
+        var gameRows = Rows(rightSettings, 2, m);
+        Divider(rightSettings, "CONTROLS", -0.012f, m);
+        var controls = InfoBox(rightSettings, "ControlsBox", 0.036f, 0.07f, m);
+        controls.text = "Y  open / close the notebook\nX  next item\nB  pick up, take out, put back\nStick click  turn the page\nTrigger  press   Grip  grab, talk";
+
+        var settings = root.AddComponent<NotebookSettings>();
+        SetArray(settings, "comfortRows", comfortRows);
+        SetArray(settings, "gameRows", gameRows);
+        WristDisplayBuilder.Set(settings, "noteText", settingsNote);
+        for (int i = 0; i < comfortRows.Length; i++)
+            UnityEditor.Events.UnityEventTools.AddIntPersistentListener(Pressable((NotebookRow)comfortRows[i], i).Pressed, settings.PressComfort, i);
+        UnityEditor.Events.UnityEventTools.AddVoidPersistentListener(Pressable((NotebookRow)gameRows[0], 0).Pressed, settings.Resume);
+        UnityEditor.Events.UnityEventTools.AddVoidPersistentListener(Pressable((NotebookRow)gameRows[1], 1).Pressed, settings.Quit);
+
         // Bookmark ribbon hanging from the top of the left page, with the open spread's icon on it
         var ribbonIcons = Ribbon(leftPage, kit, m);
 
@@ -208,10 +235,11 @@ public static class NotebookBuilder
         openSo.ApplyModifiedPropertiesWithoutUndo();
 
         var pages = root.AddComponent<NotebookPages>();
-        SetArray(pages, "leftSpreads", leftItems, leftCase);
-        SetArray(pages, "rightSpreads", rightItems, rightCase);
+        SetArray(pages, "leftSpreads", leftItems, leftCase, leftSettings);
+        SetArray(pages, "rightSpreads", rightItems, rightCase, rightSettings);
         SetArray(pages, "ribbonIcons", ribbonIcons);
         WristDisplayBuilder.Set(pages, "book", open);
+        WristDisplayBuilder.Set(settings, "book", open);
         BuildTabs(leftFace, pages, m);
 
         // Prototype inventory: look at Slot B's keycard (matched by its component name) and press the button
@@ -365,6 +393,22 @@ public static class NotebookBuilder
         return icon;
     }
 
+    // A settings gear: a steel disc with six teeth and a dark hub.
+    static GameObject IconGear(GameObject parent, Vector3 centre, float size, SharedStyleKit kit)
+    {
+        var icon = Child("IconGear", parent);
+        icon.transform.localPosition = centre;
+        Disc(icon, "Wheel", Vector3.zero, size * 0.75f, kit.steelCool);
+        Disc(icon, "Hub", new Vector3(0, 0.0001f, 0), size * 0.3f, kit.chipBlack);
+        for (int i = 0; i < 6; i++)
+        {
+            var tooth = WristDisplayBuilder.Prim("Tooth", icon, PrimitiveType.Cube, Vector3.zero, new Vector3(size * 0.22f, 0.0001f, size * 0.22f), kit.steelCool);
+            tooth.transform.localRotation = Quaternion.Euler(0, i * 60f, 0);
+            tooth.transform.localPosition = tooth.transform.localRotation * new Vector3(0, 0, size * 0.42f);
+        }
+        return icon;
+    }
+
     static GameObject IconPin(GameObject parent, Vector3 centre, SharedStyleKit kit)
     {
         var icon = Child("IconPin", parent);
@@ -388,7 +432,8 @@ public static class NotebookBuilder
         var card = IconCard(ribbon, At(U, -0.082f, RaisedY + 0.0004f), 0.008f, kit);
         var pin = IconPin(ribbon, At(U, -0.082f, RaisedY + 0.0004f), kit);
         pin.transform.localScale = Vector3.one * 0.8f;
-        return new Object[] { card, pin };
+        var gear = IconGear(ribbon, At(U, -0.082f, RaisedY + 0.0004f), 0.008f, kit);
+        return new Object[] { card, pin, gear };
     }
 
     // The map page's framed map (MapLogic), centred at `v`: a pencil outline for every room, an ink one once visited,
@@ -462,16 +507,18 @@ public static class NotebookBuilder
     {
         const float Across = 0.018f, Along = 0.02f, TabThickness = 0.0012f;
         float edgeU = -(Width / 2f); // the reader's left edge of the left page
-        var tabs = new Object[2];
-        var faces = new Object[2];
-        for (int i = 0; i < 2; i++)
+        var names = new[] { "Tab_Items", "Tab_Map", "Tab_Settings" };
+        var tabs = new Object[names.Length];
+        var faces = new Object[names.Length];
+        for (int i = 0; i < names.Length; i++)
         {
-            var tab = Child(i == 0 ? "Tab_Items" : "Tab_Map", leftFace);
+            var tab = Child(names[i], leftFace);
             tab.transform.localPosition = At(edgeU - Across / 2f + 0.005f, -0.07f + i * 0.026f, -0.002f); // inside the cover
             var face = WristDisplayBuilder.Prim("Face", tab, PrimitiveType.Cube, Vector3.zero, new Vector3(Across, TabThickness, Along), m.Kit.fabricBurgundy);
             var iconAt = At(-0.003f, 0, TabThickness / 2f + 0.0003f); // on the part that sticks out
             if (i == 0) IconCard(tab, iconAt, 0.01f, m.Kit);
-            else IconPin(tab, iconAt, m.Kit);
+            else if (i == 1) IconPin(tab, iconAt, m.Kit);
+            else IconGear(tab, iconAt, 0.011f, m.Kit);
 
             var collider = tab.AddComponent<BoxCollider>();
             collider.size = new Vector3(Across, 0.01f, Along); // thicker than the tab so it's easy to poke
@@ -489,6 +536,20 @@ public static class NotebookBuilder
         var so = new SerializedObject(pages);
         so.FindProperty("activeTabOffset").vector3Value = At(-0.005f, 0, 0); // further out past the edge
         so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    // Makes a list row pressable like the tabs: a thin box over the row (poke, or point and pull the trigger).
+    static HighStakes.TableGames.PressableButton Pressable(NotebookRow row, int index)
+    {
+        var collider = row.gameObject.AddComponent<BoxCollider>();
+        collider.center = At(0, FirstRowV + index * RowPitch, 0.002f);
+        collider.size = new Vector3(RowWidth, 0.006f, RowHeight);
+        row.gameObject.AddComponent<UnityEngine.XR.Interaction.Toolkit.Interactables.XRSimpleInteractable>();
+        var button = row.gameObject.AddComponent<HighStakes.TableGames.PressableButton>();
+        var so = new SerializedObject(button);
+        so.FindProperty("pressDip").floatValue = 0.0008f; // a pencil-line dip into the paper, not out of sight
+        so.ApplyModifiedPropertiesWithoutUndo();
+        return button;
     }
 
     // Four thin lines around a w x h rectangle centred on `centre`, flat on the page.

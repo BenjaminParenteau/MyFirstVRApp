@@ -70,8 +70,8 @@ NPC dialogue is now in scope, but only the Pit Boss (already in the scene) plus 
 
 | Item | Owner | Status |
 |---|---|---|
-| Pause/settings menu with comfort options | C (+D wiring) | ⬜ |
-| Start screen in `MVP_Main` | D | ⬜ |
+| Pause/settings menu with comfort options | C (+D wiring) | ✅ notebook SETTINGS spread (Ben) |
+| Start screen in `MVP_Main` | D | ✅ start lobby (Ben) |
 | Shared dialogue box + Pit Boss conversation with choices | C (+A content) | ⬜ |
 | Guide voice line + watch subtitles | C | ⬜ |
 | Inventory backend replaces `NotebookPickups` | B (+C) | ⬜ |
@@ -220,6 +220,8 @@ One entry per commit, newest first, **inside your own slot's sub-section** so me
 Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot A log
+
+- 2026-11-01 · Menus: a start screen in `MVP_Main` (dark lobby, HIGH STAKES title hologram, console table with MOVE / TURN / START NIGHT / QUIT; the casino loads only on START NIGHT) and a SETTINGS spread in the notebook (third side tab, gear icon): COMFORT rows for move (smooth / teleport), turn (snap / smooth), vignette and seated mode, each pressed to switch, with a note on what it does; GAME page with RESUME, QUIT GAME and the controls. `Environment/ComfortSettings` applies the choices to the rig (starter `ControllerInputActionManager`, XRI tunneling vignette, seated lift) and saves them in PlayerPrefs; pure `SettingsLogic` + 4 tests. `SceneFlow.waitForStart` / `Begin`; `StartScreenBuilder` (also called by `WorldBuilder.BuildMain`); the bar PIN and security office play checks press START NIGHT. No restart option: keycards and solved puzzles are static for the session. Fixed Pak's Guide word-count test (the sentence has 5 words, not 4). 277 EditMode tests pass, 1 skipped by design; headless Play check (14 checks) presses the real buttons: lobby waits, MOVE / TURN switch the sticks, START NIGHT loads the casino at its start, SETTINGS tab, vignette and seated rows, RESUME closes the book, choices saved. Seated lift needs a headset to verify (no tracking in batch).
 
 - 2026-10-20 · Plan for LOD and occlusion culling (WIP, not started): baseline the Quest 3 APK per area, LODs on the Pit Boss and future NPCs (Unity 6 Mesh LOD, LODGroup fallback), occluder/occludee flags in the world builders with occlusion baked in `BuildAndBake`, then measure again. `docs/plans/LodAndOcclusion.md`.
 

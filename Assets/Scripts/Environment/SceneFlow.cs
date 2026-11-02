@@ -9,12 +9,15 @@ namespace HighStakes.Environment
     /// scene (casino, VIP, a security wing) is loaded on top at a time: walking into a <see cref="DoorPortal"/> whose
     /// target is in another scene fades to black, loads that scene, unloads the old one, moves the rig to the target
     /// door's arrival point and fades back in. Area scenes are authored at the origin and keep their own _SoloTest rig,
-    /// which switches itself off here because MVP_Main is the active scene while they load.
+    /// which switches itself off here because MVP_Main is the active scene while they load. With Wait For Start on, the
+    /// first area loads only when the start screen calls <see cref="Begin"/>.
     /// </summary>
     public class SceneFlow : MonoBehaviour
     {
         [Tooltip("Area scene loaded at start. The rig in MVP_Main already stands at its start position.")]
         [SerializeField] string startScene = "MVP_Casino";
+        [Tooltip("Show the start screen (MVP_Main's lobby) first and load the start scene when it calls Begin.")]
+        [SerializeField] bool waitForStart;
         [Tooltip("Black quad just in front of the headset camera, faded in while scenes swap.")]
         [SerializeField] Renderer fade;
         [SerializeField] float fadeSeconds = 0.25f;
@@ -27,6 +30,9 @@ namespace HighStakes.Environment
         public string CurrentScene { get; private set; }
 
         public bool Busy { get; private set; }
+
+        /// <summary>True while the start screen is up and no area has loaded yet.</summary>
+        public bool WaitingForStart { get; private set; }
 
         MaterialPropertyBlock block;
 
@@ -43,10 +49,41 @@ namespace HighStakes.Environment
 
         IEnumerator Start()
         {
+            if (waitForStart)
+            {
+                WaitingForStart = true;
+                yield break;
+            }
             Busy = true;
             SetFade(1f);
             yield return Load(startScene);
             CurrentScene = startScene;
+            yield return Fade(1f, 0f);
+            Busy = false;
+        }
+
+        /// <summary>
+        /// Leaves the start screen: fades out, loads the start scene, calls <paramref name="atBlack"/> (hide the lobby,
+        /// put the rig at the start) and fades back in. False unless the start screen is waiting.
+        /// </summary>
+        public bool Begin(System.Action atBlack)
+        {
+            if (!WaitingForStart || Busy) return false;
+            WaitingForStart = false;
+            StartCoroutine(BeginRoutine(atBlack));
+            return true;
+        }
+
+        IEnumerator BeginRoutine(System.Action atBlack)
+        {
+            Busy = true;
+            yield return Fade(0f, 1f);
+            yield return Load(startScene);
+            CurrentScene = startScene;
+            atBlack?.Invoke();
+            // The rig's teleport is queued; let it land before the view comes back.
+            yield return null;
+            yield return null;
             yield return Fade(1f, 0f);
             Busy = false;
         }

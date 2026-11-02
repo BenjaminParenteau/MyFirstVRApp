@@ -67,7 +67,7 @@ namespace HighStakes.Dialogue.Tests
             Assert.AreEqual(GuideLogic.MinSeconds, GuideLogic.LineSeconds(subtitle, clipSeconds), 1e-4f);
         }
 
-        [TestCase("Don't turn around.  Keep\tplaying.", 4)]
+        [TestCase("Don't turn around.  Keep\tplaying.", 5)]
         [TestCase("   ", 0)]
         public void CountWords_SplitsOnAnyWhitespace(string text, int expected)
         {

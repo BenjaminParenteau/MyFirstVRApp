@@ -53,6 +53,7 @@ public static class SecurityOfficeVerification
         try
         {
             if(EditorApplication.timeSinceStartup>deadline) throw new Exception("Timed out at stage "+stage);
+            UnityEngine.Object.FindFirstObjectByType<HighStakes.UI.StartScreen>()?.StartNight(); // past the start screen
             if(EditorApplication.timeSinceStartup<next) return;
             var flow=SceneFlow.Instance;
             if(!flow || flow.Busy) return;

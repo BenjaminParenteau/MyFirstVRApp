@@ -51,6 +51,7 @@ public static class BarPuzzlePlayCheck
         try
         {
             if(EditorApplication.timeSinceStartup>deadline) throw new Exception("Timed out loading casino");
+            UnityEngine.Object.FindFirstObjectByType<HighStakes.UI.StartScreen>()?.StartNight(); // past the start screen
             if(EditorApplication.timeSinceStartup<next) return;
             if(stage==0)
             {

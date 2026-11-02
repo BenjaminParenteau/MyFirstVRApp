@@ -5,7 +5,7 @@ namespace HighStakes.UI
 {
     /// <summary>
     /// Flips the open notebook between its spreads: 0 = items (item list and selected item), 1 = case file (map and
-    /// leads). Press a side tab on the book's outer edge (poke or point and pull the trigger) to jump to its
+    /// leads), 2 = settings (comfort and game). Press a side tab on the book's outer edge (poke or point and pull the trigger) to jump to its
     /// spread, or cycle with left thumbstick click on the controller, U on the keyboard (M is the simulator's menu button). Each
     /// spread is a left-page and a right-page object; only the current pair is active. NotebookOpen still hides all
     /// page content while the cover moves, so this only chooses which spread shows once it is open.
@@ -33,7 +33,7 @@ namespace HighStakes.UI
         private InputAction flipAction;
         private Vector3[] tabRest;
 
-        /// <summary>The spread showing: 0 = items, 1 = case file. Kept while the notebook is closed.</summary>
+        /// <summary>The spread showing: 0 = items, 1 = case file, 2 = settings. Kept while the notebook is closed.</summary>
         public int Current { get; private set; }
 
         /// <summary>True while the items spread shows; item controls only work then.</summary>
@@ -62,7 +62,7 @@ namespace HighStakes.UI
                 ShowSpread((Current + 1) % Mathf.Max(1, leftSpreads.Length));
         }
 
-        /// <summary>Shows one spread (0 = items, 1 = case file) and marks its tab. Called by the bookmark tabs.</summary>
+        /// <summary>Shows one spread (0 = items, 1 = case file, 2 = settings) and marks its tab. Called by the bookmark tabs.</summary>
         public void ShowSpread(int spread)
         {
             if (spread < 0 || spread >= leftSpreads.Length)
