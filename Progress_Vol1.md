@@ -30,7 +30,64 @@ Rules: see [Merge-conflict rules](#merge-conflict-rules) under the Milestone 2 p
 
 Consequences: the **standalone Android build is the primary target and test path** (it is also the real Quest 3 performance test); Quest Link / PC VR is a secondary, optional path that only Ashton and Ben can use. Shared lightmap bakes are done by Ben or Ashton, never Zach or Pak. See [docs/StyleGuide.md §9](docs/StyleGuide.md#9-testing-without-a-gpu).
 
-## Milestone 2 — MVP prototype (current assignment)
+## Milestone 3 — UI, inventory, dialogue + user testing (current assignment)
+
+**Assignment (CLC, group):** design and implement the game's **user interfaces and interactions**: intuitive **menus**, an **inventory system** and **dialogue boxes** that improve usability and immersion. **Run user tests, collect feedback and iterate** on the designs. Full brief: "GDT-120 Course Project" in Class Resources (check the rubric before starting).
+
+**Submit:**
+1. The joint GDD updated with the UI/interaction design and a **user testing** write-up: what we tested, who tested it, what they said, and what we changed because of it (before/after).
+2. **One individual video per member** (core concept, storyline, characters, unique features; professional setting and dress; recorded in-headset or cast to laptop). Every member's link goes in the GDD's team table.
+
+### Milestone 3 focus
+
+Everything stays **diegetic** (VisualReference.md): no floating HUD panels. One look and feel across all three UI kinds: the notebook's paper/leather, brass buttons, and the blue hologram materials for "tech" UI. Start from what's already built:
+
+| Asked for | What we already have | What Milestone 3 adds |
+|---|---|---|
+| Menus | Watch + hologram HUD (bankroll, tier) | A diegetic **pause/settings menu** (comfort: snap/smooth turn, turn angle, teleport/smooth move, vignette on/off, seated mode; resume / restart / quit) and a **start screen** in `MVP_Main` before the casino loads |
+| Inventory | Notebook (pickup prompt, two-page spread, card slot), prototype `NotebookPickups` | A real inventory backend raising `IInventoryEvents.ItemAdded` from `ItemData` assets (keycards, notes, passcode fragments); notebook polish from test feedback (item icons, clearer "take out / put back", a "new item" pulse on the watch) |
+| Dialogue boxes | Ben's `SpeechBubble` on the Pit Boss | One shared **dialogue box** in `Dialogue/`: speaker name, typed-out line, 1–3 reply choices pressed with the ray or by poking, advance/skip; the Pit Boss runs on it; the Guide's earpiece lines (`IGuideVoice`) show as subtitles on the watch |
+
+NPC dialogue is now in scope, but only the Pit Boss (already in the scene) plus the Guide's voice. Guards, suspicion and more NPCs stay out of scope.
+
+### Milestone 3 slices
+
+| Slot | Slice | Definition of done (simulator + Quest 3 APK) |
+|---|---|---|
+| A (Ben) | **Table and cashier UI** | Bet controls and table holograms pass the usability test (readable at arm's length, clear bet/clear/deal states); cashier cage buy-in / cash-out menu; Pit Boss lines moved onto the shared dialogue box |
+| B (Ashton) | **Inventory backend + tiers** | `Inventory` implements `IInventoryEvents` with `ItemData` assets in `Content/Progression/`; pickups go through it (Pak then removes `NotebookPickups`); the Pit Boss stops saying "your card's right there" once the card is in the notebook; `CharacterTier` (left over from Milestone 2) drives the watch |
+| C (Pak) | **Menus, dialogue box, notebook iteration** | Pause/settings menu with the comfort options; shared `DialogueBox` + `DialogueLine` data (speaker, text, choices) in `Dialogue/`; `IGuideVoice` implementation with watch subtitles and the first Guide line on first tier-up; notebook changes from round 1; GDD UI/interaction section |
+| D (Zach) | **Start flow, builds, testing** | Start screen in `MVP_Main`; menu/settings wired to the rig (turn/move providers, vignette); an APK for each test round; runs the user test sessions and writes the GDD testing section |
+
+### User testing (all)
+
+- **Testers:** at least **5 per round**, at least 3 of them outside the team, and ideally someone who has never used VR. Two rounds: round 1 on the first playable build, round 2 after the fixes.
+- **Script (≈10 min, same for everyone):** open the menu and switch to snap turn → get chips and place one bet → talk to the Pit Boss and pick a reply → take the VIP card and find it in the notebook → take it out and open the VIP door → find the staff-door code. The observer stays quiet and only notes where the tester hesitates, asks for help or fails.
+- **Record per tester:** each task done / done with help / failed, time taken, comfort (any nausea, 1–5), then a short questionnaire: ease of the menu, notebook and dialogue (1–5 each), immersion (1–5), "what confused you?", "what would you change?".
+- **Log:** results in `docs/UserTesting.md` (one table per round), every change made because of it under Decisions as `Playtest R1 → change`. The before/after goes into the GDD and the videos.
+
+### Milestone 3 checklist
+
+| Item | Owner | Status |
+|---|---|---|
+| Pause/settings menu with comfort options | C (+D wiring) | ⬜ |
+| Start screen in `MVP_Main` | D | ⬜ |
+| Shared dialogue box + Pit Boss conversation with choices | C (+A content) | ⬜ |
+| Guide voice line + watch subtitles | C | ⬜ |
+| Inventory backend replaces `NotebookPickups` | B (+C) | ⬜ |
+| Cashier cage menu, table UI readability | A | ⬜ |
+| User testing round 1 (≥ 5 testers) logged in `docs/UserTesting.md` | D (all help) | ⬜ |
+| Fixes from round 1 | All | ⬜ |
+| User testing round 2 logged | D (all help) | ⬜ |
+| GDD: UI/interaction design section | C | ⬜ |
+| GDD: user testing results + iterations | D | ⬜ |
+| Individual video — Zachary Scheer, link in GDD | Zachary | ⬜ |
+| Individual video — Ashton Calkins, link in GDD | Ashton | ⬜ |
+| Individual video — Pakrinha Sim, link in GDD | Pakrinha | ⬜ |
+| Individual video — Benjamin Parenteau, link in GDD | Benjamin | ⬜ |
+| Rubric reviewed and GDD checked against it | All | ⬜ |
+
+## Milestone 2 — MVP prototype (previous assignment)
 
 **Assignment (CLC, group):** implement and test the game's core features **on the headset** to catch platform-compatibility issues early. The prototype must include **basic player movement, environment interaction, and user-interface navigation**. Also address: *what storytelling, worldbuilding and mechanics can be communicated through the evolutionary design of the character?*
 
@@ -203,6 +260,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot C log
 
+- 2026-11-01 · Journal notebook: kraft-paper pages (one generated `T_NotebookPage` texture per page), spiral binding, square side tabs (keycard = ITEMS, pin = MAP; poke or point + trigger, or left stick click / U) with a bookmark ribbon. ITEMS spread: boxed item rows + card case on the right, the selected item's icon, name, kind and note on the left (the blue screen is gone; see Open questions). MAP spread: a map of the six areas that inks in rooms as you visit them (from `SceneFlow.CurrentScene`) with a red pin and a YOU ARE HERE box, and a LEADS page listing the Guide's leads newest first with his quote. Pure `MapLogic` / `LeadsLogic` + 44 EditMode tests. Run **High Stakes > UI > Build Notebook**
+- 2026-11-01 · The Guide's voice: `GuideVoice` (`IGuideVoice`) plays `GuideLine`s one at a time, each once per session, in the ear (placeholder macOS `say` audio) with a left-controller buzz; `GuideTrigger`s fire on first chip change, tier reached, key item picked up and entering the security hall; the watch's `GuideCommLink` shows THE GUIDE / COMM LINK, a waveform and subtitles. Lines can carry a short `lead` the notebook writes down. Run **High Stakes > UI > Build Guide Voice** (adds `UI_GuideVoice` to `MVP_UI` and `MVP_Main`)
 - 2026-10-17 · UI textures: notebook covers in burgundy leather (reuses the casino `T_Leather`, +0 MB) and paper pages / shift note (new 512² generated `T_Paper`, ASTC 6x6 on Android ≈ 0.15 MB with mips), as Material Variants of kit materials in `Content/UI/Materials/`; **High Stakes > UI > Apply UI Textures** updates the prefabs only, no scene edits; the open notebook now sits closer (32 cm) with larger, bold page text (slot-c/ui-textures)
 
 - 2026-10-17 · Merged the latest `dev` (VIP/security textures, city-street entrance) into slot-c/notebook-staff-door-puzzle and re-ran **Build Notebook** + **Build Staff Door Puzzle** on the fresh scenes: notebook in `MVP_Main`, cart / shift note / table stands / STAFF reader in `MVP_Casino`, dice stand in `MVP_VIP`. Play-tested the full chain in the simulator (VIP card → note → 472 → staff card → door opens)
@@ -257,6 +316,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 - 2026-09-30 · Day-0 gate: generated the style kit (`Assets/Content/StyleKit/`) and `Assets/Scenes/MVP/MVP_Template.unity` with the XR Interaction Simulator; added contracts in `Assets/Scripts/Core/Contracts/` (`IChipWallet`, `ICharacterTier`, `IInventoryEvents`, `IGuideVoice`, `TierDefinition`, `ItemData`); reserved layers `Interactable` (6), `PlayerBody` (7) and tags `Chip`, `Keycard`, `Restricted`; created `Assets/Content/{Tables,Progression,UI,Environment}/`; added `docs/SimulatorControls.md`.
 
 ### Setup
+
+- 2026-10-22 · Added the Milestone 3 plan (menus, inventory, dialogue boxes, two rounds of user testing, individual videos): slices per slot, testing script and checklist; Milestone 2 marked as previous; CLAUDE.md milestone focus updated.
 
 - 2026-10-08 · Pit Boss walk no longer snaps backwards: the Rocketbox walk still moved the hips 1.20 m forward per 1.47 s loop and jumped back each loop; the hips (`Bip01`) are now the clip's root node so that travel becomes root motion and is dropped, and the builder sets the patrol speed from the clip's own stride (0.82 m/s) so the feet don't slide. Headless check: over 19 s of walking the hips never left the feet (0 m drift, 0 m jump).
 
@@ -316,6 +377,8 @@ Things the team agreed on that aren't obvious from the code.
 - **Ashton, Zach, Ben (from Pak): staff door puzzle.** **High Stakes > Puzzles > Build Staff Door Puzzle** (`Scripts/UI/Puzzles/`) edits `MVP_Casino` (cart by the staff door, a shift note on the cashier counter, number stands by blackjack and roulette, a STAFF reader on `Door_Casino_Staff`) and `MVP_VIP` (a number stand by the dice table). **Placements are included** (built on top of the 2026-10-17 `dev` scenes, additions only, plus the staff door now starts locked). **Ashton:** please check the placements in your scenes. **Zach:** **Build MVP World** / **Build Security Hub** rebuild the casino doors and drop the STAFF reader; either re-run my menu after them or call `StaffDoorPuzzleBuilder.Build` from `WorldBuilder`. **Slot B:** it reuses your `Keycard`, `KeycardReader`, `KeycardAccess` and `AccessBuilder.AddVipReader` unchanged (the staff card is a variant of your VIP card); happy to move the puzzle into `Inventory/` if you'd rather own it.
 
 - **Ben / Ashton (Slot B) and Zach (Slot D), from Pak:** the notebook (`Scripts/UI/Notebook/`, `UI_Notebook.prefab`) is a working inventory prototype: look at the VIP keycard → "F / B PICK UP" prompt → it goes into the notebook; N / left Y opens the notebook in front of you, B / left X steps through items, F / right B takes one into the right hand (and puts it back). It lists pickups from any `IInventoryEvents`, and a prototype `NotebookPickups` raises `ItemAdded` for now (the keycard is matched by its `Keycard` component, no code dependency). **Slot B:** when your inventory raises `ItemAdded` itself, tell me and I'll drop the prototype; item assets should then move to `Content/Progression/`. Also, once the card is in the notebook the Pit Boss still says "your card's right there" (his `handedOut` is still set). **Zach:** I added `UI_Notebook` to `MVP_Main` (your scene) via **High Stakes > UI > Build Notebook**; please have `WorldBuilder` instantiate `Assets/Content/UI/UI_Notebook.prefab` next to the wrist display, or **Build MVP World** drops it. Controls use inline Input System bindings in my scripts (left X/Y, right B; keyboard N/B/F), no shared input asset changes.
+
+- **Everyone, from Pak: notebook look changed from the concept art.** The notebook is now a kraft-paper journal (styled after the Humble Pixel journal mockups): both pages are paper, so the **blue screen on the left page from `VisualReference.md` ("Notebook & card case") is gone**. The left page shows the selected item (icon, name, note), or the map on the MAP tab. It also has square side tabs (ITEMS / MAP), a spiral binding, a bookmark ribbon, and boxed list rows. OK to keep, or should the left page go back to the blue screen? If we keep it, someone should update `VisualReference.md`.
 
 - **Ben / Ashton:** please bake `MVP_SecurityHall` (CPU lightmapper, like the wings). Its lights are Baked-only, so until then only the flat ambient lights it. Zach can't bake on his laptop.
 

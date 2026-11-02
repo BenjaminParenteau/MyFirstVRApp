@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d70f9792d47834fb7874dd401496a294, type: 3}
+  m_Name: SO_GuideLine_guide_first_contact
+  m_EditorClassIdentifier: Assembly-CSharp::HighStakes.Dialogue.GuideLine
+  id: guide_first_contact
+  subtitle: Don't turn around. Keep playing. You can call me the Guide. This casino
+    isn't what it looks like, and I need someone on the inside.
+  clip: {fileID: 8300000, guid: 452d3f3898f414d3ea6e4fdad1e10887, type: 3}
+  lead: Keep playing the tables and build your chips.

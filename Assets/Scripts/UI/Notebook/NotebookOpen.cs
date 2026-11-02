@@ -7,8 +7,8 @@ namespace HighStakes.UI
     /// Opens and closes the notebook with a button: left Y on the controller, N on the keyboard (simulator). On open it
     /// appears just ahead of and below the eyes, page turned toward them, and follows the player while open: it trails
     /// smoothly as you walk, and only swings back in front once you turn your head well away, so glancing around
-    /// doesn't drag it along. The cover swings a full 180 degrees about the centre spine into a two-page spread (blue
-    /// screen on the left, notes on the right) and the page text appears once it is mostly open.
+    /// doesn't drag it along. The cover swings a full 180 degrees about the centre spine into a two-page spread (its
+    /// underside becomes the left page) and the page content appears once it is mostly open.
     /// Reuses the hologram's open/close easing from WristDisplayLogic. The player's view is never moved.
     /// </summary>
     public class NotebookOpen : MonoBehaviour

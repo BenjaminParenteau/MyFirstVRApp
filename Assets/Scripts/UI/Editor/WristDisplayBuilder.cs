@@ -1,4 +1,5 @@
 using HighStakes.Core;
+using HighStakes.Dialogue;
 using HighStakes.Environment;
 using HighStakes.UI;
 using HighStakes.UI.Mocks;
@@ -111,7 +112,8 @@ public static class WristDisplayBuilder
         Set(visibility, "face", face);
         Set(visibility, "faceNormal", root.transform);
 
-        BuildHologram(kit, root, visuals, display, visibility, faceTop);
+        var panel = BuildHologram(kit, root, visuals, display, visibility, faceTop);
+        BuildCommLink(kit, root, visuals, panel, faceTop);
 
         var prefab = PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
         Object.DestroyImmediate(root);
@@ -157,7 +159,7 @@ public static class WristDisplayBuilder
     }
 
     // The HUD the watch projects while looked at. Panel and beam are placed in world space by WatchHologram each frame.
-    static void BuildHologram(SharedStyleKit kit, GameObject root, GameObject visuals, WristDisplay display,
+    static GameObject BuildHologram(SharedStyleKit kit, GameObject root, GameObject visuals, WristDisplay display,
         WristRaiseVisibility visibility, float faceTop)
     {
         var panelMaterial = HologramMaterial(HologramMaterialPath, new Color(HoloBlue.r, HoloBlue.g, HoloBlue.b, 0.22f));
@@ -204,6 +206,53 @@ public static class WristDisplayBuilder
         Set(holo, "sessionText", values[2]);
         var so = new SerializedObject(holo);
         so.FindProperty("panelHalfHeight").floatValue = PanelHeight / 2f;
+        so.ApplyModifiedPropertiesWithoutUndo();
+        return panel;
+    }
+
+    // The Guide's comm link: a cover over the watch face with THE GUIDE, a five-bar waveform and COMM LINK (shown
+    // while a line plays, wrist up or down), and a subtitle strip above the hologram panel (shown with the panel).
+    static void BuildCommLink(SharedStyleKit kit, GameObject root, GameObject visuals, GameObject panel, float faceTop)
+    {
+        var edgeMaterial = AssetDatabase.LoadAssetAtPath<Material>(HologramEdgeMaterialPath);
+        var panelMaterial = AssetDatabase.LoadAssetAtPath<Material>(HologramMaterialPath);
+
+        var link = new GameObject("CommLink");
+        link.transform.SetParent(visuals.transform, false);
+        // Just above the face text, so it hides the bankroll while the Guide talks
+        Prim("Cover", link, PrimitiveType.Cylinder, new Vector3(0, faceTop + 0.0005f, 0), new Vector3(FaceDiameter, 0.0001f, FaceDiameter), kit.chipBlack);
+        float textY = faceTop + 0.0009f;
+        Label("Who", link, new Vector3(0, textY, 0.0105f), new Vector2(0.024f, 0.005f), "THE GUIDE", kit.accentCyan);
+        Label("Channel", link, new Vector3(0, textY, -0.0105f), new Vector2(0.024f, 0.004f), "COMM LINK", kit.accentCyan);
+        var bars = new Transform[GuideLogic.WaveBars];
+        const float barLength = 0.01f;
+        for (int i = 0; i < bars.Length; i++)
+        {
+            float x = (i - (bars.Length - 1) / 2f) * 0.0035f;
+            bars[i] = Prim("Bar", link, PrimitiveType.Cube, new Vector3(x, textY, 0f), new Vector3(0.002f, 0.0002f, barLength * 0.2f), edgeMaterial).transform;
+        }
+
+        // Subtitle strip above the panel: wraps, centred, larger box than the HUD rows so long lines stay readable
+        const float stripWidth = 0.17f, stripHeight = 0.045f;
+        var subtitle = new GameObject("Subtitle");
+        subtitle.transform.SetParent(panel.transform, false);
+        subtitle.transform.localPosition = new Vector3(0f, PanelHeight / 2f + 0.006f + stripHeight / 2f, 0f);
+        Prim("Glass", subtitle, PrimitiveType.Quad, Vector3.zero, new Vector3(stripWidth, stripHeight, 1f), panelMaterial);
+        Prim("Edge", subtitle, PrimitiveType.Quad, new Vector3(0f, stripHeight / 2f, -0.0005f), new Vector3(stripWidth, 0.0015f, 1f), edgeMaterial);
+        var text = HudText("Line", subtitle, Vector2.zero, new Vector2(stripWidth - 0.012f, stripHeight - 0.008f), "", TextAlignmentOptions.Center, kit.accentCyan);
+        text.textWrappingMode = TextWrappingModes.Normal;
+        text.fontStyle = FontStyles.Normal;
+
+        var comm = root.AddComponent<GuideCommLink>();
+        Set(comm, "link", link);
+        Set(comm, "subtitle", subtitle);
+        Set(comm, "subtitleText", text);
+        var so = new SerializedObject(comm);
+        so.FindProperty("barLength").floatValue = barLength;
+        var barArray = so.FindProperty("bars");
+        barArray.arraySize = bars.Length;
+        for (int i = 0; i < bars.Length; i++)
+            barArray.GetArrayElementAtIndex(i).objectReferenceValue = bars[i];
         so.ApplyModifiedPropertiesWithoutUndo();
     }
 

@@ -153,5 +153,35 @@ namespace HighStakes.UI.Tests
             Assert.IsFalse(NotebookLogic.ShowsCard(entries, "VIP_KEYCARD"), "the only card is in the hand");
             Assert.IsFalse(NotebookLogic.ShowsCard(Entries("Napkin"), null), "no keycard at all");
         }
+
+        [TestCase(3, 1, 5, 0, 3)]  // fits: nothing scrolls
+        [TestCase(8, 6, 5, 2, 7)]  // scrolled so the selection is the last row
+        [TestCase(8, -1, 5, 0, 5)] // nothing selected: the first page
+        [TestCase(0, -1, 5, 0, 0)]
+        public void VisibleRange_KeepsTheSelectionOnThePage(int count, int selected, int max, int first, int last)
+        {
+            NotebookLogic.VisibleRange(count, selected, max, out int f, out int l);
+
+            Assert.AreEqual(first, f);
+            Assert.AreEqual(last, l);
+        }
+
+        [Test]
+        public void RowLabel_MarksTheItemInHand()
+        {
+            var card = Entries("Keycard")[0];
+
+            Assert.AreEqual("KEYCARD", NotebookLogic.RowLabel(card, null));
+            Assert.AreEqual("KEYCARD  (IN HAND)", NotebookLogic.RowLabel(card, "KEYCARD"));
+        }
+
+        [TestCase("vip_keycard", "KEYCARD")]
+        [TestCase("STAFF_KEYCARD", "KEYCARD")]
+        [TestCase("shift_note", "NOTE")]
+        [TestCase(null, "NOTE")]
+        public void KindOf_TellsKeycardsFromNotes(string id, string kind)
+        {
+            Assert.AreEqual(kind, NotebookLogic.KindOf(id));
+        }
     }
 }
