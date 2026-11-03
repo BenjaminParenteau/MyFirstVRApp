@@ -8,6 +8,8 @@ TagManager:
   - Chip
   - Keycard
   - Restricted
+  - CashBundle
+  - BlackLedger
   layers:
   - Default
   - TransparentFX
