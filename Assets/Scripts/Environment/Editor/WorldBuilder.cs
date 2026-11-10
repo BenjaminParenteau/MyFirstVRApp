@@ -304,6 +304,8 @@ public static class WorldBuilder
         else Debug.LogWarning("[World] " + WristDisplayPath + " not found; MVP_Main has no wrist display.");
 
         StartScreenBuilder.AddTo(scene, CasinoStart);
+        LocomotionBuilder.ReserveTeleportLayer();
+        LocomotionBuilder.AddTo(scene);
         EditorSceneManager.SaveScene(scene, MainPath);
     }
 

@@ -44,7 +44,7 @@ A simulated controller only responds while it is the *active* one, so press **[*
 - Walk around and confirm scale against the door, table and chair.
 - Grab something (once your slice has a grabbable) with the left mouse button or **G**.
 - Tap any wrist or world UI with the left mouse button.
-- Teleport / Blink and smooth move both work.
+- Teleport and smooth move both work. Teleport targets are generated at runtime from the floor you can actually stand on ([StyleGuide §10](StyleGuide.md#10-locomotion-and-comfort)), so if the arc shows but nothing happens when you release, you were aiming somewhere a standing body doesn't fit — try somewhere more open before assuming it's broken.
 
 ## Troubleshooting
 

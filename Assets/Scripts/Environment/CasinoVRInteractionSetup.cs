@@ -9,7 +9,6 @@ namespace HighStakes.Environment
     [DefaultExecutionOrder(-9000)]
     public class CasinoVRInteractionSetup : MonoBehaviour
     {
-        [SerializeField] GameObject floor;
         [SerializeField] GameObject[] pickupProps;
         [SerializeField] GameObject simulator;
 
@@ -29,10 +28,8 @@ namespace HighStakes.Environment
             if (manager == null)
                 manager = new GameObject("Casino_XRInteractionManager").AddComponent<XRInteractionManager>();
 
-            var area = floor.AddComponent<CasinoTeleportationArea>();
-            area.interactionManager = manager;
-            // Matches the teleport-only layer used by the shared rig's teleport ray.
-            area.interactionLayers = 1 << 31;
+            // The casino floor used to carry the game's only teleport area. TeleportSurfaces now maps the walkable
+            // floor of whichever area is loaded, so the casino is no longer a special case.
 
             foreach (var prop in pickupProps)
             {

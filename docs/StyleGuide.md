@@ -149,3 +149,31 @@ Zach and Pak have no dedicated GPU, so they cannot use Quest Link or PC VR; Asht
 - Do not bake shared-scene lightmaps on a no-GPU laptop. Ben or Ashton bakes and commits them.
 - Keep Scene/Game views small, turn off Gizmos and Scene lighting when orbiting heavy scenes, and keep scenes within the §7 budget.
 - The Meta XR Simulator is not supported here because it needs a capable GPU; use the XR Interaction Simulator instead.
+
+## 10. Locomotion and comfort
+
+Movement is Slot D's and lives in one place: `Assets/Scripts/Environment/Locomotion/` plus `ComfortSettings.cs`. Don't add a locomotion provider, a teleport area or a second way of moving in your own scene — ask instead (§8).
+
+**What the player gets, in every area**
+
+| Mode | Input | Notes |
+|---|---|---|
+| Smooth movement | Left stick | On by default. Eases up to full speed over 0.3 s (`MoveRamp`) instead of snapping to it. Head-relative by default. |
+| Teleport | Right stick any time; left stick too when MOVE is set to TELEPORT | Push to aim the arc, release to go. The view arrives black and fades up in 0.12 s (`TeleportBlink`) rather than cutting. |
+| Snap turn | Right stick left/right | 45° per flick. Default, because it costs no vection. |
+| Smooth turn | Right stick left/right | 60°/s, opt-in on the SETTINGS page. |
+| Tunneling vignette | — | Opt-in; darkens the edges of the view while moving or turning. |
+| Seated mode | — | Opt-in; lifts the view to standing height so the game plays sitting down. |
+
+Choices are made on the notebook's SETTINGS spread or the start screen, applied by `ComfortSettings` and saved per headset in PlayerPrefs.
+
+**Rules**
+
+- **Never move or rotate the player's view without input** (§5c). No camera shake, no forced turns, no cutscene pans. A view change (sitting at a table) teleports the one rig to an anchor.
+- **Teleport targets are generated, never placed.** `TeleportSurfaces` maps the walkable floor of whichever area is loaded — it floods out from the player's feet on a 0.5 m grid, keeps cells that have floor under them and room for a standing 1.8 m body, and covers them with a few invisible `TeleportSurface` rectangles on physics layer 31 (`Teleport`), which collides with nothing. So: **no teleport object in any scene file**, nothing for two slots to conflict over, and new geometry is handled the moment it exists.
+- **Don't put walkable floor on layer 31**, and don't reuse that layer for anything else.
+- **If you build something the player should be able to stand on**, give it a collider with an upward face and leave 0.5 m of clear width — that is all the mapper needs. Something they should *not* stand on needs a collider taller than 0.3 m (below that the rig just steps over it).
+- **Seats and tight spots:** the map keeps a 0.25 m body radius clear, so a 0.5 m gap between a table and a wall is not teleportable. That is deliberate — leave 1 m aisles (§4).
+- Changing the comfort defaults, turn rates or the ramp is a test-result decision, not taste: log it in [UserTesting.md](UserTesting.md) and under Decisions in `Progress_Vol1.md`.
+
+**Checking it:** **High Stakes > Run Locomotion Play Check** plays `MVP_Main`, walks every area and fails if any of them has no teleport surface or the player is standing off the map. On the headset, the movement round of the user test script in [UserTesting.md](UserTesting.md) is the real check.

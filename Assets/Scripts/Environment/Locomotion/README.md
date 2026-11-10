@@ -1,0 +1,9 @@
+How the player moves, and what keeps it comfortable. Owned by Slot D; built into MVP_Main by **High Stakes > Build Locomotion & Comfort** (`Environment/Editor/LocomotionBuilder.cs`) and checked by **High Stakes > Run Locomotion Play Check**.
+
+- `TeleportSurfaces.cs` — after each area loads, maps the floor the player can actually stand on (flood out from the rig's feet on a 0.5 m grid, keeping cells with floor under them and room for a standing body) and covers it with a few `TeleportSurface` rectangles. This is why teleporting works in every area without a single teleport object being placed by hand, and why no other slot's scene file has to change.
+- `TeleportSurface.cs` — one rectangle of teleportable floor, plus `TeleportClearance`, the shared "does a standing player fit here?" test used both when mapping and on the exact point the ray landed on.
+- `Logic/WalkableGridLogic.cs` — the pure part: walkable cells in, a handful of rectangles out (EditMode tests in `Tests/`).
+- `TeleportBlink.cs` — arriving from a teleport fades the view up instead of cutting, sharing MVP_Main's ScreenFade quad with `SceneFlow`.
+- `MoveRamp.cs` — smooth movement eases up to speed over a third of a second instead of snapping to it, which is the strongest sickness trigger in that mode.
+
+The player's own choices (smooth or teleport, snap or smooth turn, vignette, seated) live in `../ComfortSettings.cs` and are shown by Slot C's notebook SETTINGS spread and the start screen. Standards and the reasoning are in [docs/StyleGuide.md §10](../../../../docs/StyleGuide.md); test results in [docs/UserTesting.md](../../../../docs/UserTesting.md).

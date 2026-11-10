@@ -30,7 +30,65 @@ Rules: see [Merge-conflict rules](#merge-conflict-rules) under the Milestone 2 p
 
 Consequences: the **standalone Android build is the primary target and test path** (it is also the real Quest 3 performance test); Quest Link / PC VR is a secondary, optional path that only Ashton and Ben can use. Shared lightmap bakes are done by Ben or Ashton, never Zach or Pak. See [docs/StyleGuide.md §9](docs/StyleGuide.md#9-testing-without-a-gpu).
 
-## Milestone 3 — UI, inventory, dialogue + user testing (current assignment)
+## Milestone 4 — movement and comfort + user testing (current assignment)
+
+**Assignment (CLC, group):** develop and integrate **comfortable and intuitive movement mechanics**. Implement **teleportation and smooth movement** options and make sure they **minimise motion sickness**. Then **run thorough user testing and refine the mechanics on the feedback**. Full brief: "GDT-120 Course Project" in Class Resources (check the rubric before starting).
+
+**Submit:**
+1. The joint GDD with the movement/comfort design as built and the **user testing** write-up: what we tested, who tested it, what they said, what we changed (before/after). Movement section = Slot D; everyone reviews.
+2. **One individual video per member** (core concept, storyline, characters, unique features; professional setting and dress; recorded in-headset or cast to laptop). Every member's link goes in the GDD's team table.
+
+### Milestone 4 focus
+
+Movement already existed as the XRI starter rig plus `ComfortSettings`; the gap was that it was only half-true. Teleport aiming worked everywhere but the **only teleport target in the game was the casino floor**, so a player who chose TELEPORT could not move at all in the VIP lounge, the hub or any of the three back rooms. This milestone makes both modes work in every area, adds the sickness mitigations, and tests it on people.
+
+| Asked for | What we already had | What Milestone 4 adds |
+|---|---|---|
+| Teleportation | Aiming on both sticks; one `TeleportationArea` on the casino floor | `TeleportSurfaces`: the walkable floor of whichever area is loaded is mapped at runtime and becomes the teleport target, so teleport works in all six areas and in a scene played on its own — and no teleport object sits in any scene file for two slots to conflict over |
+| Smooth movement | Left stick, starter-rig speed | Unchanged top speed, but eased in over 0.3 s (`MoveRamp`); head-relative forward |
+| Minimising sickness | Snap turn default, opt-in tunnelling vignette, seated mode | Arrival fade on teleport (`TeleportBlink`), the move ramp, snap-turn angle and smooth-turn speed as rig settings, and a body-clearance rule that makes landing in a wall or under a table impossible |
+| User testing | Nothing — `docs/UserTesting.md` did not exist | The protocol, the per-tester sheet and the two rounds' tables in [docs/UserTesting.md](docs/UserTesting.md); Milestone 3's menu/notebook/dialogue questions ride along in the same sessions |
+
+Rules and the reasoning are now [docs/StyleGuide.md §10](docs/StyleGuide.md#10-locomotion-and-comfort). Nobody adds a locomotion provider, a teleport area or a second way of moving to their own scene.
+
+### Milestone 4 slices
+
+| Slot | Slice | Definition of done (simulator + Quest 3 APK) |
+|---|---|---|
+| A (Ben) | **Reachable tables** | Every table is playable from where the floor map actually puts the player: bet controls in reach and readable from the teleport landing spot in front of each table, 1 m aisles kept (§4) so the map does not fence a table off; seat anchors for "sit at this table" if the tests ask for them |
+| B (Ashton) | **Reachable back of house** | Doors, readers, the wire panel, the tape desk, the vault keypad and the bar PIN pad all usable in both modes; nothing the player must reach is in a space narrower than 1 m; **the pending lightmap bakes** (`MVP_SecurityOffice`, `MVP_CameraRoom`, `MVP_SecurityHall`) so the test build is honest about what players see |
+| C (Pak) | **Comfort UI** | A first-time "how to move" line (Guide or start screen) so T2 needs no hint; the extra comfort rows on the SETTINGS page requested in Open questions (turn angle, turn speed, move direction) if the round-1 results ask for them; notebook/dialogue fixes from the same sessions |
+| D (Zach) | **Mechanics, builds, testing** | ✅ teleport in every area, arrival fade, move ramp, turn/move tuning, play check, §10; APK per round; runs the sessions; GDD movement + testing write-up |
+
+### User testing (all)
+
+The protocol, the script, the per-tester sheet and both rounds' result tables live in **[docs/UserTesting.md](docs/UserTesting.md)** — don't duplicate them here. Summary: two rounds, ≥ 5 testers each, ≥ 3 from outside the team, ideally one who has never used VR; a 12-minute no-coaching script; stomach rated 1–5 after each of the two crossings so the modes can be compared on the same person; every change logged there and under Decisions as `Playtest R1 → change`.
+
+### Milestone 4 checklist
+
+| Item | Owner | Status |
+|---|---|---|
+| Teleport works in every area (generated, not placed) | D | 🟨 `TeleportSurfaces` written, tests pass; needs **Build Locomotion & Comfort** + **Run Locomotion Play Check** in the Editor |
+| Smooth movement eased in; turn angle and speed set on the rig | D | 🟨 same: code in, needs the builder run |
+| Arrival fade on teleport | D | 🟨 same: code in, needs the builder run |
+| Locomotion standards written up (StyleGuide §10) | D | ✅ |
+| On-device check of both modes in all six areas (APK) | D | ⬜ |
+| Test protocol and sheets | D | ✅ [docs/UserTesting.md](docs/UserTesting.md) |
+| Round 1 build + sessions (≥ 5 testers) logged | D (all help) | ⬜ |
+| Fixes from round 1 | All | ⬜ |
+| Round 2 build + sessions logged, round 1 → 2 comparison | D (all help) | ⬜ |
+| Reachable tables | A | ⬜ |
+| Reachable back of house + the three pending lightmap bakes | B | ⬜ |
+| First-time "how to move" prompt; comfort rows if tests ask | C | ⬜ |
+| GDD: movement as built | D | ✅ |
+| GDD: user testing results + iterations | D | ⬜ (tables in place, results pending) |
+| Individual video — Zachary Scheer, link in GDD | Zachary | ⬜ |
+| Individual video — Ashton Calkins, link in GDD | Ashton | ⬜ |
+| Individual video — Pakrinha Sim, link in GDD | Pakrinha | ⬜ |
+| Individual video — Benjamin Parenteau, link in GDD | Benjamin | ⬜ |
+| Rubric reviewed and GDD checked against it | All | ⬜ |
+
+## Milestone 3 — UI, inventory, dialogue + user testing (previous assignment)
 
 **Assignment (CLC, group):** design and implement the game's **user interfaces and interactions**: intuitive **menus**, an **inventory system** and **dialogue boxes** that improve usability and immersion. **Run user tests, collect feedback and iterate** on the designs. Full brief: "GDT-120 Course Project" in Class Resources (check the rubric before starting).
 
@@ -199,7 +257,7 @@ Mirrors the milestone table in the GDD. Status: ⬜ not started · 🟨 in progr
 |---|---|---|---|
 | 1 | GDD draft (Storyline & Characters), concept videos | All | ⬜ |
 | 2 | Environment concept art, casino floor layout | D | ⬜ |
-| 3 | Free-roam movement prototype (XR Origin, teleport, smooth locomotion, comfort) | D | 🟨 |
+| 3 | Free-roam movement prototype (XR Origin, teleport, smooth locomotion, comfort) | D | ✅ (APK comfort check with testers is Milestone 4) |
 | 4 | Blackjack prototype | A | ⬜ |
 | 5 | Roulette prototype | A | ⬜ |
 | 6 | Chip economy and cash-out | A | ⬜ |
@@ -286,6 +344,7 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot D log
 
+- 2026-11-10 · Movement and comfort (Milestone 4). **Teleport only worked on the casino floor** — it was one `TeleportationArea` that `CasinoVRInteractionSetup` put on `MVP_Casino`'s floor object, so with MOVE set to TELEPORT the player could not move at all in the VIP lounge, the hub or the three back rooms. Replaced with `Environment/Locomotion/TeleportSurfaces`: when an area loads it maps the floor the player can actually stand on (flood out from the rig's feet on a 0.5 m grid, keep cells with floor under them and room for a standing 1.8 m / 0.25 m-radius body, `TeleportClearance`), groups them by floor height and covers them with a few `TeleportSurface` rectangles (`WalkableGridLogic`, 13 EditMode tests) on new physics layer 31 `Teleport`, which collides with nothing so they are aim-only. Flooding from the player means closed-off space (the street outside the entrance) is never a target, and **no teleport object sits in any scene file**, so no other slot's scene changed. `SoloTestRoot` adds a mapper when an area scene is played on its own. Comfort: `TeleportBlink` fades the view up over 0.12 s on arrival instead of cutting (shares SceneFlow's quad, stays out of door travel), `MoveRamp` eases smooth movement up to the same top speed over 0.3 s, and `ComfortSettings` now also sets snap-turn angle (45°), smooth-turn speed (60°/s) and head- vs hand-relative forward. Deleted `CasinoTeleportationArea`. Built by **High Stakes > Build Locomotion & Comfort** (also run by `WorldBuilder.BuildMain`); **High Stakes > Run Locomotion Play Check** plays `MVP_Main` and walks all six areas. Standards: StyleGuide §10. Test protocol and sheets: `docs/UserTesting.md`; GDD Movement section rewritten as built with the round 1 → 2 comparison table. Reserved layer 31 and zeroed its collision row (`ProjectSettings/DynamicsManager.asset`, see Open questions). **Verified so far:** both assemblies compile clean and the 13 `WalkableGridLogic` tests pass (run against Unity's NUnit outside the Editor, since the Editor had the project open). **Still to run in the Editor:** **Build Locomotion & Comfort** (adds the three components to `MVP_Main` — until then nothing is wired and teleport is still casino-only at runtime), then **Run Locomotion Play Check**, then an APK. (slot-d/locomotion-comfort)
 - 2026-11-03 · **Side assignment (individual, not part of the MVP):** "The Return", a standalone Christian-worldview scene for the GDT course. `Assets/Scenes/TheReturn.unity` is a duplicate of the vault wing with the hallway and treasury door stripped, so it inherits the style kit and the cold baked back-of-house lighting; it is **not** in the build list, nothing loads it and `DoorPortal` / `SceneFlow` / `MVP_Main` are untouched — open the scene and press Play. The player pays eight named staff back by hand: a wall rack of 8 pay envelopes (`XRSocketInteractor`, accepts only tag `CashBundle` via a select filter) and a duffel of 8 grabbable bundles; each seal locks the bundle in for good, swaps to a sealed material, lights the name gold, chimes and buzzes the hand that placed it. An investigator's evidence tray takes only tag `BlackLedger` and fades the ledger's title red → white over 2 s. Each envelope warms the room a step from #3A5A8C/0.3 to #FFC27A/1.4 (two realtime lights + a Color Adjustments filter + scene ambient, layered over the cold bake since there is no GPU to re-bake, StyleGuide §9); the eighth adds window light shafts and dust motes and asks the Guide's closing question on a world-space canvas clicked with the UI ray. Walking out early takes the Kept ending instead: the warmth drains back to vault blue and a night skyline appears. New `Scripts/Environment/TheReturn/` (`RestitutionManager`, `RestitutionEnvelope`, `BlackLedger`, `LedgerHandoff`, `ReturnEnding`, `ReturnExitTrigger`, `GuideQuestion`) and two builders, **High Stakes > Build The Return Scene** / **Build The Return Content**. Reserved two new tags, `CashBundle` and `BlackLedger` (additive, safe to pull). Checked in the simulator so far: envelopes seal and warm the room, the ledger title fades red → white, and the Guide's question appears with both ray-clickable answers. **Not yet confirmed on screen:** the sunrise shafts/dust motes, the Kept ending and the end screen; no headset check (this is a side assignment, not MVP work). (slot-d/the-return-scene)
 - 2026-10-29 · Merged Ashton's connected vault room (dev) into the 12 x 12 m rooms: the vault keypad now follows the moved `RoomC` (position and rotation), and **Build MVP World** runs his **Connect Actual Vault Room** before furnishing, so a full rebuild keeps the walk-through vault doorway and the keypad in place. `MVP_Vault` taken from dev unchanged. (slot-d/back-rooms-12m)
 - 2026-10-29 · Bigger back rooms + count room: the security office and camera room are now **12 x 12 m** (vault stays 8 x 8 for Ashton's dressing). The security office becomes the **security & count room**: Ashton's lockers, incident desk, noticeboard and evidence cabinet on the left; on the right a **count floor** (two standing count tables with strapped cash bricks, bill counters and count sheets, a cash cart, a drop safe, a COUNT ROOM house-rules sign) and a glass-fronted **COUNT SUPERVISOR booth** in the back-right corner overlooking the tables, with an empty `NPC_Supervisor` anchor at its chair for the NPC later. Ashton's **live CCTV wall**, operator consoles, HOLD button and equipment racks moved to the **camera room**; the tape archive now runs along its left wall and the breaker panel sits on the security side's back wall. New `Environment/Editor/CountRoomBuilder.cs` (**High Stakes > Build Count Room**) and `BackOfHouseBuilder.cs` (**High Stakes > Build Security & Camera Rooms (12 x 12)**: regenerates just those two wings and furnishes everything); **Build MVP World** now furnishes the back of house too instead of leaving it empty. `HallwayBuilder` sizes rooms per wing; booth glass is a Material Variant of `UI_Hologram`, cash uses the vault's banknote material. Both rooms need a re-bake. (slot-d/back-rooms-12m)
@@ -352,6 +411,10 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ## Decisions
 
+- **2026-11-10 · Teleport targets are generated at runtime, never placed in a scene.** Hand-placed teleport areas would mean every slot adding teleport objects to their own scenes (and re-adding them whenever a builder regenerates one), and a new room silently having nowhere to teleport — which is exactly how the casino ended up being the only teleportable area. Instead `TeleportSurfaces` maps the floor the player can stand on when an area loads. Consequences everyone should know: **no scene file contains a teleport object**, so there is nothing to merge; a space narrower than ~1 m is not teleportable on purpose (keep 1 m aisles, StyleGuide §4); anything the player should be able to stand on just needs a collider with an upward face; and anything they should *not* stand on needs to be taller than the 0.3 m step height. Both movement modes are available in every area at all times — no per-room scheme.
+
+- **2026-11-10 · Smooth movement keeps the starter-rig top speed.** The sickness fix is the 0.3 s ease-in (`MoveRamp`), not a slower walk: the hard velocity onset is what testers feel, and slowing the walk would make the casino floor tedious. Revisit only if round 1 says otherwise.
+
 - **2026-10-08 · NPCs come from Microsoft Rocketbox (MIT).** Free, safe in the public repo, semi-realistic, shared skeleton across 115 avatars and 400+ animations. Cast plan: Pit Boss `Business_Male_04`, dealers `Business_Male_06` / `Business_Female_01` (+ black vest), informant `Business_Male_07`, guards `Security_Male_01` / `Security_Female_01`, server `Female_Adult_13`, guests from Adults/Party. Rocketbox's own `FixRocketboxMaxImport` postprocessor is not used (it rewrites every material in the project); the builders apply its fixes per character. The Pit Boss was added ahead of the MVP plan at Ben's request (walking only; no detection or suspicion yet).
 
 - **2026-10-08 · Holograms get their own materials.** The kit has no transparent glow material, so the watch HUD uses three transparent unlit blue materials in `Content/UI/` (`UI_Hologram`, `UI_HologramEdge`, `UI_HologramBeam`). Reuse them for any future holographic UI instead of adding more.
@@ -368,6 +431,12 @@ Things the team agreed on that aren't obvious from the code.
 - **2026-10-17 · Slot D may texture `MVP_VIP` (Ben's OK, texture-only).** Zach applies the casino materials to the VIP room (floor, walls, ceiling, the dice/mines/plinko tables' felt, wood and rails, slot machines, chandeliers, stools) so it matches the main floor. Only material overrides in the scene: no changes to Ben's table prefabs, `VipRoomBuilder` or gameplay. If Ben regenerates the VIP with **Build VIP Room Scene**, re-run **High Stakes > Casino Textures > Apply Casino Textures To Open Scene** on it (Build MVP World does this automatically).
 
 ## Open questions / blockers
+
+- **Everyone: pull before you touch a scene — physics layer 31 is now `Teleport` (Zach, 2026-11-10).** Two shared files changed, both Slot D's: `ProjectSettings/TagManager.asset` names layer 31, and `ProjectSettings/DynamicsManager.asset` has layer 31's collision row zeroed so the generated teleport surfaces are aim-only. Additive and safe to pull. **Don't put anything else on layer 31**, and don't put walkable floor on it. Nothing was added to anyone's scene: `TeleportSurfaces` in `MVP_Main` generates the targets at runtime (Decisions, StyleGuide §10). If you add geometry the player should stand on, just give it a collider with an upward face and keep 1 m of width; if they should not stand on it, make it taller than 0.3 m.
+
+- **Pak (Slot C), from Zach: three comfort rows I deliberately did not add to your SETTINGS page.** `ComfortSettings` now also owns snap-turn **angle** (45°), smooth-turn **speed** (60°/s) and whether the left stick drives **head-relative or hand-relative** — but as Inspector fields, since `Scripts/UI/Notebook/Logic/SettingsLogic.cs` and the spread are yours. If round 1 says people want them (likely for turn angle), they are three more rows: the fields are `snapTurnAngle`, `smoothTurnSpeed` and `moveDirection` on `ComfortSettings`, and I'm happy to wire them to new `SettingsLogic` rows once you've added them. Also worth your call: **the vignette is off by default** (`SettingsLogic.Default`) — if testers get sick in smooth mode, defaulting it on is the cheapest fix, and it's your file.
+
+- **Ben (Slot A) / Ashton (Slot B), from Zach: reachability.** The teleport map keeps a 0.25 m body radius clear, so anywhere narrower than about 1 m is not a teleport target by design. If something a player has to reach (bet controls, a reader, the vault keypad, the bar PIN pad) sits in a gap narrower than that, they can still walk there in smooth mode but not teleport to it — which half our testers will be using. Please walk your own areas in both modes (**High Stakes > Run Locomotion Play Check** only proves each area has surfaces, not that your props are reachable) and widen anything tight.
 
 - **Ashton:** Zach built the vault passcode puzzle (your Week 9 row) as part of the back-room chain (2026-10-29), in `Scripts/Security/` next to the wire panel: `VaultKeypad`, `VaultClearance`, `TapeDeckPuzzle`, `VideoTape`, `PuzzleSession`, `Logic/VaultCodeLogic`, plus `Scripts/Inventory/ItemLedger.cs`. Content is in `Content/Environment/Security/Puzzles/`. Your `VaultDressing` is untouched; the keypad console stands at room (3.9, 0, 5.3), clear of the pallet, trolleys and centre aisle. Take it over or change it as you like; mark Week 9 when you're happy with it.
 - **Ashton:** Zach also edited your `Security/Editor/SecurityOfficeBuilder.cs` (2026-10-29) for the 12 x 12 m rooms: it is split into `BuildOffice()` (lockers, incident desk, noticeboard, evidence cabinet, in `MVP_SecurityOffice`) and `BuildCameraRoom()` (the CCTV wall, consoles, HOLD button and racks, moved to `MVP_CameraRoom`, shifted by `WallShift`); your menu runs both. `SecurityOfficeVerification` now walks to the camera room (menu renamed **Run Camera Room Live Feed Play Check**). Nothing else in your code changed. **Build MVP World** and **Build Security & Camera Rooms (12 x 12)** re-furnish everything; only **Build Security Hub** still needs **Build Back Room Puzzles + Vault** afterwards (it rebuilds the hub without the vault clearance panel).

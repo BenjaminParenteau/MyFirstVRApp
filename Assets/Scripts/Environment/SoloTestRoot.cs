@@ -39,6 +39,9 @@ namespace HighStakes.Environment
                 return;
             }
 
+            // Played on its own, the scene has no MVP_Main to map its floor for teleporting, so it gets its own mapper.
+            if (FindFirstObjectByType<TeleportSurfaces>() == null) gameObject.AddComponent<TeleportSurfaces>();
+
             simulator = GetComponentInChildren<XRInteractionSimulator>(true);
             if (simulator == null) return;
             if (!SimulatorAllowed())

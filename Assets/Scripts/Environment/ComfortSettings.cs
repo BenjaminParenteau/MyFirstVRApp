@@ -4,6 +4,7 @@ using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Comfort;
+using UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning;
 using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
 
 namespace HighStakes.Environment
@@ -13,6 +14,11 @@ namespace HighStakes.Environment
     /// move or teleport on the left stick, snap or smooth turn on the right, a tunneling vignette while moving, and a
     /// seated mode that lifts the view to standing height. Saved in PlayerPrefs so a headset keeps its choices. The
     /// notebook's SETTINGS spread and the start screen change them through <see cref="Toggle"/>.
+    /// <br/>
+    /// It also sets the parts of the rig that are tuning rather than a player choice: snap-turn angle, smooth-turn
+    /// speed and whether the left stick drives where the head looks or where the hand points. The other half of the
+    /// comfort work sits next to it in Locomotion/: <see cref="TeleportSurfaces"/> (somewhere to teleport in every
+    /// area), <see cref="TeleportBlink"/> (fade in on arrival) and <see cref="MoveRamp"/> (ease up to walking speed).
     /// </summary>
     public sealed class ComfortSettings : MonoBehaviour
     {
@@ -22,6 +28,24 @@ namespace HighStakes.Environment
         [SerializeField] GameObject vignettePrefab;
         [Tooltip("How far seated mode lifts the view (metres): roughly standing minus sitting eye height.")]
         [SerializeField] float seatedLift = 0.45f;
+
+        [Header("Turning")]
+        [Tooltip("Degrees per snap turn. 45 is XRI's default; 30 reads as smoother, 60 as fewer turns to face about.")]
+        [SerializeField] float snapTurnAngle = 45f;
+        [Tooltip("Degrees per second in smooth turn. Lower is gentler on the stomach; XRI's default is 60.")]
+        [SerializeField] float smoothTurnSpeed = 60f;
+
+        [Header("Smooth movement")]
+        [Tooltip("Where forward is on the left stick: the way the head faces, or the way the hand points. Head-relative " +
+                 "is what most players expect; hand-relative lets a seated player walk without turning their head.")]
+        [SerializeField] MoveDirection moveDirection = MoveDirection.Head;
+
+        /// <summary>Which way the left stick drives, mapped onto the starter rig's DynamicMoveProvider.</summary>
+        public enum MoveDirection
+        {
+            Head,
+            Hand,
+        }
 
         public static ComfortSettings Instance { get; private set; }
 
@@ -66,6 +90,17 @@ namespace HighStakes.Environment
                 if (hand.name.Contains("Left")) hand.smoothMotionEnabled = Choices.SmoothMove;
                 hand.smoothTurnEnabled = Choices.SmoothTurn;
             }
+
+            // Turn rates and which way the stick drives are fixed settings rather than menu rows; they are here so one
+            // component owns everything about how the rig moves (see docs/StyleGuide.md section 10).
+            foreach (var snap in origin.GetComponentsInChildren<SnapTurnProvider>(true))
+                snap.turnAmount = snapTurnAngle;
+            foreach (var smooth in origin.GetComponentsInChildren<ContinuousTurnProvider>(true))
+                smooth.turnSpeed = smoothTurnSpeed;
+            foreach (var move in origin.GetComponentsInChildren<DynamicMoveProvider>(true))
+                move.leftHandMovementDirection = moveDirection == MoveDirection.Hand
+                    ? DynamicMoveProvider.MovementDirection.HandRelative
+                    : DynamicMoveProvider.MovementDirection.HeadRelative;
 
             if (Choices.Vignette && vignette == null && vignettePrefab != null && origin.Camera != null)
             {

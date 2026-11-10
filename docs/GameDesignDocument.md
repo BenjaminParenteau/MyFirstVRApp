@@ -80,10 +80,30 @@
 
 ### Movement
 
+Both ways of moving are available everywhere in the game, in every room, at the same time — the player never has to learn a second scheme or discover that their preferred mode has stopped working somewhere.
+
 - **Locomotion Options:**
-  - **Teleportation:** The player points the controller at the floor, a curved arc previews the landing spot and pulling the trigger blinks them there instantly. Default on the open casino floor, where fast, low-effort travel matters more than precision.
-  - **Smooth Movement:** Continuous thumbstick-based movement with snap or smooth turning. Preferred in the back-of-house corridors and vault approach, where creeping at a controlled pace and staying aligned with guard sightlines matters more than speed.
-- **Comfort Settings:** Players can toggle a peripheral vignette during movement, adjust turn speed and type (snap vs. smooth), and switch between teleport and smooth movement at any time from a quick wrist-menu toggle, so comfort preferences carry over into every part of the game.
+  - **Teleportation:** Pushing a thumbstick throws a curved arc out in front of the player; releasing it puts them where the arc lands. The right stick does this at any time; the left one does it too when MOVE is set to TELEPORT. The view arrives black and fades up over about a tenth of a second rather than cutting, which removes the jolt testers associate with teleporting while costing no apparent self-motion.
+  - **Smooth Movement:** Continuous left-stick movement, on by default, easing up to full speed over a third of a second instead of starting at it — a hard velocity onset is the strongest sickness trigger in this mode. Forward follows where the head faces. Preferred in the back-of-house corridors and the vault approach, where creeping at a controlled pace and staying aligned with sightlines matters more than speed.
+  - **Turning:** Snap turning (45° per flick of the right stick) is the default because it produces no rotational self-motion; smooth turning (60°/s) is available for players who prefer it.
+- **Comfort Settings:** On the start screen before the night begins, and at any time afterwards on the notebook's SETTINGS page: move (smooth / teleport), turn (snap / smooth), a peripheral vignette that darkens the edges of the view while moving, and a seated mode that lifts the view to standing height so the whole game can be played sitting down. Each row explains what it does in one line. Choices are saved on the headset, so a player sets them once.
+- **Never moving the player's view:** the camera is the player's head. Nothing in the game rotates or pans it — a change of view (sitting at a table, stepping up to the wheel) moves the player to an anchor, and the roulette wheel spins rather than the player.
+- **How teleport destinations are decided:** rather than hand-placing teleport pads, the game works out the floor the player can actually stand on when an area loads — it spreads out from the player's feet over a half-metre grid, keeping the squares that have floor beneath them and room for a standing body, and makes those the teleport targets. Consequences for play: the player can never teleport into a wall, under a table, or out of the building, the arc fails rather than lands when they aim somewhere they would not fit, and a newly built room needs no extra work to be traversable.
+
+#### Movement user testing
+
+Two rounds of five or more testers each on the Quest 3 build, at least three from outside the team and at least one who has never used VR, run to the same twelve-minute script: start the night, cross the casino floor, turn around, find the comfort settings and switch modes, cross back in the other mode, go through a door, then place a bet and talk to the Pit Boss while moving. The observer gives no coaching and notes only hesitation, requests for help and failures; each tester rates their stomach 1–5 after each crossing, so the two modes can be compared on the same person. Full protocol, sheets and results: [UserTesting.md](UserTesting.md).
+
+| Measure | Round 1 | Round 2 |
+|---|---|---|
+| Tasks completed unaided | _(pending)_ | _(pending)_ |
+| Testers needing a hint to move at all | _(pending)_ | _(pending)_ |
+| Worst reported nausea (1–5) | _(pending)_ | _(pending)_ |
+| Average nausea: smooth / teleport | _(pending)_ | _(pending)_ |
+| Testers who could not reach somewhere they aimed for | _(pending)_ | _(pending)_ |
+| Mode preferred if they played again | _(pending)_ | _(pending)_ |
+
+What changed between the rounds, and why: _(filled in after round 1; each change is logged under Decisions in `Progress_Vol1.md` as `Playtest R1 → change`)_.
 
 ### Sound Design
 

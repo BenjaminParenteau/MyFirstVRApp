@@ -1,0 +1,14 @@
+{
+    "name": "HighStakes.Environment.Logic",
+    "rootNamespace": "HighStakes.Environment",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}
