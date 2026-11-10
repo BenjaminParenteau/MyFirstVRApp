@@ -38,7 +38,7 @@ public static class LocomotionPlayCheck
 
     static int step, checkedStep;
     static double deadline, waitUntil;
-    static bool teleportTested;
+    static bool teleportTested, passed;
 
     static LocomotionPlayCheck()
     {
@@ -50,6 +50,7 @@ public static class LocomotionPlayCheck
                 step = 0;
                 checkedStep = -1;
                 teleportTested = false;
+                passed = false;
                 checks.Clear();
                 deadline = EditorApplication.timeSinceStartup + 300;
                 EditorApplication.update += Tick;
@@ -243,6 +244,7 @@ public static class LocomotionPlayCheck
         foreach (var line in checks) report.AppendLine("  - " + line);
         Write(report.ToString());
         Debug.Log("[Locomotion] PLAY CHECK PASSED\n" + report);
+        passed = true;
         Finish();
     }
 
@@ -260,6 +262,11 @@ public static class LocomotionPlayCheck
     static void Finish()
     {
         EditorApplication.update -= Tick;
+        EditorApplication.update -= AfterTeleport;
         EditorApplication.isPlaying = false;
+
+        // Run headlessly (-executeMethod LocomotionPlayCheck.RunBatch) nothing would ever close the Editor, so the run
+        // would hang. Exit with the result instead, which also makes the check usable as a gate.
+        if (Application.isBatchMode) EditorApplication.Exit(passed ? 0 : 1);
     }
 }
