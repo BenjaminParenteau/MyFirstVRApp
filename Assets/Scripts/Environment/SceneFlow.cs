@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -31,6 +32,16 @@ namespace HighStakes.Environment
 
         /// <summary>The area scene currently loaded, or null while the first one loads.</summary>
         public string CurrentScene { get; private set; }
+
+        /// <summary>
+        /// Every area the player has set foot in this session, oldest first. Kept here because this is the only thing
+        /// that changes areas, so anything that needs to know where the player has been (<see cref="FastTravel"/>, the
+        /// notebook's map) reads one list rather than keeping its own and drifting from it. Session only, like
+        /// KeycardAccess: save it with the wallet when saves exist.
+        /// </summary>
+        public IReadOnlyList<string> Visited => visited;
+
+        readonly List<string> visited = new List<string>();
 
         public bool Busy { get; private set; }
 
@@ -66,7 +77,7 @@ namespace HighStakes.Environment
             Busy = true;
             SetFade(1f);
             yield return Load(startScene);
-            CurrentScene = startScene;
+            Arrived(startScene);
             yield return Fade(1f, 0f);
             Busy = false;
         }
@@ -88,13 +99,23 @@ namespace HighStakes.Environment
             Busy = true;
             yield return Fade(0f, 1f);
             yield return Load(startScene);
-            CurrentScene = startScene;
+            Arrived(startScene);
             atBlack?.Invoke();
             // The rig's teleport is queued; let it land before the view comes back.
             yield return null;
             yield return null;
             yield return Fade(1f, 0f);
             Busy = false;
+        }
+
+        /// <summary>Has the player been in this area at any point this session?</summary>
+        public bool HasVisited(string scene) => scene != null && visited.Contains(scene);
+
+        /// <summary>The area is now loaded and the player is in it: becomes current, and counts as visited for good.</summary>
+        void Arrived(string scene)
+        {
+            CurrentScene = scene;
+            if (scene != null && !visited.Contains(scene)) visited.Add(scene);
         }
 
         /// <summary>Swaps to <paramref name="scene"/> and puts the rig at door <paramref name="arrivalId"/>. False while a swap is running.</summary>
@@ -123,7 +144,7 @@ namespace HighStakes.Environment
                     "releasing the CCTV feeds");
                 Stage = $"loading {scene}";
                 yield return Load(scene);
-                CurrentScene = scene;
+                Arrived(scene);
                 Stage = $"unloading {old}";
                 if (old != null) yield return SceneManager.UnloadSceneAsync(old);
                 Stage = "settling light probes";

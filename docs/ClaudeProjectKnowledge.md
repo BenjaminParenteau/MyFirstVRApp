@@ -1,8 +1,11 @@
 # High Stakes — project knowledge for Claude
 
 Context file for a Claude Project (claude.ai) so conversations about the game, the code and the GDT-120 course
-assignments start from the facts. Snapshot as of 2026-10-18, `dev` branch commit `8574652`. When this file and the
-repository disagree, the repository wins.
+assignments start from the facts. Snapshot as of **2026-11-12**, `dev` branch commit `2d2fcaa` **plus uncommitted Slot D
+work** (fast travel + the reachability fix, section 8). When this file and the repository disagree, the repository wins.
+
+**Read section 8 before claiming anything works.** A lot is built; much less has been verified, and nothing at all has
+been verified on the headset.
 
 ## 1. The game
 
@@ -16,6 +19,7 @@ repository disagree, the repository wins.
   (some are informants), security guards (patrol obstacles).
 - **Evolutionary character (Milestone 2 theme):** the player's own visible body (hands, wrist, accessories) and abilities
   upgrade with chip tiers: Ordinary Night → Known High Roller → Valued Associate (placeholder thresholds 1,000 / 5,000).
+  **Note:** the tier system that drives this is still a test mock — see section 5.
 - **Moods:** warm gold/green main floor (chandeliers, brass, green felt); cold blue-teal concrete and steel back-of-house
   and vault. All UI is diegetic (wrist display, notebook, floating prompts, the Guide's earpiece). No magic: realism is
   the twist.
@@ -25,11 +29,12 @@ repository disagree, the repository wins.
 | --- | --- | --- |
 | A | Ben (Benjamin Parenteau) | `Scripts/TableGames/`, `Scripts/Economy/`, `Content/Tables/`, `MVP_VIP` (VIP room builder) |
 | B | Ashton (Ashton Calkins) | `Scripts/Inventory/`, `Scripts/Security/`, tiers, keycards, access; built `MVP_Casino` |
-| C | Pak (Pakrinha Sim) | `Scripts/UI/`, diegetic UI, wrist display, tier visuals |
-| D | Zach (Zachary Scheer) | `Scripts/Environment/`, `Scripts/Core/`, style kit, `MVP_Main`, security hub/wings, shared settings, Quest builds |
+| C | Pak (Pakrinha Sim) | `Scripts/UI/`, diegetic UI, wrist display, notebook, tier visuals, the Guide's voice |
+| D | Zach (Zachary Scheer) | `Scripts/Environment/`, `Scripts/Core/`, locomotion, style kit, `MVP_Main`, security hub/wings, shared settings, Quest builds |
 
 - **Hardware:** Zach and Pak have no dedicated GPU (no Quest Link, no GPU lightmapper, no Meta XR Simulator). Test path:
   standalone APK on Quest 3 + XR Interaction Simulator in Play mode. Ben and Ashton can use Link and bake lightmaps.
+  Building an APK needs no GPU — it is CPU work, and installing is `adb` over USB.
 
 ## 2. Tech stack
 
@@ -38,106 +43,159 @@ Toolkit 3.5.1, XR Hands (installed, not yet used for gameplay), Unity Test Frame
 images/models. No CLI build: everything is built from the Editor, mostly through **High Stakes >** menu items that
 generate scenes and prefabs from code.
 
+Android build settings are already correct for Quest 3 and should not need changing: ARM64 only, IL2CPP, ASTC, Vulkan,
+min/target SDK 34, seven scenes in the build list with `MVP_Main` at index 0.
+
 ## 3. Scenes and flow
 
 - `Assets/Scenes/MVP/MVP_Main.unity` (build index 0) stays loaded: the one player rig (`Kit_PlayerRig`), the `ChipWallet`,
-  the wrist display and `SceneFlow`. `SceneFlow` loads exactly one area scene on top: `MVP_Casino` at start, then
-  `MVP_VIP`, `MVP_SecurityHall`, `MVP_SecurityOffice`, `MVP_CameraRoom`, `MVP_Vault`.
+  the wrist display, the notebook, the start screen, `SceneFlow` and the `Locomotion` object. `SceneFlow` loads exactly
+  one area scene on top: `MVP_Casino` at start, then `MVP_VIP`, `MVP_SecurityHall`, `MVP_SecurityOffice`,
+  `MVP_CameraRoom`, `MVP_Vault`.
 - `DoorPortal` (with `portalId`, `targetId`, `targetScene`) fades out, swaps the area and places the rig at the target
-  door. Area scenes keep a `_SoloTest` rig that `SoloTestRoot` disables when loaded into `MVP_Main`.
+  door's `arrival` transform. Area scenes keep a `_SoloTest` rig that `SoloTestRoot` disables when loaded into `MVP_Main`.
 - Layout: casino floor → **STAFF ONLY** door → security hub (`MVP_SecurityHall`) with SECURITY / CAMERAS / VAULT doors →
-  each wing is a warm casino-style hallway leading to a cool 8 x 8 m room (security office, camera room, vault
-  antechamber). The VIP door in the casino is keycard-locked; the VIP lounge has the Stake-style games.
-- `MVP_Template` = start point for new areas; `MVP_UI` = wrist-display test scene. `BasicScene` / `SampleScene` are
-  vendored template scenes: never edited.
+  each wing is a warm casino-style hallway leading to a cool room. The security office and camera room are **12 × 12 m**
+  (rebuilt 2026-10-29); the vault antechamber stays 8 × 8. The VIP door in the casino is keycard-locked; the VIP lounge
+  has the Stake-style games.
+- **Critical layout fact — each wing scene contains two disconnected islands.** `HallwayBuilder.BuildHallway` places the
+  hallway at the origin and the room at `roomOrigin = (40, 0, 0)`, with the comment "their own islands so nothing is ever
+  physically connected". They are joined by an in-scene `DoorPortal` jump, **not** by floor. This has already caused one
+  false bug report (section 8) and anything that walks or maps an area must account for it. The vault's doorway is an
+  exception: Ashton made it a real walk-through (`DoorPortal.physicalPassage`).
+- `MVP_Template` = start point for new areas; `MVP_UI` = wrist-display test scene; `TheReturn.unity` = a standalone
+  side assignment, not in the build list. `BasicScene` / `SampleScene` are vendored template scenes: never edited.
 
 ## 4. Code map (`Assets/Scripts/`)
 
 | Folder | What is in it |
 | --- | --- |
-| `Core/Contracts/` | Interfaces and data every slot codes against: `IChipWallet`, `ICharacterTier`, `IInventoryEvents`, `IGuideVoice`, `TierDefinition`, `ItemData`. No logic; append-only. |
+| `Core/Contracts/` | Interfaces and data every slot codes against: `IChipWallet`, `ICharacterTier`, `IInventoryEvents`, `IGuideVoice`, `TierDefinition`, `ItemData`. No logic; append-only. **Two of the four have no real implementation — section 5.** |
 | `Economy/` | `ChipWallet` (the single chip balance), Unity-free `Logic/ChipLedger` + tests. |
-| `TableGames/` | Unity-free rules in `Logic/` (Blackjack, Roulette, Dice, Mines, Plinko, `IRng`, `ITableWallet`, `WagerAmount`) with EditMode tests in `Tests/` (blackjack alone has 49; odds/return tests for each game). Presenters per game (`BlackjackPresenter`, `RoulettePresenter`, …), `PressableButton`, `TableHologram` (dealer-side holographic board), `ChipWalletTableAdapter`. `Editor/` builders make each table prefab and the VIP room. |
-| `Inventory/` | `Keycard`, `KeycardReader` (trigger collider, locks a `DoorPortal`, red→green light, sign text), `KeycardAccess` (session access list + event), `KeycardGiver` (Pit Boss hands over the card), `BarPuzzle` (bar PIN pad, one-time $500 reward). |
-| `Security/` | `PatrolWalker` (Pit Boss walks a loop, can pause); `PitBossBuilder`. Suspicion meter and guards not built yet. |
-| `Dialogue/` | `SpeechBubble`. Guide voice lines not built yet. |
-| `UI/` | Wrist display (`WristDisplay`, `WatchHologram`, `WristAttach`, `WristRaiseVisibility`, Unity-free `WristDisplayLogic` + tests), `TierVisibility`, mocks for solo testing. The watch sits on the back of the left controller. |
-| `Environment/` | `SceneFlow`, `DoorPortal`, `SoloTestRoot`, `SharedStyleKit`, teleport/interaction setup, and the editor builders below. |
+| `TableGames/` | Unity-free rules in `Logic/` (Blackjack, Roulette, Dice, Mines, Plinko, `IRng`, `ITableWallet`, `WagerAmount`) with EditMode tests in `Tests/` (~190 across the games, including odds/return tests). Presenters per game, `PressableButton`, `TableHologram`, `ChipWalletTableAdapter`. `Editor/` builders make each table prefab and the VIP room. |
+| `Inventory/` | `Keycard`, `KeycardReader`, `KeycardAccess` (static session access list, ids `"VIP"` and `"STAFF"`), `KeycardGiver`, `BarPuzzle`, `ItemLedger`. |
+| `Security/` | `PatrolWalker` + `PitBossBuilder`; `SecurityMonitorWall` (live CCTV); the back-room puzzle chain (`WirePanelPuzzle`, `TapeDeckPuzzle`, `VaultKeypad`, `VaultClearance`, `PuzzleSession`, `CctvOutage`) with Unity-free logic + tests. Suspicion meter and guard AI **not built**. |
+| `Dialogue/` | `GuideVoice` (the real `IGuideVoice`), `GuideLine`, `GuideTrigger`, Unity-free `Logic/GuideQueue` + tests, `SpeechBubble`. A shared dialogue box with reply choices is **not built**. |
+| `UI/` | Wrist display (`WristDisplay`, `WatchHologram`, `WristAttach`, `WristRaiseVisibility`, `GuideCommLink`, `FastTravelWatch`, Unity-free `WristDisplayLogic` + tests); the notebook (`NotebookCaseFile`, `NotebookDisplay`, `NotebookPages`, `NotebookSettings`, Unity-free `MapLogic` / `LeadsLogic` / `NotebookLogic` / `SettingsLogic` + tests); `StartScreen`; `TierVisibility`; mocks. |
+| `Environment/` | `SceneFlow`, `DoorPortal`, `SoloTestRoot`, `ComfortSettings`, `SharedStyleKit`, `TheReturn/`, the `Locomotion/` subfolder (below) and the editor builders. |
 | `Sandbox/` | Throwaway tests only. |
 
-**Environment editor builders (`Environment/Editor/`):** `StyleKitBuilder` (shared kit: materials, prefabs, lighting,
-player rig), `WorldBuilder` (**Build MVP World**: regenerates VIP, security area, casino doors/tables, `MVP_Main`, build
-list; re-applies textures; batch `BuildAndBake`), `HallwayBuilder` (security hub + wings), `CasinoEntranceBuilder` +
-`ExteriorDistrictBuilder` (entrance wall, 39-building street district merged by material), `CasinoTextureBuilder` +
-`CasinoDetailTextures` (casino textures), `SecurityTextureBuilder` (back-of-house textures), `CasinoTextureImporter`
-(Android import rules).
+**Locomotion (`Environment/Locomotion/`, Slot D, the only place movement lives):** `TeleportSurfaces` (maps the walkable
+floor of whichever area is loaded by flooding out from the rig's feet on a 0.5 m grid, then covers it with a few
+`TeleportSurface` rectangles on physics layer 31 — so **no teleport object exists in any scene file**), `TeleportSurface` +
+`TeleportClearance` (the "does a standing player fit here?" test), `TeleportBlink` (0.12 s arrival fade), `MoveRamp`
+(0.3 s ease-in on smooth movement), `FastTravel` (watch travel list), Unity-free `Logic/WalkableGridLogic` and
+`Logic/FastTravelLogic` + tests.
 
-**Content (`Assets/Content/`):** `StyleKit/` (shared materials `M_*`, prefabs `Kit_*`, lighting), `Environment/` (Slot D:
-casino and security textures/materials/prefabs, portal doors), `Tables/` (table prefabs), `Inventory/`, `Progression/`
-(bar puzzle), `Characters/PitBoss/` (Microsoft Rocketbox model, MIT, 7.3k triangles), `UI/`.
+**Environment editor builders (`Environment/Editor/`):** `StyleKitBuilder`, `WorldBuilder` (**Build MVP World**;
+batch `BuildAndBake`), `HallwayBuilder` (hub + wings), `BackOfHouseBuilder`, `CountRoomBuilder`, `CasinoEntranceBuilder`,
+`ExteriorDistrictBuilder`, the texture builders, `RenderingOptimizer` (LOD + occlusion), `LocomotionBuilder`
+(**Build Locomotion & Comfort**, **Validate Fast Travel**), `LocomotionPlayCheck`, `ReachabilityCheck`.
 
-## 5. Look and textures (as of 2026-10-17)
+## 5. Contract status — what is real and what is still a mock
 
-- Shared style kit: one set of URP Simple Lit materials, kit prefabs on a 2 m grid, 3 m ceilings. New looks are
-  **Material Variants** of kit materials (no new base materials).
-- Textures are CC0 from Poly Haven (plus our own generated ones), recoloured into the kit palette by
-  `tools/generate_security_textures.py`, `generate_casino_detail_textures.py`, `generate_casino_wallpaper.py`,
-  `generate_casino_carpet.py`. Credits in each `Content/Environment/*/README.md`.
-- Casino: generated carpet, cream-and-gold damask wallpaper, wood wainscot, marble, carved coffered wood ceiling,
-  rosewood beams, dark wood pilasters and table wood, wool felt, burgundy leather seats and padded table rails, brushed
-  brass/steel, black slot cabinets, glowing lamp glass, FBX picture frames. Same in the VIP lounge (Ben approved
-  texture-only changes) and hub/hallways.
-- Security rooms: painted cinder block, sealed concrete floor, diamond tread plate (vault), steel panel doors, generated
-  acoustic drop ceiling.
-- Menus: **High Stakes > Casino Textures > Build Casino Textures / Apply Casino Textures To All Area Scenes**,
-  **High Stakes > Security Textures > Build And Apply To Security Wings**. They only override materials, so baked
-  lightmaps are kept.
+This is the most commonly misunderstood thing in the project. Of the four Day-0 contracts:
+
+| Contract | Real implementation | Status |
+| --- | --- | --- |
+| `IChipWallet` | `Economy/ChipWallet` (Slot A) | ✅ real and in `MVP_Main` |
+| `IGuideVoice` | `Dialogue/GuideVoice` (Slot C) | ✅ real |
+| `ICharacterTier` | **none** — only `UI/Mocks/MockCharacterTier` | ❌ Slot B never built it |
+| `IInventoryEvents` | **none** — only `UI/Mocks/MockInventoryEvents` and the prototype `UI/Notebook/NotebookPickups` | ❌ Slot B never built it |
+
+Consequences: the watch's TIER line, the tier accessory visuals (steel → gold case → VIP stripe), and `GuideTrigger`'s
+"tier reached" lines are all driven by a Slot C test mock. Since the evolutionary-character answer is the centrepiece of
+the GDD, **the project's headline feature is propped up by a mock.** Do not describe tier progression as working.
 
 ## 6. Performance facts
 
 - Budget (StyleGuide §7): 72 fps (90 if it holds), under ~100k visible triangles, ~100 draw calls, ASTC textures max
   1024 px with mipmaps, no realtime shadows, minimal post effects.
-- In use: baked lighting (Progressive CPU lightmapper, 20 texels/unit; lightmaps in VIP and the three wings; casino and
-  hub still on flat ambient), one area scene loaded at a time, the street district combined into one mesh per material
-  with static batching, ASTC 6x6 / 1024 import rules applied automatically, Simple Lit everywhere, emissive lamps flagged
-  so they don't affect bakes.
-- Not yet: LOD groups, baked occlusion culling. Known issue: kit floor tile is not static, so floors get no lightmaps.
-- **No on-device frame-rate measurements exist yet** (the Quest 3 budget check is an open task). Any performance numbers
-  must be measured (OVR Metrics Tool, Unity Profiler over ADB, Frame Debugger, Rendering Statistics), never invented.
+- In use: baked lighting (Progressive CPU lightmapper); one area scene loaded at a time; the street district combined
+  into one mesh per material with static batching; LOD groups and baked occlusion culling via `RenderingOptimizer`;
+  ASTC 6x6 / 1024 import rules; Simple Lit everywhere.
+- **Pending lightmap bakes:** `MVP_SecurityOffice`, `MVP_CameraRoom`, `MVP_SecurityHall`. Ben or Ashton must do these —
+  Zach and Pak have no GPU. Until then those rooms are lit by flat ambient and emissive strips only.
+- **No on-device frame-rate measurements exist. No APK has ever been built.** The Quest 3 budget check has been open
+  since Day 0. Any performance number must be measured (OVR Metrics Tool, Unity Profiler over ADB), never invented.
 
-## 7. Status
+## 7. Status — built vs not built
 
-Built: casino floor with blackjack and roulette; VIP lounge with dice, mines, plinko; chip wallet; wrist chip display with
-tier visuals; Pit Boss NPC who patrols and hands over the VIP keycard; keycard reader on the VIP door; bar PIN-pad puzzle;
-security hub + three wings; door portals with fades; entrance with a 3D night-time street outside; textures throughout.
+**Built and working:** casino floor; blackjack and roulette on the floor; VIP lounge with dice, mines and plinko (all
+five games have full Unity-free rule logic and tests); chip wallet; Pit Boss NPC who patrols and hands over the VIP
+keycard; keycard readers and the VIP door; bar PIN-pad puzzle; staff-door puzzle; security hub and three wings; the
+back-room puzzle chain ending at the vault keypad; live CCTV wall; door portals with fades; entrance with a 3D
+night-time street; textures throughout; the wrist watch with hologram HUD and Guide comm link; the journal notebook with
+ITEMS / MAP / SETTINGS spreads; the start screen; the Guide's voice with triggers and subtitles; teleport + smooth
+movement with the full comfort pass in all six areas.
 
-Not built: suspicion meter, guard AI, vault passcode puzzle, the Guide's voice lines and earpiece, notebook inventory,
-NPC dialogue options, cashier cage interactions, comfort settings panel, endings.
+**Not built:** suspicion meter; guard AI; `CharacterTier`; the real inventory backend; a shared dialogue box with reply
+choices; cashier cage interactions; grabbable chip stacks; endings.
 
-## 8. Team rules (from CLAUDE.md / Progress_Vol1.md)
+## 8. Verification status — what has actually been run
+
+| Thing | State |
+| --- | --- |
+| `LocomotionPlayCheck` | ✅ **PASS: 12 checks** over all six areas, `Logs/LocomotionQA/play-check.txt`, 2026-11-11 |
+| EditMode test suite | ✅ passing as of 2026-11-01 (~277 + locomotion 13); **the 11 new fast-travel tests have never been run** |
+| `ReachabilityCheck` | ⚠️ ran 2026-11-11 but **its back-room findings were wrong** (below); fixed 2026-11-12 and **not re-run** |
+| Fast travel (this session) | ❌ compiles, nothing else. Never play-tested, never validated, never on device |
+| APK on Quest 3 | ❌ **never built, by anyone** |
+| On-device frame rate | ❌ never measured |
+
+**The withdrawn finding (important context).** On 2026-11-11 `ReachabilityCheck` reported that the wire panel, tape
+archive and HOLD button were "stranded ~40 m outside their rooms" and that the security office's 12 × 12 m room was
+unmapped. **This was a bug in the audit, not in Ashton's content.** The check mapped each area once, from where its tour
+arrived, and `TeleportSurfaces` floods from the player's feet — so in a wing scene it only ever saw the hallway island
+(section 3). The rooms are deliberately 40 m away. The runtime was never affected, because `TeleportSurfaces.Update`'s
+stray check already remaps when the player lands off-map after an in-scene door jump. The check now maps every island
+before judging anything. The entry to Ashton has been withdrawn. **Do not re-raise this as a content bug.**
+
+## 9. Team rules (from CLAUDE.md / Progress_Vol1.md)
 
 - Edit only your slot's folders and scenes; shared files (`Packages/`, `ProjectSettings/`, `Assets/XR/`, `Core/`) are
-  Slot D's. Never hand-merge scene YAML.
+  Slot D's. Cross-slot edits happen occasionally but must be flagged in Open questions. Never hand-merge scene YAML.
 - Branches: `slot-<x>/<topic>` → PR into `dev`; Zach tests `dev` on the headset and promotes to `main`.
 - Every commit adds a line to the author's slot section of `Progress_Vol1.md`.
-- No AI attribution (no "Co-Authored-By: Claude") in commits or PRs.
-- Don't commit `Assets/XR/Settings/OpenXRPackageSettings.asset` (Unity churn).
+- **No AI attribution** (no "Co-Authored-By: Claude") in commits or PRs.
+- Don't commit `Assets/XR/Settings/OpenXRPackageSettings.asset`, or the `Assets/Samples/.../Lightmap-*.meta` churn that a
+  platform switch produces. Commit files by name; never `git add .`.
+- Movement is Slot D's alone: never add a locomotion provider, a teleport area or a second way of moving to a scene.
 
-## 9. GDT-120 course: assignments and where the answers live
+## 10. GDT-120 course: assignments and where the answers live
 
 The course project is a VR adventure quest game; each milestone adds sections to the "GDT-120 Game Design Document"
 (repo copy: `docs/GameDesignDocument.md`) and needs an individual professional video per member, linked in the document.
+**All four individual videos are still outstanding for the current milestone, and none of them depends on any code.**
 
 | Assignment | What it asks for | Our material |
 | --- | --- | --- |
-| Project Proposal and Concept Development | GDD Storyline + Characters sections (plot, hero customization, environments, exploration/puzzle mechanics), project plan with milestones, concept video | GDD Storyline, Characters, Project Plan (15-week timeline) |
-| Re-imagining an Experience in VR | Technical report: a life experience, a software application and a game, each with an image (credited), 5+ characteristics re-imagined in VR, a Unity mock scene, who benefits; greater purpose of VR, impact on game design, Christian worldview on purposeful design; Loom video | Separate report (not in this repo) |
-| Milestone 2 (Platform Compatibility) | Prototype on headset: movement, environment interaction, UI navigation; "what storytelling, worldbuilding and mechanics can the evolutionary character communicate?"; GDD Platform Compatibility Design section in Tasks Breakdown | GDD Tasks Breakdown note, `Progress_Vol1.md` Milestone 2 plan, `docs/StyleGuide.md` §9 |
-| Environment Creation (due 2026-10-18) | Create and optimise 3D environments; textures/models for immersion and consistency; performance testing with a **quantitative before/after comparison covering three specific objects**; GDD Exploration, Puzzles and Collectibles sections | GDD Key Features sections; texture work (§5); performance facts (§6) — before/after numbers still need measuring |
-| Design responses (five questions: new environment concept sketch, re-imagining a real-world scenario, puzzle evaluation, project plan after a rejected pitch, LOD/occlusion/lightmapping) | Written answers with sketches and code | Claude Doc "High Stakes — VR Adventure Quest Design Responses" (proposes the Counting Room, co-op camera-room heist, mixed-reality table mode; marks LOD/occlusion as planned) |
+| Project Proposal and Concept Development | GDD Storyline + Characters, project plan, concept video | GDD Storyline, Characters, Project Plan |
+| Re-imagining an Experience in VR | Technical report + Loom video | Separate report (not in this repo) |
+| Milestone 2 — Platform Compatibility | Movement, interaction, UI on headset; the evolutionary-character question; GDD Platform Compatibility section | `Progress_Vol1.md` Milestone 2, `docs/StyleGuide.md` §9 |
+| Environment Creation | Optimised environments, textures, quantitative before/after on three objects | GDD Key Features; §6 — before/after numbers still need measuring |
+| Milestone 3 — UI, inventory, dialogue | Menus, inventory, dialogue boxes + two rounds of user testing | Notebook, start screen, SETTINGS spread, Guide voice; dialogue box still missing |
+| **Milestone 4 — movement and comfort (current)** | Teleport + smooth movement in every area, motion-sickness mitigations, **two rounds of user testing with ≥ 5 testers each** and fixes from the feedback | `Progress_Vol1.md` Milestone 4, `docs/StyleGuide.md` §10, `docs/UserTesting.md` (protocol + empty result tables) |
 
-## 10. Key documents in the repo
+## 11. What the team has left to do
 
-`docs/GameDesignDocument.md` (GDD), `docs/StyleGuide.md` (kit, scale, budget, testing without a GPU),
-`docs/reference/VisualReference.md` (approved look), `Progress_Vol1.md` (team plan, logs, decisions, open questions),
-`CLAUDE.md` (working rules), `docs/plans/VrstakeGamesPort.md`, `docs/SimulatorControls.md`.
+**Blocking round 1 of user testing:**
+- **Pak (C)** — a first-time "how to move" line, so Q1 isn't answered by the observer's hint for every tester.
+- **Ashton (B)** — the three lightmap bakes (longest lead time; Zach cannot do them).
+- **Ben (A)** — decide the roulette reach (1.10 m from the nearest teleport-landable spot): seat anchor, move the layout,
+  or let round 1 answer.
+- **Zach (D)** — verify this session's code, build APK #1, run the sessions.
+
+**Bigger, not milestone-blocking:**
+- **Ashton (B)** — `CharacterTier` and the real `Inventory` (section 5). Open since Day 0.
+- **Pak (C)** — the shared dialogue box with reply choices; move the Pit Boss onto it.
+- **Ben (A)** — cashier cage buy-in / cash-out, grabbable chip stacks.
+
+**Everyone:** individual videos, then the rubric check against the GDD.
+
+## 12. Key documents in the repo
+
+`CLAUDE.md` (working rules — read first), `Progress_Vol1.md` (team plan, per-slot logs, decisions, open questions —
+the live source of truth), `docs/GameDesignDocument.md`, `docs/StyleGuide.md` (kit, scale, §7 budget, §9 testing without
+a GPU, §10 locomotion), `docs/UserTesting.md` (test protocol and result tables), `docs/reference/VisualReference.md`
+(approved look), `docs/SimulatorControls.md`, `docs/plans/`.

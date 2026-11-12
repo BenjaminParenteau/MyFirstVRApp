@@ -1,12 +1,14 @@
 using HighStakes.Core;
 using HighStakes.Dialogue;
 using HighStakes.Environment;
+using HighStakes.TableGames;
 using HighStakes.UI;
 using HighStakes.UI.Mocks;
 using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 /// <summary>
 /// Builds Slot C's wrist display: the UI_WristDisplay prefab (kit materials only), three mock tier assets, and the
@@ -29,6 +31,13 @@ public static class WristDisplayBuilder
     const float PanelWidth = 0.15f;
     const float PanelHeight = 0.08f;
     static readonly Color HoloBlue = new Color(0.25f, 0.65f, 1f);
+
+    // TRAVEL column, standing beside the HUD panel in the same panel space. Taller than the panel because it carries
+    // one row per area plus a header and the refusal line.
+    const float TravelWidth = 0.062f;
+    const float TravelGap = 0.008f;
+    const float TravelHeight = 0.112f;
+    const float TravelRowHeight = 0.0135f;
 
     // Watch size (metres): a chunky round digital watch, as in docs/reference/VisualReference.md
     const float CaseDiameter = 0.046f;
@@ -114,6 +123,7 @@ public static class WristDisplayBuilder
 
         var panel = BuildHologram(kit, root, visuals, display, visibility, faceTop);
         BuildCommLink(kit, root, visuals, panel, faceTop);
+        BuildTravel(kit, root, panel);
 
         var prefab = PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
         Object.DestroyImmediate(root);
@@ -254,6 +264,87 @@ public static class WristDisplayBuilder
         for (int i = 0; i < bars.Length; i++)
             barArray.GetArrayElementAtIndex(i).objectReferenceValue = bars[i];
         so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    // The TRAVEL column beside the HUD panel: one pressable row per area FastTravel knows about, poked with the other
+    // hand or pointed at with the ray. Built as a child of the panel, so WatchHologram's placement, scaling and
+    // open/close carry it along and FastTravelWatch never has to position anything itself.
+    static void BuildTravel(SharedStyleKit kit, GameObject root, GameObject panel)
+    {
+        var plateMaterial = HologramMaterial(HologramMaterialPath, new Color(HoloBlue.r, HoloBlue.g, HoloBlue.b, 0.22f));
+        var edgeMaterial = HologramMaterial(HologramEdgeMaterialPath, new Color(HoloBlue.r, HoloBlue.g, HoloBlue.b, 0.85f));
+
+        // The rig's near grab and far ray only hit this layer (see the 2026-10-06 fix); without it the rows are
+        // invisible to both hands.
+        int interactable = LayerMask.NameToLayer("Interactable");
+        if (interactable < 0)
+        {
+            interactable = 0;
+            Debug.LogWarning("[WristDisplay] No 'Interactable' layer; the travel rows will not be pressable.");
+        }
+
+        var column = new GameObject("TravelColumn");
+        column.transform.SetParent(panel.transform, false);
+        column.transform.localPosition = new Vector3(PanelWidth / 2f + TravelGap + TravelWidth / 2f, 0f, 0f);
+
+        const float edge = 0.0015f;
+        foreach (float y in new[] { TravelHeight / 2f, -TravelHeight / 2f })
+            Prim("Edge", column, PrimitiveType.Quad, new Vector3(0f, y, -0.0005f), new Vector3(TravelWidth, edge, 1f), edgeMaterial);
+        foreach (float x in new[] { TravelWidth / 2f, -TravelWidth / 2f })
+            Prim("Edge", column, PrimitiveType.Quad, new Vector3(x, 0f, -0.0005f), new Vector3(edge, TravelHeight, 1f), edgeMaterial);
+
+        float top = TravelHeight / 2f;
+        HudText("TravelHeader", column, new Vector2(0f, top - 0.008f), new Vector2(TravelWidth - 0.01f, 0.009f),
+            "TRAVEL", TextAlignmentOptions.Center, kit.accentCyan);
+        Prim("Rule", column, PrimitiveType.Quad, new Vector3(0f, top - 0.014f, -0.0005f),
+            new Vector3(TravelWidth - 0.008f, 0.0008f, 1f), edgeMaterial);
+
+        int count = FastTravelLogic.Destinations.Length;
+        var labels = new TextMeshPro[count];
+        var plates = new Renderer[count];
+        var buttons = new PressableButton[count];
+        float rowsTop = top - 0.019f;
+
+        for (int i = 0; i < count; i++)
+        {
+            var destination = FastTravelLogic.Destinations[i];
+            var row = new GameObject($"Row_{destination.Label}");
+            row.transform.SetParent(column.transform, false);
+            row.transform.localPosition = new Vector3(0f, rowsTop - (i + 0.5f) * TravelRowHeight, 0f);
+            row.layer = interactable;
+
+            // The press target is a slab with depth, so a poking fingertip meets it rather than a zero-thickness quad.
+            var box = row.AddComponent<BoxCollider>();
+            box.size = new Vector3(TravelWidth - 0.004f, TravelRowHeight - 0.001f, 0.006f);
+            row.AddComponent<XRSimpleInteractable>();
+            buttons[i] = row.AddComponent<PressableButton>();
+
+            var plate = Prim("Plate", row, PrimitiveType.Quad, new Vector3(0f, 0f, -0.0003f),
+                new Vector3(TravelWidth - 0.004f, TravelRowHeight - 0.001f, 1f), plateMaterial);
+            plates[i] = plate.GetComponent<Renderer>();
+            labels[i] = HudText("Label", row, Vector2.zero, new Vector2(TravelWidth - 0.008f, TravelRowHeight - 0.003f),
+                destination.Label, TextAlignmentOptions.Center, HoloBlue);
+        }
+
+        var reply = HudText("TravelReply", column, new Vector2(0f, -top + 0.008f),
+            new Vector2(TravelWidth - 0.006f, 0.008f), string.Empty, TextAlignmentOptions.Center, HoloBlue);
+
+        var watch = root.AddComponent<FastTravelWatch>();
+        Set(watch, "column", column);
+        Set(watch, "reply", reply);
+        var so = new SerializedObject(watch);
+        FillArray(so, "rowLabels", labels);
+        FillArray(so, "rowPlates", plates);
+        FillArray(so, "rowButtons", buttons);
+        so.ApplyModifiedPropertiesWithoutUndo();
+    }
+
+    static void FillArray(SerializedObject so, string field, Object[] values)
+    {
+        var array = so.FindProperty(field);
+        array.arraySize = values.Length;
+        for (int i = 0; i < values.Length; i++)
+            array.GetArrayElementAtIndex(i).objectReferenceValue = values[i];
     }
 
     // Upright text on the panel, readable from -Z (the side WatchHologram turns toward the eyes).

@@ -262,7 +262,14 @@ namespace HighStakes.Environment
             pending.Clear();
             SurfaceCount = 0;
             CellCount = 0;
-            if (root != null) Destroy(root.gameObject);
+            if (root != null)
+            {
+                // Switched off before it is destroyed: Destroy only takes effect at the end of the frame, so without
+                // this the old surfaces stay interactable — and findable — for the rest of it. That matters when
+                // something maps twice in one frame, which the reachability check does to reach every island.
+                root.gameObject.SetActive(false);
+                Destroy(root.gameObject);
+            }
             root = null;
         }
 

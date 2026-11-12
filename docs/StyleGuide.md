@@ -164,6 +164,7 @@ Movement is Slot D's and lives in one place: `Assets/Scripts/Environment/Locomot
 | Smooth turn | Right stick left/right | 60°/s, opt-in on the SETTINGS page. |
 | Tunneling vignette | — | Opt-in; darkens the edges of the view while moving or turning. |
 | Seated mode | — | Opt-in; lifts the view to standing height so the game plays sitting down. |
+| Fast travel | TRAVEL column on the watch hologram | Press a room to jump back to it. Only rooms already reached on foot, and only while their keycard is still held. |
 
 Choices are made on the notebook's SETTINGS spread or the start screen, applied by `ComfortSettings` and saved per headset in PlayerPrefs.
 
@@ -174,6 +175,7 @@ Choices are made on the notebook's SETTINGS spread or the start screen, applied 
 - **Don't put walkable floor on layer 31**, and don't reuse that layer for anything else.
 - **If you build something the player should be able to stand on**, give it a collider with an upward face and leave 0.5 m of clear width — that is all the mapper needs. Something they should *not* stand on needs a collider taller than 0.3 m (below that the rig just steps over it).
 - **Seats and tight spots:** the map keeps a 0.25 m body radius clear, so a 0.5 m gap between a table and a wall is not teleportable. That is deliberate — leave 1 m aisles (§4).
+- **Fast travel never opens a door walking wouldn't.** A destination has to have been reached on foot once *and* still hold the card its door asks for, so it can't skip a puzzle or reach the vault early. It is not a locomotion provider and adds nothing to any scene: a jump is the same faded `SceneFlow` swap a `DoorPortal` performs. If you add an area or rename a portal door, add it to `FastTravelLogic.Destinations` and run **High Stakes > Validate Fast Travel**.
 - Changing the comfort defaults, turn rates or the ramp is a test-result decision, not taste: log it in [UserTesting.md](UserTesting.md) and under Decisions in `Progress_Vol1.md`.
 
 **Checking it:** **High Stakes > Run Locomotion Play Check** plays `MVP_Main`, walks every area and fails if any of them has no teleport surface or the player is standing off the map. On the headset, the movement round of the user test script in [UserTesting.md](UserTesting.md) is the real check.

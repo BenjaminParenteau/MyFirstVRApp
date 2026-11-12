@@ -7,9 +7,10 @@ using UnityEngine.SceneManagement;
 /// <summary>
 /// Puts the movement and comfort pieces into MVP_Main: <see cref="TeleportSurfaces"/> (maps the walkable floor of
 /// whichever area is loaded so there is always somewhere to teleport), <see cref="TeleportBlink"/> (fade in on arrival)
-/// and <see cref="MoveRamp"/> (ease up to walking speed). Also reserves the physics layer the generated teleport
-/// surfaces sit on. Re-running replaces them; <see cref="WorldBuilder"/>.BuildMain calls <see cref="AddTo"/> too, so a
-/// world rebuild keeps them. Comfort choices themselves live on the ComfortSettings object (StartScreenBuilder).
+/// and <see cref="MoveRamp"/> (ease up to walking speed), plus <see cref="FastTravel"/> (jump back to an area already
+/// reached on foot). Also reserves the physics layer the generated teleport surfaces sit on. Re-running replaces them;
+/// <see cref="WorldBuilder"/>.BuildMain calls <see cref="AddTo"/> too, so a world rebuild keeps them. Comfort choices
+/// themselves live on the ComfortSettings object (StartScreenBuilder).
 /// </summary>
 public static class LocomotionBuilder
 {
@@ -51,6 +52,7 @@ public static class LocomotionBuilder
         SceneManager.MoveGameObjectToScene(holder, scene);
         holder.AddComponent<TeleportSurfaces>();
         holder.AddComponent<MoveRamp>();
+        holder.AddComponent<FastTravel>();
 
         // The arrival fade shares SceneFlow's black quad in front of the camera rather than adding a second one.
         var blink = holder.AddComponent<TeleportBlink>();
@@ -69,6 +71,61 @@ public static class LocomotionBuilder
         }
 
         EditorSceneManager.MarkSceneDirty(scene);
+    }
+
+    /// <summary>
+    /// Checks every <see cref="FastTravelLogic.Destinations"/> entry against the scene it names: the scene exists, and
+    /// it really contains a <see cref="DoorPortal"/> with the arrival id the watch would ask for. Those ids are plain
+    /// strings written by four different builders (WorldBuilder, VipRoomBuilder, HallwayBuilder's hub and its wings),
+    /// so a rename shows up here rather than as a travel button that fades the screen and lands nowhere.
+    /// </summary>
+    [MenuItem("High Stakes/Validate Fast Travel")]
+    public static void ValidateFastTravel()
+    {
+        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
+
+        int bad = 0;
+        foreach (var destination in FastTravelLogic.Destinations)
+        {
+            string path = $"Assets/Scenes/MVP/{destination.Scene}.unity";
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(path) == null)
+            {
+                Debug.LogError($"[FastTravel] {destination.Label}: no scene at {path}.");
+                bad++;
+                continue;
+            }
+
+            var scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
+            DoorPortal door = null;
+            foreach (var portal in Object.FindObjectsByType<DoorPortal>(FindObjectsInactive.Include,
+                         FindObjectsSortMode.None))
+                if (portal.portalId == destination.ArrivalDoor) { door = portal; break; }
+
+            if (door == null)
+            {
+                Debug.LogError($"[FastTravel] {destination.Label}: {scene.name} has no door '{destination.ArrivalDoor}'. " +
+                               "Travelling there would fade out and leave the player where they were.");
+                bad++;
+            }
+            else if (door.arrival == null)
+            {
+                // SceneFlow places the rig at the door's arrival transform, not at the door — a door without one
+                // fails exactly like a missing door, so it is worth the same error here rather than at runtime.
+                Debug.LogError($"[FastTravel] {destination.Label}: door '{destination.ArrivalDoor}' in {scene.name} " +
+                               "has no arrival point, so there is nowhere to put the player.", door);
+                bad++;
+            }
+            else
+            {
+                var at = door.arrival.position;
+                Debug.Log($"[FastTravel] {destination.Label}: lands at '{destination.ArrivalDoor}' in {scene.name}, " +
+                          $"({at.x:0.0}, {at.y:0.0}, {at.z:0.0}).");
+            }
+        }
+
+        EditorSceneManager.OpenScene(MainPath, OpenSceneMode.Single);
+        if (bad == 0) Debug.Log($"[FastTravel] PASS: all {FastTravelLogic.Destinations.Length} destinations land on a real door.");
+        else Debug.LogError($"[FastTravel] FAIL: {bad} destination(s) have nowhere to land.");
     }
 
     /// <summary>

@@ -19,6 +19,9 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables;
 /// Plays MVP_Main, walks every area, and for each interactable asks whether any mapped walkable cell sits within
 /// arm's reach of it. Writes Logs/LocomotionQA/reachability.txt. A diagnostic only: it reports, it never moves
 /// anyone's props, because the props belong to the slot that built them.
+/// <br/>
+/// An area can hold several disconnected islands of floor, so every one of them is mapped before anything is judged
+/// (<see cref="MapEveryIsland"/>) — a prop counts as reachable if it is reachable from any island.
 /// </summary>
 [InitializeOnLoad]
 public static class ReachabilityCheck
@@ -157,56 +160,127 @@ public static class ReachabilityCheck
         var origin = UnityEngine.Object.FindFirstObjectByType<XROrigin>();
         var rig = origin != null ? origin.transform : null;
 
-        lines.Add($"## {scene}  ({surfaces.SurfaceCount} surfaces, {surfaces.CellCount} walkable cells)");
-
-        // Where the mapped floor actually is. A prop reported as having no walkable cell near it is either genuinely
-        // stranded or belongs to another loaded scene (the CCTV wall loads rooms additively to observe them), and
-        // comparing its position against these bounds is what tells the two apart.
-        var holder = GameObject.Find("Teleport_Surfaces");
-        if (holder != null && holder.transform.childCount > 0)
-        {
-            Bounds? map = null;
-            foreach (Transform child in holder.transform)
-            {
-                var box = child.GetComponent<BoxCollider>();
-                if (box == null) continue;
-                if (map == null) map = box.bounds;
-                else { var b = map.Value; b.Encapsulate(box.bounds); map = b; }
-            }
-            if (map != null)
-                lines.Add($"   mapped floor spans x {map.Value.min.x:0.0}..{map.Value.max.x:0.0}, " +
-                          $"z {map.Value.min.z:0.0}..{map.Value.max.z:0.0}");
-        }
-
-        int here = 0, missed = 0;
+        var props = new List<XRBaseInteractable>();
         foreach (var interactable in UnityEngine.Object.FindObjectsByType<XRBaseInteractable>(FindObjectsSortMode.None))
-        {
-            if (!Counts(interactable, rig)) continue;
-            here++;
+            if (Counts(interactable, rig)) props.Add(interactable);
 
-            var at = Middle(interactable);
-            if (Reachable(surfaces, at, out float nearest, out float height))
+        // Best result per prop across every island: reachable from any one of them is reachable, and the nearest
+        // somewhere-to-stand is the nearest over all of them.
+        var ok = new bool[props.Count];
+        var nearest = new float[props.Count];
+        var height = new float[props.Count];
+        for (int i = 0; i < props.Count; i++) nearest[i] = float.MaxValue;
+
+        var spans = new List<string>();
+        int islands = 0, surfaceTotal = 0, cellTotal = 0;
+
+        foreach (var map in MapEveryIsland(surfaces, rig, scene))
+        {
+            islands++;
+            surfaceTotal += surfaces.SurfaceCount;
+            cellTotal += surfaces.CellCount;
+            spans.Add(map);
+
+            for (int i = 0; i < props.Count; i++)
             {
-                reachable++;
-            }
-            else
-            {
-                missed++;
-                unreachable++;
-                lines.Add($"  UNREACHABLE  [{interactable.gameObject.scene.name}] {Path(interactable.transform)}");
-                lines.Add($"               at ({at.x:0.00}, {at.y:0.00}, {at.z:0.00}); " +
-                          (height > ReachHeight
-                              ? $"{height:0.00} m above the nearest walkable floor, over the {ReachHeight:0.0} m standing reach"
-                              : nearest < float.MaxValue
-                                  ? $"nearest somewhere-to-stand is {nearest:0.00} m away, over the {Reach:0.00} m reach"
-                                  : "no mapped walkable cell anywhere near it"));
+                if (ok[i]) continue;
+                bool found = Reachable(surfaces, Middle(props[i]), out float near, out float high);
+                if (found) { ok[i] = true; nearest[i] = near; height[i] = high; }
+                else if (near < nearest[i]) { nearest[i] = near; height[i] = high; }
             }
         }
 
-        lines.Add(here == 0
+        lines.Add($"## {scene}  ({surfaceTotal} surfaces, {cellTotal} walkable cells " +
+                  $"over {islands} island{(islands == 1 ? "" : "s")})");
+        foreach (string span in spans) lines.Add("   " + span);
+
+        int missed = 0;
+        for (int i = 0; i < props.Count; i++)
+        {
+            if (ok[i]) { reachable++; continue; }
+            missed++;
+            unreachable++;
+            var at = Middle(props[i]);
+            lines.Add($"  UNREACHABLE  [{props[i].gameObject.scene.name}] {Path(props[i].transform)}");
+            lines.Add($"               at ({at.x:0.00}, {at.y:0.00}, {at.z:0.00}); " +
+                      (height[i] > ReachHeight
+                          ? $"{height[i]:0.00} m above the nearest walkable floor, over the {ReachHeight:0.0} m standing reach"
+                          : nearest[i] < float.MaxValue
+                              ? $"nearest somewhere-to-stand is {nearest[i]:0.00} m away, over the {Reach:0.00} m reach"
+                              : "no mapped walkable cell anywhere near it"));
+        }
+
+        lines.Add(props.Count == 0
             ? "  (no interactables found in this area)"
-            : $"  {here - missed}/{here} reachable by teleport" + (missed > 0 ? $", {missed} NOT" : ""));
+            : $"  {props.Count - missed}/{props.Count} reachable by teleport" + (missed > 0 ? $", {missed} NOT" : ""));
         lines.Add(string.Empty);
+    }
+
+    /// <summary>
+    /// Maps each separate island of walkable floor in the area in turn, yielding a description of the one now live.
+    /// <br/>
+    /// An area is not one connected floor. Each security wing holds its hallway and its room as two islands 40 m
+    /// apart in the same scene (`HallwayBuilder`: "their own islands"), joined only by an in-scene `DoorPortal` jump.
+    /// <see cref="TeleportSurfaces"/> floods out from the player's feet, so mapping once from where the tour arrives
+    /// only ever sees the hallway — which is why this check used to report every prop in those rooms as stranded
+    /// 40 m from the floor, and why the security office's 12 x 12 m room looked unmapped (2026-11-12).
+    /// <br/>
+    /// Seeds are the rig's own position plus every door arrival point in this scene; a seed already standing on an
+    /// island that has been mapped is skipped, so each island is walked once.
+    /// </summary>
+    static IEnumerable<string> MapEveryIsland(TeleportSurfaces surfaces, Transform rig, string scene)
+    {
+        if (rig == null) yield break;
+
+        var home = rig.position;
+        var homeRotation = rig.rotation;
+
+        var seeds = new List<Vector3> { home };
+        foreach (var portal in UnityEngine.Object.FindObjectsByType<DoorPortal>(FindObjectsInactive.Include,
+                     FindObjectsSortMode.None))
+        {
+            // Only this area's doors: the CCTV wall loads other rooms additively to observe them, and their doors
+            // would seed islands in a scene the player is not standing in.
+            if (portal.arrival == null || portal.gameObject.scene.name != scene) continue;
+            seeds.Add(portal.arrival.position);
+        }
+
+        var mapped = new bool[seeds.Count];
+        for (int s = 0; s < seeds.Count; s++)
+        {
+            if (mapped[s]) continue;
+            mapped[s] = true;
+
+            rig.position = seeds[s];
+            surfaces.RemapImmediate();
+            if (surfaces.CellCount == 0) continue;
+
+            // Every other seed standing on what was just mapped belongs to this island, not a new one.
+            for (int t = s + 1; t < seeds.Count; t++)
+                if (!mapped[t] && surfaces.Covers(seeds[t])) mapped[t] = true;
+
+            yield return Span(surfaces.SurfaceCount, surfaces.CellCount);
+        }
+
+        rig.SetPositionAndRotation(home, homeRotation);
+        surfaces.RemapImmediate(); // leave the live map as the tour found it, for the step that follows
+    }
+
+    /// <summary>Where the island now mapped actually lies, so a stranded prop can be compared against it.</summary>
+    static string Span(int surfaceCount, int cellCount)
+    {
+        Bounds? map = null;
+        foreach (var surface in UnityEngine.Object.FindObjectsByType<TeleportSurface>(FindObjectsSortMode.None))
+        {
+            var box = surface.GetComponent<BoxCollider>();
+            if (box == null) continue;
+            if (map == null) map = box.bounds;
+            else { var b = map.Value; b.Encapsulate(box.bounds); map = b; }
+        }
+        return map == null
+            ? $"island: {surfaceCount} surfaces, {cellCount} cells (no bounds)"
+            : $"island: x {map.Value.min.x:0.0}..{map.Value.max.x:0.0}, z {map.Value.min.z:0.0}..{map.Value.max.z:0.0} " +
+              $"({surfaceCount} surfaces, {cellCount} cells)";
     }
 
     /// <summary>
