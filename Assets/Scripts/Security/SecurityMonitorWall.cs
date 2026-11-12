@@ -168,7 +168,12 @@ namespace HighStakes.Security
             var wall=instance;
             wall.releasing=true;
             wall.ready=false;
-            if(wall.pendingLoad!=null) yield return wall.pendingLoad;
+            // Polled, not yielded: LoadRooms is already yielding this very AsyncOperation, and Unity throws
+            // "An asynchronous operation can only be yielded once" when a second coroutine yields it. That exception
+            // tore down the swap that called this, so SceneFlow.Busy stayed true and the player was left on a black
+            // screen for good — reproducible by leaving the camera room while a feed was still loading
+            // (locomotion play check, 2026-11-11). Polling isDone waits for the same thing without the second yield.
+            while(wall.pendingLoad!=null && !wall.pendingLoad.isDone) yield return null;
             // Resume LoadRooms so its completed load is tracked before unloading.
             yield return null;
             foreach(var scene in wall.remoteScenes)

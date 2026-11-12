@@ -21,6 +21,9 @@ namespace HighStakes.Environment
         [Tooltip("Black quad just in front of the headset camera, faded in while scenes swap.")]
         [SerializeField] Renderer fade;
         [SerializeField] float fadeSeconds = 0.25f;
+        [Tooltip("Longest a single step of a swap may take before the swap carries on without it (s). A step that " +
+                 "never finishes would otherwise leave the player on a black screen with no way out.")]
+        [SerializeField] float stepTimeout = 8f;
 
         static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
 
@@ -33,6 +36,12 @@ namespace HighStakes.Environment
 
         /// <summary>True while the start screen is up and no area has loaded yet.</summary>
         public bool WaitingForStart { get; private set; }
+
+        /// <summary>
+        /// Which part of a swap is running, for the play check's stall report. A swap has several waits in it and
+        /// "Busy = true" on its own does not say which one is stuck.
+        /// </summary>
+        public string Stage { get; private set; } = "idle";
 
         MaterialPropertyBlock block;
 
@@ -99,19 +108,29 @@ namespace HighStakes.Environment
         IEnumerator Swap(string scene, string arrivalId)
         {
             Busy = true;
+            Stage = "fading out";
             yield return Fade(0f, 1f);
 
             var old = CurrentScene;
             if (old != scene)
             {
-                // A CCTV room is loaded for observation only; release it before loading a playable copy.
-                yield return HighStakes.Security.SecurityMonitorWall.ReleaseBeforeTravel();
+                Stage = "releasing the CCTV feeds";
+                // A CCTV room is loaded for observation only; release it before loading a playable copy. Guarded,
+                // because the wall's release waits on its own in-flight load while its loader waits on Busy being
+                // false — the two can end up waiting on each other, and a swap that never ends strands the player
+                // on a black screen. Leaving the camera room is where this bites (play check, 2026-11-11).
+                yield return Guarded(HighStakes.Security.SecurityMonitorWall.ReleaseBeforeTravel(),
+                    "releasing the CCTV feeds");
+                Stage = $"loading {scene}";
                 yield return Load(scene);
                 CurrentScene = scene;
+                Stage = $"unloading {old}";
                 if (old != null) yield return SceneManager.UnloadSceneAsync(old);
+                Stage = "settling light probes";
                 LightProbes.TetrahedralizeAsync();
             }
 
+            Stage = $"placing the rig at {arrivalId}";
             if (DoorPortal.TryGetArrival(arrivalId, out var arrival))
             {
                 DoorPortal.MoveRig(arrival);
@@ -125,8 +144,43 @@ namespace HighStakes.Environment
             // The rig's teleport is queued; let it land before the view comes back.
             yield return null;
             yield return null;
+            Stage = "fading in";
             yield return Fade(1f, 0f);
+            Stage = "idle";
             Busy = false;
+        }
+
+        /// <summary>
+        /// Runs one step of a swap, but gives up waiting on it after <see cref="stepTimeout"/> and carries on. The step
+        /// itself is left running — it is abandoned, not cancelled — so a slow step still finishes its work late, while
+        /// a step that never finishes can no longer wedge the swap. Losing a frame of tidy-up beats a player stuck on
+        /// a black screen, which is the one failure a test session cannot recover from.
+        /// </summary>
+        IEnumerator Guarded(IEnumerator step, string what)
+        {
+            bool done = false;
+            StartCoroutine(Finishing(step, () => done = true));
+
+            // Counts frames as well as seconds, and publishes both on Stage: if a swap ever stalls here again, the
+            // report distinguishes "this step is slow" from "the game loop itself stopped ticking".
+            int frames = 0;
+            float started = Time.unscaledTime;
+            while (!done && Time.unscaledTime - started < stepTimeout)
+            {
+                frames++;
+                Stage = $"{what} ({frames} frames, {Time.unscaledTime - started:0.0} s of {stepTimeout:0.#} s)";
+                yield return null;
+            }
+
+            if (!done)
+                Debug.LogError($"[SceneFlow] {what} did not finish within {stepTimeout:0.#} s ({frames} frames); " +
+                               "carrying on with the swap so the player is not left on a black screen.");
+        }
+
+        static IEnumerator Finishing(IEnumerator step, System.Action onDone)
+        {
+            yield return step;
+            onDone();
         }
 
         static IEnumerator Load(string scene)

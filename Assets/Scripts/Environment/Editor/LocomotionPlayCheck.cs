@@ -12,14 +12,15 @@ using UnityEngine.XR.Interaction.Toolkit.Locomotion.Teleportation;
 /// <summary>
 /// Plays MVP_Main for real and walks the whole building, checking that every area ends up with teleport surfaces under
 /// the player and that a queued teleport actually lands the rig on one. Teleporting is the one movement mode that can
-/// silently have nowhere to go, which is exactly what this catches. Writes Temp/LocomotionQA/play-check.txt.
+/// silently have nowhere to go, which is exactly what this catches. Writes Logs/LocomotionQA/play-check.txt — not
+/// Temp/, which Unity deletes on a clean shutdown, so a batch run's own result vanished with it.
 /// </summary>
 [InitializeOnLoad]
 public static class LocomotionPlayCheck
 {
     const string Pending = "Locomotion.PlayCheck";
     const string MainPath = "Assets/Scenes/MVP/MVP_Main.unity";
-    const string ResultPath = "Temp/LocomotionQA/play-check.txt";
+    const string ResultPath = "Logs/LocomotionQA/play-check.txt";
 
     // The tour: every area SceneFlow can load, and the door id to arrive at in each.
     static readonly (string Scene, string Arrival)[] Tour =
@@ -40,6 +41,20 @@ public static class LocomotionPlayCheck
     static double deadline, waitUntil;
     static bool teleportTested, passed;
 
+    /// <summary>
+    /// Every wait in <see cref="Tick"/> used to be a silent <c>return</c>, so anything that never became true showed up
+    /// 300 seconds later as "Timed out" with no clue which area or which condition. Each wait now names itself and gets
+    /// its own <see cref="StallSeconds"/> budget, and the trail is flushed to disk as it goes, so a stall says what it
+    /// was waiting for and how far the tour got.
+    /// </summary>
+    const double StallSeconds = 45;
+
+    static string waitingFor = "play mode to start";
+    static double waitingSince;
+
+    /// <summary>The area the last <see cref="SceneFlow.Go"/> asked for, so a stuck swap names where it was going.</summary>
+    static string destination;
+
     static LocomotionPlayCheck()
     {
         EditorApplication.playModeStateChanged += state =>
@@ -52,6 +67,9 @@ public static class LocomotionPlayCheck
                 teleportTested = false;
                 passed = false;
                 checks.Clear();
+                waitingFor = "MVP_Main to wake up";
+                waitingSince = EditorApplication.timeSinceStartup;
+                destination = null;
                 deadline = EditorApplication.timeSinceStartup + 300;
                 EditorApplication.update += Tick;
             }
@@ -84,11 +102,15 @@ public static class LocomotionPlayCheck
     {
         try
         {
-            if (EditorApplication.timeSinceStartup > deadline) throw new Exception("Timed out");
+            if (EditorApplication.timeSinceStartup > deadline) throw new Exception(Stalled("the 300 s budget ran out"));
             if (EditorApplication.timeSinceStartup < waitUntil) return;
 
             var surfaces = TeleportSurfaces.Instance;
-            if (surfaces == null) return;
+            if (surfaces == null)
+            {
+                Waiting("a TeleportSurfaces in MVP_Main (run High Stakes > Build Locomotion & Comfort)");
+                return;
+            }
 
             var flow = SceneFlow.Instance;
             if (flow == null) throw new Exception("No SceneFlow in MVP_Main");
@@ -96,11 +118,28 @@ public static class LocomotionPlayCheck
             // Past the start screen first; the casino only loads once START NIGHT is pressed.
             if (flow.WaitingForStart)
             {
-                UnityEngine.Object.FindFirstObjectByType<HighStakes.UI.StartScreen>()?.StartNight();
+                var start = UnityEngine.Object.FindFirstObjectByType<HighStakes.UI.StartScreen>();
+                if (start == null)
+                    throw new Exception("SceneFlow is waiting for start but MVP_Main has no StartScreen to press " +
+                                        "(run High Stakes > Build Start Screen, or turn Wait For Start off)");
+                start.StartNight();
+                Waiting("the start screen to hand over after START NIGHT");
                 return;
             }
-            if (flow.Busy || surfaces.Mapping || flow.CurrentScene == null) return;
-            if (surfaces.BuiltFor != flow.CurrentScene) return;
+            // CurrentScene is still the room being left while a swap runs, so the message names where we asked to go.
+            if (flow.Busy)
+            {
+                Waiting($"SceneFlow to finish swapping out of {flow.CurrentScene ?? "the lobby"} " +
+                        $"to {destination ?? "the first area"}");
+                return;
+            }
+            if (flow.CurrentScene == null) { Waiting("SceneFlow to load the first area"); return; }
+            if (surfaces.Mapping) { Waiting($"the floor map of {flow.CurrentScene}"); return; }
+            if (surfaces.BuiltFor != flow.CurrentScene)
+            {
+                Waiting($"the map to catch up: built for {surfaces.BuiltFor ?? "nothing"}, now in {flow.CurrentScene}");
+                return;
+            }
 
             var origin = UnityEngine.Object.FindFirstObjectByType<XROrigin>();
             if (origin == null) throw new Exception("No XR Origin");
@@ -112,8 +151,8 @@ public static class LocomotionPlayCheck
                 Require(surfaces.SurfaceCount > 0, $"{flow.CurrentScene} has no teleport surface");
                 Require(surfaces.Covers(origin.transform.position),
                     $"{flow.CurrentScene}: the player is standing outside the mapped floor");
-                checks.Add($"{flow.CurrentScene}: {surfaces.SurfaceCount} surfaces over {surfaces.CellCount} walkable " +
-                           "cells, the player's own ground among them");
+                Note($"{flow.CurrentScene}: {surfaces.SurfaceCount} surfaces over {surfaces.CellCount} walkable " +
+                     "cells, the player's own ground among them");
             }
 
             // Once, in the casino: a teleport request to a surface really moves the rig there, and a point inside the
@@ -132,13 +171,15 @@ public static class LocomotionPlayCheck
             }
 
             var next = Tour[step++];
+            destination = next.Scene;
             Require(flow.Go(next.Scene, next.Arrival), $"SceneFlow refused to travel to {next.Scene}");
+            Waiting($"step {step}/{Tour.Length}: arrival at {next.Scene} door {next.Arrival}");
             waitUntil = EditorApplication.timeSinceStartup + 1.0;
         }
         catch (Exception e)
         {
             Debug.LogException(e);
-            Write("FAIL: " + e.Message);
+            WriteFail(e.Message);
             Debug.Log("[Locomotion] PLAY CHECK FAILED");
             Finish();
         }
@@ -174,8 +215,9 @@ public static class LocomotionPlayCheck
 
         var box = surface.GetComponent<BoxCollider>();
         var size = box.size;
-        checks.Add($"MVP_Casino: queued a teleport onto a {size.x:0.0} x {size.z:0.0} m surface at " +
-                   $"({target.x:0.0}, {target.y:0.00}, {target.z:0.0})");
+        Note($"MVP_Casino: queued a teleport onto a {size.x:0.0} x {size.z:0.0} m surface at " +
+             $"({target.x:0.0}, {target.y:0.00}, {target.z:0.0})");
+        Waiting("the teleportation provider to apply the queued request");
 
         // Checked on the next tick, once the provider has applied it.
         waitUntil = EditorApplication.timeSinceStartup + 0.5;
@@ -199,7 +241,7 @@ public static class LocomotionPlayCheck
             Require(off < 0.3f, $"Teleport landed {off:0.00} m from the surface it aimed at");
             Require(Mathf.Abs(landed.y - teleportTarget.y) < 0.3f,
                 $"Teleport landed {landed.y - teleportTarget.y:0.00} m above/below the floor");
-            checks.Add($"MVP_Casino: the rig arrived {off:0.00} m from that point, standing on the floor");
+            Note($"MVP_Casino: the rig arrived {off:0.00} m from that point, standing on the floor");
 
             // The clearance rule the surfaces are built on: inside a wall is not a place to stand.
             var surfaces = TeleportSurfaces.Instance;
@@ -221,8 +263,8 @@ public static class LocomotionPlayCheck
             }
             Require(blockedSomewhere, "Nothing in the casino counts as blocked, so the clearance test is not working");
             Require(!surfaces.Covers(new Vector3(0f, 0f, 9999f)), "A point far outside the area is mapped as walkable");
-            checks.Add("Clearance: a mapped surface is clear, the inside of solid geometry is blocked, " +
-                       "and a point outside the area is not mapped");
+            Note("Clearance: a mapped surface is clear, the inside of solid geometry is blocked, " +
+                 "and a point outside the area is not mapped");
 
             EditorApplication.update -= AfterTeleport;
             EditorApplication.update += Tick;
@@ -230,7 +272,7 @@ public static class LocomotionPlayCheck
         catch (Exception e)
         {
             Debug.LogException(e);
-            Write("FAIL: " + e.Message);
+            WriteFail(e.Message);
             Debug.Log("[Locomotion] PLAY CHECK FAILED");
             EditorApplication.update -= AfterTeleport;
             Finish();
@@ -251,6 +293,72 @@ public static class LocomotionPlayCheck
     static void Require(bool ok, string message)
     {
         if (!ok) throw new Exception(message);
+    }
+
+    /// <summary>
+    /// Names what the check is blocked on. The first call for a given reason starts its clock; once one condition has
+    /// held for <see cref="StallSeconds"/> the run fails with that reason rather than sitting until the 300 s budget
+    /// expires with nothing to show. Called from inside the Tick try blocks, so the throw lands in their catch.
+    /// </summary>
+    static void Waiting(string reason)
+    {
+        if (reason != waitingFor)
+        {
+            waitingFor = reason;
+            waitingSince = EditorApplication.timeSinceStartup;
+            WriteProgress("RUNNING");
+            return;
+        }
+
+        if (EditorApplication.timeSinceStartup - waitingSince > StallSeconds)
+            throw new Exception(Stalled($"nothing happened for {StallSeconds:0} s"));
+    }
+
+    /// <summary>The message a stall or a timeout fails with: what it wanted, how far it got, and the live state.</summary>
+    static string Stalled(string why)
+    {
+        var flow = SceneFlow.Instance;
+        var surfaces = TeleportSurfaces.Instance;
+        return $"{why} while waiting for {waitingFor}. Reached tour step {step}/{Tour.Length}, {checks.Count} checks " +
+               $"passed. Play time {Time.unscaledTime:0.0} s, frame {Time.frameCount}. SceneFlow: " +
+               (flow == null
+                   ? "missing"
+                   : $"scene={flow.CurrentScene ?? "none"} busy={flow.Busy} stage=\"{flow.Stage}\" " +
+                     $"waitingForStart={flow.WaitingForStart} on \"{flow.gameObject.name}\" in " +
+                     $"{flow.gameObject.scene.name} active={flow.gameObject.activeInHierarchy} " +
+                     $"enabled={flow.enabled}") +
+               ". TeleportSurfaces: " +
+               (surfaces == null
+                   ? "missing"
+                   : $"builtFor={surfaces.BuiltFor ?? "nothing"} mapping={surfaces.Mapping} " +
+                     $"surfaces={surfaces.SurfaceCount} cells={surfaces.CellCount}");
+    }
+
+    /// <summary>Records a passed check and flushes the trail, so a later stall still shows what already worked.</summary>
+    static void Note(string line)
+    {
+        checks.Add(line);
+        WriteProgress("RUNNING");
+    }
+
+    static void WriteProgress(string status)
+    {
+        var report = new StringBuilder();
+        report.AppendLine($"{status}: {checks.Count} checks, tour step {step}/{Tour.Length}, waiting for {waitingFor}");
+        foreach (var line in checks) report.AppendLine("  - " + line);
+        Write(report.ToString());
+    }
+
+    static void WriteFail(string message)
+    {
+        var report = new StringBuilder();
+        report.AppendLine("FAIL: " + message);
+        if (checks.Count > 0)
+        {
+            report.AppendLine($"Checks that did pass ({checks.Count}):");
+            foreach (var line in checks) report.AppendLine("  - " + line);
+        }
+        Write(report.ToString());
     }
 
     static void Write(string text)
