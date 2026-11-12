@@ -332,6 +332,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 
 ### Slot B log
 
+- 2026-11-12 · Synced Ashton with dev and baked MVP_SecurityHall (2 lightmaps), MVP_SecurityOffice (3), and MVP_CameraRoom (3) in Unity 6000.3.23f1 using the shared StyleKit lighting settings: Progressive CPU, baked GI, realtime GI off, 20 texels/unit, 1024 max atlas. Verified successful bake results and saved lighting data for all three scenes; existing geometry and furnishings preserved. Headset visual/performance review remains pending.
+
 - 2026-10-27 - Added isolated vault treasury dressing: 834 cash bundles, 212 gold bars, 168 deposit drawers, three carts, counting station/open till and a reinforced circular door facade; generated cash texture, feature-owned PBR lighting and material-batched geometry (63,630 triangles, ten renderers). Visual, clear-aisle and room travel/reload checks passed; shared scenes unchanged; headset performance pending.
 
 - 2026-10-22 · Improved security-office readability: fitted terminal/board text, moved CCTV captions above equipment and the title ahead of the cable tray, and increased live/editor screen emission to 2.5x.
