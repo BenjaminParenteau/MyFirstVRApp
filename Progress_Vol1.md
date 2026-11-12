@@ -90,6 +90,34 @@ The protocol, the script, the per-tester sheet and both rounds' result tables li
 | Individual video — Benjamin Parenteau, link in GDD | Benjamin | ⬜ |
 | Rubric reviewed and GDD checked against it | All | ⬜ |
 
+### Who does what next (2026-11-11)
+
+Movement itself is done and verified (play check PASS, all six areas). **Everything left is either someone's content fix or the test rounds themselves.** Detail for each item is in Open questions — this is just the running order so nobody waits on the wrong thing.
+
+**Everyone, today, no dependencies: record your individual video.** Re-read the brief — core concept, storyline, characters, unique features, professional dress. **None of it needs test results.** It is the only deliverable with nothing in front of it, and it is the one that always slips to the last night. Do it while the fixes and bakes are in flight.
+
+**Ashton (B) — start here, round 1 cannot run without 1:**
+1. **The wire panel, tape archive and HOLD button sit ~40 m outside their rooms' floor** and the security office's 12 × 12 room looks unmapped entirely. Unreachable in *both* movement modes, so the whole back-of-house chain and test task T6 are dead. Re-run **High Stakes > Run Reachability Check** when done — it should read 0 unreachable in both rooms.
+2. **The three lightmap bakes** (`MVP_SecurityOffice`, `MVP_CameraRoom`, `MVP_SecurityHall`). Longest lead time of anything left and **Zach cannot do these** (no GPU).
+3. Pull before you start — `dev` includes a one-line fix to your `SecurityMonitorWall.cs` for a black-screen hang.
+
+**Pak (C) — round 1 cannot run without 1:**
+1. **The first-time "how to move" line** (one Guide line, or one row on the start-screen console). Without it, Q1 — "can a player who has never used VR move without being told how?" — gets answered by the observer's 30-second hint for *every* tester, which wastes the question.
+2. Hold until round 1 asks: the three extra comfort rows (turn angle, turn speed, move direction) and whether the vignette should default on.
+
+**Ben (A) — a decision, possibly no work:**
+1. **The roulette layout is 1.10 m from the nearest place a teleporting player can stand** (bar keypad 0.85 m). Options: a seat anchor at the table, bring the far half of the layout closer, or leave it and let round 1 answer. VIP is 44/44 clean and the vault 12/12, so this is the roulette table and the bar counter specifically.
+2. Walk your own areas in both modes.
+
+**Zach (D):**
+1. Push `dev` so the above actually reaches everyone.
+2. Once A/B/C land: build **APK #1**, walk all six areas in both modes, confirm the §7 budget (72 fps) on device.
+3. Run **round 1** (≥ 5 testers, ≥ 3 outside the team), log every sheet in [docs/UserTesting.md](docs/UserTesting.md).
+4. Fixes → **APK #2** → **round 2** → the round 1 → 2 comparison table.
+5. GDD user-testing section, built from that table.
+
+**All four, last:** rubric reviewed and the GDD checked against it.
+
 ## Milestone 3 — UI, inventory, dialogue + user testing (previous assignment)
 
 **Assignment (CLC, group):** design and implement the game's **user interfaces and interactions**: intuitive **menus**, an **inventory system** and **dialogue boxes** that improve usability and immersion. **Run user tests, collect feedback and iterate** on the designs. Full brief: "GDT-120 Course Project" in Class Resources (check the rubric before starting).
@@ -413,6 +441,8 @@ Format: `- YYYY-MM-DD · <what changed> (<commit or branch>)`
 - 2026-09-29 · _(setup)_ · Added `docs/reference/` (concept-art descriptions from the submitted GDD PDF), linked from CLAUDE.md; added Benjamin Parenteau to the GDD team line.
 
 ## Decisions
+
+- **2026-11-11 · Both test rounds run on the standalone APK, not Quest Link — even though Ben's machine can do Link.** Frame rate and latency are the biggest motion-sickness variables there are, bigger than the vignette, the snap turn or the move ramp. Link renders on a desktop GPU and streams; the standalone build runs on the Quest 3's mobile chip at whatever the scene actually costs (the 72 fps §7 budget is still unconfirmed on device). Comfort scores collected over Link would therefore describe a build nobody plays, and Link's own compression latency can cause discomfort that is not our game's fault — so it misleads in both directions and the nausea numbers stop being evidence about what we built. A tethered cable also fights the standing 1.5 × 1.5 m play space and the 180° turnaround in task T3. Link stays useful for **iteration** (Ben and Ashton, no build wait) and Ben's machine is the easy way to **cast the headset view** for the observer, which the session setup already asks for. Note for planning: building an APK needs no GPU — it is CPU work, and installing is `adb` over USB — so Slot D was never blocked from producing one.
 
 - **2026-11-11 · A scene swap may never be able to hang.** The locomotion play check found a real hang, not a test-harness problem: leaving `MVP_CameraRoom` while a CCTV feed was still loading left the player on a black screen permanently, with no recovery. `SecurityMonitorWall.ReleaseBeforeTravel` yielded the same `AsyncOperation` that its own `LoadRooms` was already yielding; Unity throws "An asynchronous operation can only be yielded once" on that, the exception tore down the coroutine chain, and `SceneFlow.Swap` therefore never reached `Busy = false`. Fixed by polling `isDone` instead of yielding a second time. Two guards added so no future bug in a swap step can do this again: `SceneFlow.stepTimeout` (a step that does not finish in 8 s is abandoned, logged, and the swap carries on) and `SceneFlow.Stage` (a stuck swap now names the step it is on). **Rule going forward: anything a swap waits on gets a timeout.** A tester walking into the camera room and straight back out would have hit this, so it would have cost a round 1 session.
 
