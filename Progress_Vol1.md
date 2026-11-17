@@ -562,6 +562,8 @@ Things the team agreed on that aren't obvious from the code.
 
 ## Open questions / blockers
 
+- **Zach, next session: start at [docs/milestone6/NEXT.md](docs/milestone6/NEXT.md).** First action is **High Stakes > Audio > Validate Cues** — it has never been run and there are now two slots' cue sets to run it against, which is the first real test of cross-slot cue discovery. Then **Build Soundscape** (none of the components are in `MVP_Main` yet), then `tools/audio/generate_environment_audio.py`, which is what finally makes any of this audible. Chasing Pak for the `BLACKOUT RUN` start-screen row is the one item that gates how the milestone demos.
+
 - **Everyone, from Zach: Milestone 6 has started and you each have your own brief (2026-11-17).** Audio, spatial sound, and a mode where the lights go out entirely. **Read [docs/milestone6/README.md](docs/milestone6/README.md) once** (the seven rules that stop four people authoring sound from colliding — the short version is *no `AudioSource` ever goes in a scene file*, so this milestone changes no scene), then read **only your own brief**; each is standalone and names every file you'll touch:
   - **Ben → [Audio_SlotA_Ben.md](docs/milestone6/Audio_SlotA_Ben.md)** — the sound of the games.
   - **Ashton → [Audio_SlotB_Ashton.md](docs/milestone6/Audio_SlotB_Ashton.md)** — locks, keypads, back of house. One thing in there is load-bearing for the whole milestone: **ten per-digit keypad tones**, so the vault code can be entered in the dark by ear. That is the "act by sound" requirement and it lives in your file.

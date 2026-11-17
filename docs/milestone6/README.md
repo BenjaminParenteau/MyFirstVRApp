@@ -1,5 +1,7 @@
 # Milestone 6 — audio, spatial sound and the blackout mode
 
+> **Resuming work? Start with [NEXT.md](NEXT.md)** — what is built, what is only written, and the next action in order.
+
 Four people are authoring sound at the same time. This folder is how we do that without standing on each
 other. Read this page once, then read **only your own brief** — each one is standalone and self-contained.
 
