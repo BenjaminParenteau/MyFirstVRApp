@@ -1,5 +1,6 @@
 using System.Collections;
 using HighStakes.Dialogue;
+using HighStakes.Environment.Audio;
 using HighStakes.TableGames;
 using HighStakes.UI;
 using TMPro;
@@ -46,6 +47,25 @@ namespace HighStakes.Security
         UnityAction[] handlers;
         string entry = "";
         float nextPress;
+        Soundscape.LoopHandle alarm;
+
+        void OnEnable()
+        {
+            if (LockedDown) StartAlarm();
+        }
+
+        void OnDisable() => StopAlarm();
+
+        void StartAlarm()
+        {
+            if (!SecurityMonitorWall.LoadingRemote) alarm = Soundscape.Loop("sec.alarm.lockdown", transform);
+        }
+
+        void StopAlarm()
+        {
+            alarm?.Stop();
+            alarm = null;
+        }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetSession()
@@ -100,6 +120,7 @@ namespace HighStakes.Security
                 return;
             }
             lockedUntil = 0f;
+            StopAlarm();
             SetLamps(lockedMaterial);
             Show(LockboxLogic.Display(entry, code.Length), Prompt);
         }
@@ -118,9 +139,14 @@ namespace HighStakes.Security
             {
                 Check();
             }
-            else
+            else if (entry.Length < code.Length)
             {
-                entry = LockboxLogic.Press(entry, key == 10 ? 0 : key + 1, code.Length);
+                int digit = key == 10 ? 0 : key + 1;
+                bool spoken = Soundscape.IsBlackout;
+                if (spoken) nextPress = Time.unscaledTime + 0.62f; // Leave room for the full digit confirmation.
+                string cue = spoken ? $"sec.keypad.spoken.{digit}" : $"sec.keypad.key.{digit}";
+                Soundscape.PlayAt(cue, keys[key].transform.position);
+                entry = LockboxLogic.Press(entry, digit, code.Length);
                 Show(LockboxLogic.Display(entry, code.Length), Prompt);
             }
         }
@@ -130,9 +156,11 @@ namespace HighStakes.Security
             switch (VaultCodeLogic.Submit(entry, code, ref failures, maxFailures))
             {
                 case VaultAttempt.Incomplete:
+                    Soundscape.PlayAt("sec.keypad.bad", transform.position);
                     Show(LockboxLogic.Display(entry, code.Length), code.Length + " DIGITS");
                     return;
                 case VaultAttempt.Wrong:
+                    Soundscape.PlayAt("sec.keypad.bad", transform.position);
                     entry = "";
                     int left = VaultCodeLogic.AttemptsLeft(failures, maxFailures);
                     Show(LockboxLogic.Display(entry, code.Length), "WRONG · " + left + (left == 1 ? " TRY LEFT" : " TRIES LEFT"));
@@ -140,6 +168,8 @@ namespace HighStakes.Security
                 case VaultAttempt.Lockdown:
                     entry = "";
                     lockedUntil = Time.time + lockdownSeconds;
+                    Soundscape.PlayAt("sec.keypad.lockout", transform.position);
+                    StartAlarm();
                     return;
                 case VaultAttempt.Open:
                     Crack();
@@ -150,6 +180,7 @@ namespace HighStakes.Security
         void Crack()
         {
             cracked = true;
+            Soundscape.PlayAt("sec.keypad.ok", transform.position);
             SetLamps(openMaterial);
             Show(LockboxLogic.Display(code, code.Length), "ACCESS GRANTED");
             PuzzleSession.PayOnce("vault", reward);
@@ -161,6 +192,7 @@ namespace HighStakes.Security
 
         IEnumerator OpenLid()
         {
+            if (drawerLid != null) Soundscape.PlayAt("sec.drawer.open", drawerLid.position);
             for (float t = 0f; t < 1f; t += Time.deltaTime / 0.8f)
             {
                 SetLid(WristDisplayLogic.EaseOut(t));

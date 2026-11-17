@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using HighStakes.Core;
+using HighStakes.Environment.Audio;
 using HighStakes.TableGames;
 using TMPro;
 using UnityEngine;
@@ -52,7 +53,12 @@ namespace HighStakes.Inventory
             nextPress = Time.unscaledTime + .12f;
             if (key == 11) { Submit(); return; }
             if (key == 9) entry = "";
-            else if (entry.Length < 4) entry += key == 10 ? "0" : (key + 1).ToString();
+            else if (entry.Length < 4)
+            {
+                int digit = key == 10 ? 0 : key + 1;
+                entry += digit.ToString();
+                Soundscape.PlayAt($"sec.keypad.key.{digit}", keys[key].transform.position);
+            }
             status.text = "ENTER 4-DIGIT PIN";
             Refresh();
         }
@@ -72,9 +78,15 @@ namespace HighStakes.Inventory
             if (completed) return;
             ResolveWallet();
             if (completed) return;
-            if (entry.Length != 4) { status.text = "4 DIGITS REQUIRED"; return; }
+            if (entry.Length != 4)
+            {
+                Soundscape.PlayAt("sec.keypad.bad", transform.position);
+                status.text = "4 DIGITS REQUIRED";
+                return;
+            }
             if (entry != Pin)
             {
+                Soundscape.PlayAt("sec.keypad.bad", transform.position);
                 entry = "";
                 Refresh();
                 status.text = "INVALID PIN / TRY AGAIN";
@@ -85,6 +97,7 @@ namespace HighStakes.Inventory
             var claim = claims.GetValue(wallet, _ => new Claim());
             claim.Paid = true;
             wallet.Add(Reward);
+            Soundscape.PlayAt("sec.keypad.ok", transform.position);
             Complete();
         }
 

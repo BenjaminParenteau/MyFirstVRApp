@@ -34,6 +34,12 @@ namespace HighStakes.Security
             instance.name="VaultDressingModule";
             instance.transform.SetPositionAndRotation(room.position,room.rotation);
             SceneManager.MoveGameObjectToScene(instance,scene);
+            foreach (var anchor in instance.GetComponentsInChildren<Transform>())
+            {
+                if (anchor.name != "Cash verification station") continue;
+                SecurityLoopEmitter.Attach(anchor, "sec.counting");
+                break;
+            }
             var entrance=Resources.Load<GameObject>("VaultEntranceDoor");
             foreach(var root in scene.GetRootGameObjects())
             {
@@ -60,6 +66,8 @@ namespace HighStakes.Security
                         outside.transform.localPosition=Vector3.zero;
                         outside.transform.localRotation=Quaternion.identity;
                         outside.AddComponent<VaultDoorMotion>().Prepare();
+                        SecurityLoopEmitter.Attach(outside.transform, "sec.vault.hum");
+                        SecurityDoorAudio.Attach(portal, "sec.vault.door");
                     }
                 }
             }

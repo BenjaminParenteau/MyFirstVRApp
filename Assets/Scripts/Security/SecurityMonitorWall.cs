@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using HighStakes.Environment.Audio;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -33,6 +34,7 @@ namespace HighStakes.Security
         public float viewingDistance = 12f;
         public bool paused;
         Camera capture;
+        Soundscape.LoopHandle hum;
         readonly List<Scene> remoteScenes = new List<Scene>();
         readonly Dictionary<Camera,int> cameraMasks = new Dictionary<Camera,int>();
         AsyncOperation pendingLoad;
@@ -87,8 +89,17 @@ namespace HighStakes.Security
                 if (CctvOutage.IsDown(f.sceneName)) BlackOut(f);
             }
             CctvOutage.WentDown += OnOutage;
+            if (didStart) StartHum();
             due = 0f;
             StartCoroutine(LoadRooms());
+        }
+
+        void Start() => StartHum();
+
+        void StartHum()
+        {
+            if (Application.isPlaying && feeds.Length > 0 && hum == null)
+                hum = Soundscape.Loop("sec.cctv.hum", transform);
         }
 
         IEnumerator LoadRooms()
@@ -199,7 +210,11 @@ namespace HighStakes.Security
         void OnOutage(string sceneName)
         {
             foreach (var f in feeds)
-                if (f.screen && f.sceneName == sceneName) BlackOut(f);
+            {
+                if (!f.screen || f.offline || f.sceneName != sceneName) continue;
+                Soundscape.PlayAt("sec.cctv.static", f.screen.transform.position);
+                BlackOut(f);
+            }
         }
 
         // A cut camera shows a black screen and is no longer rendered.
@@ -246,6 +261,8 @@ namespace HighStakes.Security
 
         void OnDisable()
         {
+            hum?.Stop();
+            hum = null;
             ready=false;
             CctvOutage.WentDown-=OnOutage;
             SceneManager.sceneLoaded-=PrepareRoom;

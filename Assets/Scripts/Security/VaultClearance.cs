@@ -1,6 +1,7 @@
 using System.Text;
 using HighStakes.Core;
 using HighStakes.Environment;
+using HighStakes.Environment.Audio;
 using HighStakes.Inventory;
 using TMPro;
 using UnityEngine;
@@ -24,6 +25,8 @@ namespace HighStakes.Security
         [SerializeField] Material lockedMaterial;
         [SerializeField] Material openMaterial;
 
+        void Start() => SecurityDoorAudio.Attach(door, "sec.door.heavy");
+
         void OnEnable()
         {
             ItemLedger.Added += OnAdded;
@@ -32,7 +35,13 @@ namespace HighStakes.Security
 
         void OnDisable() => ItemLedger.Added -= OnAdded;
 
-        void OnAdded(ItemData _) => Refresh();
+        void OnAdded(ItemData _)
+        {
+            bool wasLocked = door && door.locked;
+            Refresh();
+            if (wasLocked && !door.locked)
+                Soundscape.PlayAt("sec.bolt.unlock", door.transform.position + Vector3.up);
+        }
 
         void Refresh()
         {

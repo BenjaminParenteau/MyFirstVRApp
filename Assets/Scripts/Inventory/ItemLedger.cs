@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using HighStakes.Core;
+using HighStakes.Environment.Audio;
+using HighStakes.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -43,7 +45,33 @@ namespace HighStakes.Inventory
 
         public static void Record(ItemData item)
         {
-            if (item != null && !string.IsNullOrEmpty(item.id) && ids.Add(item.id)) Added?.Invoke(item);
+            if (item == null || string.IsNullOrEmpty(item.id) || !ids.Add(item.id)) return;
+            PlayPickup(item);
+            Added?.Invoke(item);
+        }
+
+        static void PlayPickup(ItemData item)
+        {
+            var eyes = Camera.main;
+            if (!eyes || !Soundscape.Instance) return;
+            // NotebookPickups moves the collected prop to its scene and disables it before raising ItemAdded.
+            Vector3 position = eyes.transform.position + eyes.transform.forward * 0.8f;
+            float nearest = float.PositiveInfinity;
+            bool keycard = item.id.EndsWith("_keycard", StringComparison.OrdinalIgnoreCase);
+            var scene = eyes.gameObject.scene;
+            foreach (var root in scene.GetRootGameObjects())
+            {
+                if (root.activeSelf) continue;
+                bool matches = root.TryGetComponent<PickupItem>(out var pickup) && pickup.Item == item;
+                if (!matches && keycard && root.TryGetComponent<Keycard>(out var card))
+                    matches = string.Equals(item.id, card.AccessId + "_keycard", StringComparison.OrdinalIgnoreCase);
+                if (!matches) continue;
+                float distance = (root.transform.position - eyes.transform.position).sqrMagnitude;
+                if (distance >= nearest) continue;
+                nearest = distance;
+                position = root.transform.position;
+            }
+            Soundscape.PlayAt(keycard ? "item.pickup.key" : "item.pickup", position);
         }
 
         static void Watch(Scene scene, LoadSceneMode _)

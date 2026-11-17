@@ -110,6 +110,7 @@ What changed between the rounds, and why: _(filled in after round 1; each change
 - **Background Music:** A low, moody lounge score on the main floor; the music thins out and grows tenser in the back-of-house corridors; near-silence in the vault, broken only by a faint tone as the passcode is entered.
 - **Ambient Sounds:** Clinking chips, shuffling cards, murmured conversation, and a spinning roulette wheel on the floor; footsteps and distant guard radio chatter in the corridors; a low electrical hum in the vault.
 - **Interactive Sound Effects:** Cards dealing, chips stacking, the roulette ball settling, a keycard beep at doors, footsteps that shift pitch with movement speed, and a rising suspicion cue when the Pit Boss's attention increases.
+- **Security audio (Slot B).** Directional reader beacons, lock feedback and equipment loops help players locate doors and machinery. Keypad digits have fixed pentatonic pitches and the vault speaks each accepted digit in blackout mode. The breaker, CCTV, tape deck, printer, drawers and lockdown alarm give the player feedback at the device.
 
 ## Project Plan
 

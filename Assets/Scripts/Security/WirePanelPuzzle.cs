@@ -1,5 +1,7 @@
 using System.Collections;
 using HighStakes.UI;
+using HighStakes.Environment.Audio;
+using HighStakes.Environment.Blackout;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -37,6 +39,9 @@ namespace HighStakes.Security
         const string SolvedStatus = "REROUTED / VAULT CAM OFFLINE";
 
         static bool solved;
+
+        /// <summary>The breaker stays rerouted across visits for the current run.</summary>
+        public bool Solved => solved;
         UnityAction<SelectEnterEventArgs>[] enterHandlers;
         UnityAction<SelectExitEventArgs>[] exitHandlers;
 
@@ -49,7 +54,8 @@ namespace HighStakes.Security
             exitHandlers = new UnityAction<SelectExitEventArgs>[sockets.Length];
             for (int i = 0; i < sockets.Length; i++)
             {
-                enterHandlers[i] = _ => Refresh();
+                int index = i;
+                enterHandlers[i] = args => OnSeated(index, args);
                 exitHandlers[i] = _ => Refresh();
                 sockets[i].selectEntered.AddListener(enterHandlers[i]);
                 sockets[i].selectExited.AddListener(exitHandlers[i]);
@@ -79,6 +85,16 @@ namespace HighStakes.Security
             }
         }
 
+        void OnSeated(int index, SelectEnterEventArgs args)
+        {
+            if (solved) return;
+            var plug = args.interactableObject.transform.GetComponent<WirePlug>();
+            if (plug != null)
+                Soundscape.PlayAt(plug.ColorIndex == socketColors[index] ? "sec.wire.seat" : "sec.wire.wrong",
+                    sockets[index].transform.position);
+            Refresh();
+        }
+
         void Refresh()
         {
             if (solved) return;
@@ -99,6 +115,10 @@ namespace HighStakes.Security
         void Complete()
         {
             solved = true;
+            // The shared trigger plays this cue during its blackout transition when installed.
+            var blackout = FindAnyObjectByType<BlackoutTrigger>();
+            if (!blackout || !blackout.isActiveAndEnabled)
+                Soundscape.PlayAt("sec.breaker.throw", transform.position);
             Show(SolvedStatus);
             PuzzleSession.PayOnce("wire_panel", reward);
             CctvOutage.Cut(cutFeedScene);
@@ -110,12 +130,14 @@ namespace HighStakes.Security
 
         IEnumerator OpenLid()
         {
+            if (cabinetLid != null) Soundscape.PlayAt("sec.drawer.open", cabinetLid.position);
             for (float t = 0f; t < 1f; t += Time.deltaTime / 0.6f)
             {
                 SetLid(WristDisplayLogic.EaseOut(t));
                 yield return null;
             }
             SetLid(1f);
+            Soundscape.PlayAt("sec.wire.solved", transform.position);
         }
 
         void SetLid(float open)

@@ -1,0 +1,506 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6ed8fe313588e3c4980c4f4cf5a167bf, type: 3}
+  m_Name: CueSet_Security
+  m_EditorClassIdentifier: Assembly-CSharp::HighStakes.Environment.Audio.SoundCueSet
+  slot: B
+  cues:
+  - id: sec.reader.ok
+    clips:
+    - {fileID: 8300000, guid: 8e3b68fe59b867d48ae4aa2a6275cea9, type: 3}
+    bus: 2
+    volume: 0.72
+    pitchJitter: 0.25
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
+  - id: sec.reader.deny
+    clips:
+    - {fileID: 8300000, guid: dfa20669c6efe71439ca952d5c97cf44, type: 3}
+    bus: 2
+    volume: 0.68
+    pitchJitter: 0.25
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
+  - id: sec.reader.idle
+    clips:
+    - {fileID: 8300000, guid: 57ff7477926da584ea39affa483a0cb9, type: 3}
+    bus: 1
+    volume: 0.34
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 5
+    loop: 1
+  - id: sec.bolt.unlock
+    clips:
+    - {fileID: 8300000, guid: b7627b1ca18fb3e48bfdf37b8ccb5352, type: 3}
+    bus: 2
+    volume: 0.72
+    pitchJitter: 0.25
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 8
+    loop: 0
+  - id: sec.bolt.locked
+    clips:
+    - {fileID: 8300000, guid: 073885e06586fe34c8062a071eb1363d, type: 3}
+    bus: 2
+    volume: 0.72
+    pitchJitter: 0.25
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 8
+    loop: 0
+  - id: sec.door.heavy
+    clips:
+    - {fileID: 8300000, guid: 98394fa90bd884b46a0cee240f957479, type: 3}
+    bus: 2
+    volume: 0.7
+    pitchJitter: 0.25
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 10
+    loop: 0
+  - id: sec.drawer.open
+    clips:
+    - {fileID: 8300000, guid: 034c258ba1b27e14dbd33d40cba1c7a6, type: 3}
+    bus: 2
+    volume: 0.42
+    pitchJitter: 0.25
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 6
+    loop: 0
+  - id: item.pickup
+    clips:
+    - {fileID: 8300000, guid: 735078fd154f8824fa5b6a044a7d46c8, type: 3}
+    bus: 2
+    volume: 0.55
+    pitchJitter: 0.25
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 6
+    loop: 0
+  - id: item.pickup.key
+    clips:
+    - {fileID: 8300000, guid: 987f2186c9ba9ba4695e134255d54f20, type: 3}
+    bus: 2
+    volume: 0.68
+    pitchJitter: 0.25
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 6
+    loop: 0
+  - id: sec.keypad.ok
+    clips:
+    - {fileID: 8300000, guid: 644daa33caaa48c4fb7dd89be80338e1, type: 3}
+    bus: 2
+    volume: 0.84
+    pitchJitter: 0.25
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 9
+    loop: 0
+  - id: sec.keypad.bad
+    clips:
+    - {fileID: 8300000, guid: 5f6b00e321a4d0540ab4d306edfcaca4, type: 3}
+    bus: 2
+    volume: 0.85
+    pitchJitter: 0.25
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 9
+    loop: 0
+  - id: sec.keypad.lockout
+    clips:
+    - {fileID: 8300000, guid: e3f5e77a7d534004d83cdb8b7e4d5a91, type: 3}
+    bus: 2
+    volume: 0.88
+    pitchJitter: 0.25
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 12
+    loop: 0
+  - id: sec.wire.seat
+    clips:
+    - {fileID: 8300000, guid: f0c7d236ab1111748a8f16abd1cbe3c5, type: 3}
+    bus: 2
+    volume: 0.57
+    pitchJitter: 0.25
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 6
+    loop: 0
+  - id: sec.wire.wrong
+    clips:
+    - {fileID: 8300000, guid: 5a458ed6c430adf4284c3ed0365851e7, type: 3}
+    bus: 2
+    volume: 0.63
+    pitchJitter: 0.25
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 6
+    loop: 0
+  - id: sec.wire.solved
+    clips:
+    - {fileID: 8300000, guid: 14fe253a119d9e248b292a3fbe8af34d, type: 3}
+    bus: 2
+    volume: 0.54
+    pitchJitter: 0.25
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 8
+    loop: 0
+  - id: sec.breaker.throw
+    clips:
+    - {fileID: 8300000, guid: 7937ae186f9111a499fe692ca2dcdd6a, type: 3}
+    bus: 2
+    volume: 0.9
+    pitchJitter: 0.25
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 12
+    loop: 0
+  - id: sec.tape.insert
+    clips:
+    - {fileID: 8300000, guid: 1a39c01de0c61954bbf2cabedf01b702, type: 3}
+    bus: 2
+    volume: 0.66
+    pitchJitter: 0.25
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
+  - id: sec.tape.play
+    clips:
+    - {fileID: 8300000, guid: 98478c39878662442909b53555c64373, type: 3}
+    bus: 1
+    volume: 0.19
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 5
+    loop: 1
+  - id: sec.printer
+    clips:
+    - {fileID: 8300000, guid: cbca71b4d0acf7042a6708d59af27463, type: 3}
+    bus: 2
+    volume: 0.63
+    pitchJitter: 0.25
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 8
+    loop: 0
+  - id: sec.cctv.hum
+    clips:
+    - {fileID: 8300000, guid: 437976ef63997a649a4f0d940a3f36fa, type: 3}
+    bus: 1
+    volume: 0.2
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 8
+    loop: 1
+  - id: sec.cctv.static
+    clips:
+    - {fileID: 8300000, guid: e93fa40ddd237bb4eb95651ad556be08, type: 3}
+    bus: 2
+    volume: 0.57
+    pitchJitter: 0.25
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 9
+    loop: 0
+  - id: sec.radio.chatter
+    clips:
+    - {fileID: 8300000, guid: 6dc84691f851f254490270e573c051d8, type: 3}
+    bus: 1
+    volume: 0.26
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 10
+    loop: 1
+  - id: sec.fluorescent
+    clips:
+    - {fileID: 8300000, guid: 3f778aeae6b96b547a4ba1dd78cef472, type: 3}
+    bus: 1
+    volume: 0.14
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 4
+    loop: 1
+  - id: sec.vault.door
+    clips:
+    - {fileID: 8300000, guid: a4ba80298ccb9a34f838b47ece677ac5, type: 3}
+    bus: 2
+    volume: 0.73
+    pitchJitter: 0.25
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 11
+    loop: 0
+  - id: sec.vault.hum
+    clips:
+    - {fileID: 8300000, guid: d69d687871582d347813e1a2126662bf, type: 3}
+    bus: 1
+    volume: 0.26
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 10
+    loop: 1
+  - id: sec.alarm.lockdown
+    clips:
+    - {fileID: 8300000, guid: 8f34d21820629244bb049b311914ec7a, type: 3}
+    bus: 2
+    volume: 0.66
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 20
+    loop: 1
+  - id: sec.counting
+    clips:
+    - {fileID: 8300000, guid: 2ed77e6ae298fb446965ea9ac2100804, type: 3}
+    bus: 1
+    volume: 0.26
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 5
+    loop: 1
+  - id: sec.keypad.key.0
+    clips:
+    - {fileID: 8300000, guid: 347c43a1ddd6edc40ae5428b7c5e4c7e, type: 3}
+    - {fileID: 8300000, guid: 8423a926eb175f64d80d44654bc7b492, type: 3}
+    bus: 2
+    volume: 0.7
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
+  - id: sec.keypad.spoken.0
+    clips:
+    - {fileID: 8300000, guid: 7260019ee5dd95c449ad1aaa9b7b4d41, type: 3}
+    - {fileID: 8300000, guid: 752638621622eb545acc76421a1bea9c, type: 3}
+    bus: 2
+    volume: 0.78
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
+  - id: sec.keypad.key.1
+    clips:
+    - {fileID: 8300000, guid: ba689dee405096743b906f586af969b7, type: 3}
+    - {fileID: 8300000, guid: 84ae1ae3e7b46a2409fe02a9f092ad5c, type: 3}
+    bus: 2
+    volume: 0.7
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
+  - id: sec.keypad.spoken.1
+    clips:
+    - {fileID: 8300000, guid: 222cfbb307dd0ee4c8d84aa90c1a95f2, type: 3}
+    - {fileID: 8300000, guid: f5a186a4a8fea1f4ab7529ec9bf2cd49, type: 3}
+    bus: 2
+    volume: 0.78
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
+  - id: sec.keypad.key.2
+    clips:
+    - {fileID: 8300000, guid: 1a01e7f16fdb7bf4692c2e9657bcc2bf, type: 3}
+    - {fileID: 8300000, guid: 4aefbc4bb6d8cbf4892389c5847a53bf, type: 3}
+    bus: 2
+    volume: 0.7
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
+  - id: sec.keypad.spoken.2
+    clips:
+    - {fileID: 8300000, guid: e767bb1cfc7a037438a01d1a407562ee, type: 3}
+    - {fileID: 8300000, guid: ab68476a50cd8744982de23affc56809, type: 3}
+    bus: 2
+    volume: 0.78
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
+  - id: sec.keypad.key.3
+    clips:
+    - {fileID: 8300000, guid: 3bf5cdb923bf2b3448ba4c286119a3e6, type: 3}
+    - {fileID: 8300000, guid: 746a385b8e0dfaa4abc5ee120ad6ef89, type: 3}
+    bus: 2
+    volume: 0.7
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
+  - id: sec.keypad.spoken.3
+    clips:
+    - {fileID: 8300000, guid: edf45a5beac888042b399c86ea1be938, type: 3}
+    - {fileID: 8300000, guid: 0c1a2dfe052abb741bb349ffc0d39f29, type: 3}
+    bus: 2
+    volume: 0.78
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
+  - id: sec.keypad.key.4
+    clips:
+    - {fileID: 8300000, guid: bee90046c5b6a33459a5023fb89cfee7, type: 3}
+    - {fileID: 8300000, guid: e73cd667544a0dc4b99df0080164e2bc, type: 3}
+    bus: 2
+    volume: 0.7
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
+  - id: sec.keypad.spoken.4
+    clips:
+    - {fileID: 8300000, guid: 27c843b66be685c41acb2074225d4511, type: 3}
+    - {fileID: 8300000, guid: 8a9731f9c59b9744e9b1bc32140eaf65, type: 3}
+    bus: 2
+    volume: 0.78
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
+  - id: sec.keypad.key.5
+    clips:
+    - {fileID: 8300000, guid: e8ec82630b9d7244d81f6ef7a56afce3, type: 3}
+    - {fileID: 8300000, guid: f3bfde0565111f74a9dbabb20d17eb49, type: 3}
+    bus: 2
+    volume: 0.7
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
+  - id: sec.keypad.spoken.5
+    clips:
+    - {fileID: 8300000, guid: 4f1474908ac0b5b4f83479e61ba7e2b8, type: 3}
+    - {fileID: 8300000, guid: 6f5e57895e5c7dd4c9b2899c61c2cac4, type: 3}
+    bus: 2
+    volume: 0.78
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
+  - id: sec.keypad.key.6
+    clips:
+    - {fileID: 8300000, guid: 268c21b8986646d4f8c7de25ff3065a4, type: 3}
+    - {fileID: 8300000, guid: 19d59f11505dd6c4d88ce86b914804c3, type: 3}
+    bus: 2
+    volume: 0.7
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
+  - id: sec.keypad.spoken.6
+    clips:
+    - {fileID: 8300000, guid: 37d07abffc7f7e34ab4b57b023df1cba, type: 3}
+    - {fileID: 8300000, guid: 8a7dd4fec828fc941a06b170635735a5, type: 3}
+    bus: 2
+    volume: 0.78
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
+  - id: sec.keypad.key.7
+    clips:
+    - {fileID: 8300000, guid: 3e0403abab256df48a90233ec7289002, type: 3}
+    - {fileID: 8300000, guid: 8165e93fdd62ee84fa18346bc6039551, type: 3}
+    bus: 2
+    volume: 0.7
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
+  - id: sec.keypad.spoken.7
+    clips:
+    - {fileID: 8300000, guid: 86fd6836704929c43a4045c46b3e922c, type: 3}
+    - {fileID: 8300000, guid: f0552e5bd85970f4090183e5f5a897f4, type: 3}
+    bus: 2
+    volume: 0.78
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
+  - id: sec.keypad.key.8
+    clips:
+    - {fileID: 8300000, guid: 5ef7806eb8f9f2243ae9bb61bffc3b2e, type: 3}
+    - {fileID: 8300000, guid: c6f71d3e3c308e544b8bb2e82b15f264, type: 3}
+    bus: 2
+    volume: 0.7
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
+  - id: sec.keypad.spoken.8
+    clips:
+    - {fileID: 8300000, guid: ff1ed32f50f08834ba212e08793a702c, type: 3}
+    - {fileID: 8300000, guid: 5d2a56170c6acb840ad7fc7acb32e050, type: 3}
+    bus: 2
+    volume: 0.78
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
+  - id: sec.keypad.key.9
+    clips:
+    - {fileID: 8300000, guid: 6f4b7d3273a3b864d91ddfaa85544e06, type: 3}
+    - {fileID: 8300000, guid: aab9b32ede8b59941b26cfdc84bde360, type: 3}
+    bus: 2
+    volume: 0.7
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
+  - id: sec.keypad.spoken.9
+    clips:
+    - {fileID: 8300000, guid: b767ed7049c6db24587838b82fbb07fa, type: 3}
+    - {fileID: 8300000, guid: ac6b443e90dec4f44a9b37837b14c8c2, type: 3}
+    bus: 2
+    volume: 0.78
+    pitchJitter: 0
+    spatial: 1
+    minDistance: 0.6
+    maxDistance: 7
+    loop: 0
