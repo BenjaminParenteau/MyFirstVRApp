@@ -119,6 +119,7 @@ In VR there are no camera angles: the camera is the player's head and only the p
 - Textures compressed (ASTC), mipmaps on, max 1024 unless justified.
 - Culling: anything that never moves must be marked **Static** (it is then static-batched, occlusion-culled and, if small, distance-culled). After adding or moving static geometry in an area scene, run **High Stakes > Rendering > Optimize Open Scene (LOD + Occlusion)**: it gives small details (< 0.8 m, or small prefabs such as chairs) a culling LOD at ~10 px on screen, makes big opaque surfaces occluders and re-bakes occlusion culling. The bake is CPU-only, so anyone can run it. Moving objects (chips, cards, the roulette ball) stay non-static.
 - No realtime shadows, no post effects beyond the shared volume, no transparent overdraw-heavy effects.
+- **Audio:** resident audio under **8 MB** across all four slots — music and ambience beds streamed, one-shots ADPCM and force-mono at 48 kHz, 32 real / 512 virtual voices. See §11; **High Stakes > Audio > Validate Cues** reports the running total. Voice count and audio memory cannot be judged in the simulator, so they need an APK.
 - Test on the device (APK) before merging anything that adds meshes or lights. Quest Link is fine too, but only Ashton and Ben can use it. Judge framerate on the APK, since Link renders on the PC GPU and is not representative.
 
 ## 8. Change process
@@ -179,3 +180,79 @@ Choices are made on the notebook's SETTINGS spread or the start screen, applied 
 - Changing the comfort defaults, turn rates or the ramp is a test-result decision, not taste: log it in [UserTesting.md](UserTesting.md) and under Decisions in `Progress_Vol1.md`.
 
 **Checking it:** **High Stakes > Run Locomotion Play Check** plays `MVP_Main`, walks every area and fails if any of them has no teleport surface or the player is standing off the map. On the headset, the movement round of the user test script in [UserTesting.md](UserTesting.md) is the real check.
+
+## 11. Audio and soundscape
+
+Sound is **Slot D's system** and **everyone's content**: the buses, the API, the spatial defaults, the music and
+ambience beds, footsteps and the blackout mode live in `Assets/Scripts/Environment/Audio/` and `.../Blackout/`, and
+each slot authors the cues for the interactions it already owns. The four-way split, the per-member briefs and the
+add-a-sound workflow are in [docs/milestone6/](milestone6/README.md); this section is the standard.
+
+**The one rule that matters most: no `AudioSource` in any scene file.** Same reasoning as teleport surfaces (§10).
+Sound objects in scenes mean every slot edits scene YAML, every world rebuild wipes them, and `MVP_Casino` ends up
+with four authors. Every sound is played from code, and every looping emitter is attached **at runtime** by the
+builder that generated the thing making the noise. If you think you need an `AudioSource` in a scene, you want a
+runtime emitter — ask (§8).
+
+**How to play a sound** — one line, from your own file, safe to call anywhere:
+
+```csharp
+using HighStakes.Environment.Audio;
+
+Soundscape.PlayAt("table.chip.bet", spot.position);   // 3D one-shot where it happened
+Soundscape.Play("ui.press");                          // 2D, for UI and anything "in your head"
+Soundscape.PlayOn("table.roulette.ball", ball);       // 3D one-shot following a moving transform
+var hum = Soundscape.Loop("sec.cctv.hum", wall);      // looping emitter; hum.Stop() to end it
+```
+
+It no-ops when no `Soundscape` is loaded (so solo scenes and EditMode tests are unaffected) and logs once rather
+than throwing on an unknown id.
+
+**Buses.** Four, append-only, no `AudioMixer` asset (a mixer is one shared file everyone needs a group inside and
+its YAML does not merge): `Music`, `Ambience`, `Sfx`, `Voice`. Volumes are per headset in PlayerPrefs and are set
+on the notebook's AUDIO page.
+
+**Cue ids are namespaced, and the namespace is its owner's.** `table.`/`cage.` = A · `sec.`/`item.` = B ·
+`ui.`/`vo.` = C · `env.`/`mus.`/`amb.`/`dark.` = D. There is deliberately **no global list of cues**: each slot owns
+one `SoundCueSet` asset in its own `Resources/Audio/` folder and they are all discovered at load, so adding a sound
+never touches another slot's file. **High Stakes > Audio > Validate Cues** fails on a duplicate id, an id outside
+your namespace, a missing clip, a 3D cue with no distances set, or a breach of the memory budget. Run it before you
+push.
+
+**Spatial audio defaults** (applied by `AudioSpatial`, not hand-set per source):
+
+| Setting | Value | Why |
+|---|---|---|
+| `spatialBlend` | 1.0 (full 3D) for everything except `ui.` and `vo.` | A sound you can't locate is a sound you can't navigate by |
+| Rolloff | Logarithmic, min 0.6 m / max 18 m (point props 6 m) | Linear rolloff makes distance unreadable; the 0.6 m minimum stops a prop going painfully loud when you lean into it |
+| Doppler | 0 | Doppler on a teleporting player is nausea, not realism |
+| Spread | 15°, widening under 1 m | Stops a close sound collapsing into one ear |
+| Reverb | One zone per area, from the bed; never per prop | Quest CPU |
+
+The Guide is **2D on purpose** — an earpiece must not pan when you turn your head. The Pit Boss is 3D for the
+inverse reason: you should be able to hear which way he is. HRTF (true binaural) needs the Meta XR Audio SDK
+package and is an open decision, not an omission — everything above works either way.
+
+**Rules**
+
+- **The room tone is the map.** Every area has its own ambience bed, and it must be identifiable in two seconds
+  with your eyes shut — in the blackout mode that is literally what it is for. Test it that way.
+- **Anything that fires often needs variants.** Three or four clips per cue plus pitch jitter; a cue with one clip
+  that plays fifty times a session sounds like a machine gun. `SoundCue` takes a `clips[]` array for this.
+- **Author your own interactions.** If you own the code for the moment, you own the line that makes it audible.
+  Nobody sprinkles `Play` calls through someone else's files.
+- **Keep UI sound short and quiet.** Over ~200 ms and it grates by the tenth press.
+- **Nothing emits light during a blackout.** If you add an emissive or holographic object, it must either be on
+  `BlackoutMode`'s renderer list or hide itself on `BlackoutMode.Changed`. A glowing watch face breaks the mode.
+- **Audio memory budget** (part of §7): beds and music **streamed**, one-shots **ADPCM and force-mono**, 48 kHz,
+  resident audio under **8 MB** across all four slots. Force-mono is not a compromise for 3D sound — a positioned
+  source is spatialised from mono anyway, and a stereo clip doubles the cost for nothing.
+- Changing the bus defaults or the mix is a test-result decision, not taste: log it in
+  [UserTesting.md](UserTesting.md) and under Decisions in `Progress_Vol1.md`. The mix call is Pak's.
+
+**Checking it:** **High Stakes > Audio > Validate Cues** for the split and the budget, and **High Stakes > Run Audio
+Play Check** (headless-runnable, results in `Logs/AudioQA/`) which walks every area asserting a music bed, a room
+tone and the area's emitters are live, then enters the blackout, asserts the scene is genuinely dark, exits, and
+asserts **every** lighting value is restored. On the headset, round 3 of the user test script in
+[UserTesting.md](UserTesting.md) is the real check — and audio voice count and memory are things the simulator
+cannot tell you, so this is a milestone that needs an APK.
