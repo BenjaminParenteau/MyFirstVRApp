@@ -1,0 +1,16 @@
+{
+    "name": "HighStakes.Environment.Blackout.Logic",
+    "rootNamespace": "HighStakes.Environment.Blackout",
+    "references": [
+        "HighStakes.Environment.Audio.Logic"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

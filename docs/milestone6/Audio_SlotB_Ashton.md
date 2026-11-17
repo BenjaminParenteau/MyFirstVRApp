@@ -135,11 +135,12 @@ this pattern is nothing new in your area.
 
 Yours is the half that makes the dark mode a *game* rather than a walk. Three deliverables:
 
-1. **The breaker is the trigger.** `WirePanelPuzzle` already cuts the vault camera through `CctvOutage` when
-   solved. Zach is adding a `BlackoutTrigger` component that watches your panel's solved state **from his own
-   folder** — he is not editing `WirePanelPuzzle.cs`. All you need to do is make sure the panel exposes its solved
-   state publicly (an event or a `public bool Solved { get; }`); if it doesn't yet, that one addition is yours.
-   `sec.breaker.throw` is the sound of the lights dying and deserves to be the best clip you make.
+1. **The breaker is the trigger — and ✅ you don't have to do anything for it (updated 2026-11-17).** This
+   originally asked you to expose `WirePanelPuzzle`'s solved state. **You don't need to:** solving it already calls
+   `CctvOutage.Cut(cutFeedScene)`, which raises the public static `CctvOutage.WentDown` event, and that is a
+   complete signal that the breaker has been thrown. `BlackoutTrigger` listens to that from Slot D's folder, so
+   **`WirePanelPuzzle.cs` needs no change, and no new contract had to be agreed.** The only thing left here is the
+   sound: `sec.breaker.throw` is the noise of the lights dying and deserves to be the best clip you make.
 2. **The keypad must be playable blind.** Per-key tones, a spoken-pitch confirmation per press, and `sec.keypad.ok`
    / `.bad` loud and unmistakable. A tester who learned the code in the lit game should be able to enter it in the
    dark on the first try. This is the milestone's "act by sound" requirement, and it lives in your file.

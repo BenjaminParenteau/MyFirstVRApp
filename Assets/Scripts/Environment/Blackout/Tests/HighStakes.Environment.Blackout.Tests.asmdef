@@ -1,0 +1,25 @@
+{
+    "name": "HighStakes.Environment.Blackout.Tests",
+    "rootNamespace": "HighStakes.Environment.Blackout.Tests",
+    "references": [
+        "HighStakes.Environment.Blackout.Logic",
+        "HighStakes.Environment.Audio.Logic",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

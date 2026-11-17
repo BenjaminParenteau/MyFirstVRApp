@@ -352,8 +352,27 @@ namespace HighStakes.Environment.Audio
 
             internal SoundBus Bus => cue != null ? cue.bus : SoundBus.Ambience;
 
+            float volumeScale = 1f;
+
             /// <summary>True while this handle is actually making noise.</summary>
             public bool IsPlaying => source != null && source.isPlaying;
+
+            /// <summary>
+            /// Live pitch for a running loop — a wheel slowing down, a proximity tone rising. Safe on a dead handle.
+            /// </summary>
+            public void SetPitch(float pitch)
+            {
+                if (source != null) source.pitch = pitch;
+            }
+
+            /// <summary>
+            /// Scale this loop's volume on top of its cue level and bus (0..1), for a loop that fades with
+            /// something — distance, speed, how close a wall is. Safe on a dead handle.
+            /// </summary>
+            public void SetVolumeScale(float scale)
+            {
+                volumeScale = scale < 0f ? 0f : scale;
+            }
 
             /// <summary>Stop and clean up. Safe to call twice, and safe on a dead handle.</summary>
             public void Stop()
@@ -370,7 +389,7 @@ namespace HighStakes.Environment.Audio
             {
                 if (source == null || cue == null) return false;
                 if (follow != null) source.transform.position = follow.position;
-                source.volume = BusLogic.Gain(busVolume, cue.volume, duck);
+                source.volume = BusLogic.Gain(busVolume, cue.volume * volumeScale, duck);
                 return true;
             }
         }

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
+using HighStakes.Environment;
 using HighStakes.Environment.Audio;
+using HighStakes.Environment.Blackout;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -58,7 +60,10 @@ public static class AudioBuilder
         AssetDatabase.SaveAssets();
     }
 
-    /// <summary>Add (or replace) the Soundscape object in a scene. Called by WorldBuilder.BuildMain as well.</summary>
+    /// <summary>
+    /// Add (or replace) the Soundscape object and the blackout mode in a scene. Called by WorldBuilder.BuildMain
+    /// as well, so a world rebuild never drops the audio.
+    /// </summary>
     public static void AddTo(Scene scene)
     {
         foreach (var root in scene.GetRootGameObjects())
@@ -67,6 +72,30 @@ public static class AudioBuilder
         var holder = new GameObject(RootName);
         SceneManager.MoveGameObjectToScene(holder, scene);
         holder.AddComponent<Soundscape>();
+
+        // The blackout mode and its two player-facing aids. All on MVP_Main, so they survive area swaps and
+        // nothing is added to any area scene (StyleGuide §11, rule 1).
+        var blackout = holder.AddComponent<BlackoutMode>();
+        holder.AddComponent<SonarPing>();
+        holder.AddComponent<BlackoutProximity>();
+        holder.AddComponent<BlackoutTrigger>();
+
+        // Share SceneFlow's black quad rather than adding a second one — same as TeleportBlink. The quad masks
+        // the lighting teardown; without it, killing the lightmaps pops visibly.
+        var flow = Object.FindFirstObjectByType<SceneFlow>();
+        if (flow != null)
+        {
+            var fade = new SerializedObject(flow).FindProperty("fade").objectReferenceValue;
+            var so = new SerializedObject(blackout);
+            so.FindProperty("fade").objectReferenceValue = fade;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            if (fade == null)
+                Debug.LogWarning("[Audio] SceneFlow has no ScreenFade quad; the blackout transition will pop.");
+        }
+        else
+        {
+            Debug.LogWarning("[Audio] No SceneFlow in the scene; the blackout transition will pop.");
+        }
     }
 
     /// <summary>
@@ -173,6 +202,14 @@ public static class AudioBuilder
         Spatial = false, MinDistance = 1f, MaxDistance = 500f, Loop = true,
     };
 
+    /// <summary>A positioned looping emitter (a hum, a beacon, a wheel).</summary>
+    static Spec Loop3D(string id, string clip, SoundBus bus, float volume = 1f,
+                       float min = 1f, float max = 18f) => new Spec
+    {
+        Id = id, ClipNames = new[] { clip }, Bus = bus, Volume = volume, Jitter = 0f,
+        Spatial = true, MinDistance = min, MaxDistance = max, Loop = true,
+    };
+
     static Spec OneShot(string id, string[] clips, float volume = 1f, float jitter = 0.5f,
                         float min = 0.6f, float max = 18f) => new Spec
     {
@@ -222,5 +259,12 @@ public static class AudioBuilder
         OneShot("dark.sonar.ping",        new[] { "SFX_SonarPing" }, 0.7f, 0f),
         OneShot("dark.sonar.return.soft", new[] { "SFX_SonarReturnSoft" }, 0.6f, 0.8f, 0.5f, 20f),
         OneShot("dark.sonar.return.hard", new[] { "SFX_SonarReturnHard" }, 0.6f, 0.8f, 0.5f, 20f),
+
+        // Proximity rides on the player's head, so its minDistance is wide enough that it never attenuates —
+        // it is modulated by BlackoutProximity instead, through the loop handle.
+        Loop3D("dark.proximity", "SFX_Proximity", SoundBus.Sfx, 0.35f, 2f, 12f),
+
+        // The objective beacon: how a blind player finds the way out at all.
+        Loop3D("dark.beacon", "SFX_Beacon", SoundBus.Ambience, 0.7f, 1.5f, 25f),
     };
 }
