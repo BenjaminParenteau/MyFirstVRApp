@@ -559,7 +559,23 @@ Things the team agreed on that aren't obvious from the code.
   - **Pak → [Audio_SlotC_Pak.md](docs/milestone6/Audio_SlotC_Pak.md)** — voice, UI, and the mix. Please read the first section before the rest: the team table says sound design is yours, and the brief explains why the authoring is split four ways and what you keep (the mix, the palette, the final say on anyone's cue). **If you want more of it than that, say so and we move the line.** Also: replacing the Guide's seven `say` placeholder clips with a real performance is the single highest-impact change available to anyone on this team, and it costs zero code.
   - **Me → [Audio_SlotD_Zach.md](docs/milestone6/Audio_SlotD_Zach.md)** — the system, the world, the blackout mode.
 
-  **You are not blocked on me to start.** Your generator script and your `.wav` files are pure Python and depend on nothing; only wiring a sound into the game needs my gate (buses, cue discovery, the one-line `Soundscape.PlayAt(...)` API). I'll push the gate first and small, and post here the moment it lands. **Milestone 4 is not finished** — the three bakes, both test rounds and all four individual videos are still open on its checklist, and round 3 rides in the same sessions, so please don't treat M6 as a reset.
+  **✅ THE GATE IS LIVE — `git pull origin dev` and you can wire sound in now (Zach, 2026-11-17).** Nothing is blocking any of you any more. The whole API is four calls, from your own files:
+
+  ```csharp
+  using HighStakes.Environment.Audio;
+  Soundscape.PlayAt("table.chip.bet", spot.position);   // 3D one-shot where it happened
+  Soundscape.Play("ui.press");                          // 2D, for UI
+  Soundscape.PlayOn("table.roulette.ball", ball);       // 3D, follows a moving transform
+  var hum = Soundscape.Loop("sec.cctv.hum", wall);      // looping emitter; hum.Stop() to end it
+  ```
+
+  Three things to know before you start:
+
+  1. **Land ONE cue end to end first, today — don't save your first sound for the end.** Generate one wav → run your builder → one `Play` call → hear it in the simulator → commit. That proves your whole pipeline in ten minutes. **Why it matters:** an unknown cue id deliberately **no-ops** instead of throwing (so nobody's tests or solo scenes break) — which means a cue set you forgot to build or commit doesn't crash, your sound just silently never plays. Finding that out on merge day, across three people's work, is the one genuinely miserable failure this design still allows.
+  2. **You cannot call `Soundscape` from a `Logic/` folder.** Those are engine-free assemblies with no references — correct (pure rules shouldn't play sound), but it means you fire the cue from the MonoBehaviour: Ben from `BlackjackPresenter` not `BlackjackRules`, Ashton from `VaultKeypad` not `VaultCodeLogic`, **Pak from `NotebookSettings.cs` not `SettingsLogic.cs`** (your AUDIO rows won't compile otherwise). Everything outside `Logic/` and `Tests/` is in `Assembly-CSharp` and sees `Soundscape` with no setup at all.
+  3. **Run High Stakes > Audio > Validate Cues after every merge.** It prints every cue set it found and who owns each cue, so a missing set shows up as a visible gap instead of silence. It also fails the check on a duplicate id or an id in a namespace your slot doesn't own — that is what enforces the split, so you don't have to remember it.
+
+  Verified before pushing: the 22 logic tests actually execute and pass, the whole system compiles against the real Editor assemblies, and the Editor built both new assemblies clean. **What is NOT done: no clips exist yet, so the game is still silent** — `Build Soundscape` hasn't been run and nothing has been heard. The plumbing is proven; the sound isn't there. Mine (beds, footsteps, the blackout mode) is next. **Milestone 4 is not finished** — the three bakes, both test rounds and all four individual videos are still open on its checklist, and round 3 rides in the same sessions, so please don't treat M6 as a reset.
 
 - **Everyone: is there a Milestone 5 we owe something for? (Zach, 2026-11-17).** This file goes straight from Milestone 4 to Milestone 6 because M5 was never logged here. Either it was skipped/merged by the course, or it had a deliverable nobody wrote down — and I can't tell which from the repo. If you have the brief, add a section for it; if it was folded into another milestone, say so here and I'll add a line so the gap is explained rather than just missing when the rubric is checked.
 
