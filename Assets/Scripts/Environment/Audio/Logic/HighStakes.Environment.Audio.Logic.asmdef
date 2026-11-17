@@ -1,0 +1,14 @@
+{
+    "name": "HighStakes.Environment.Audio.Logic",
+    "rootNamespace": "HighStakes.Environment.Audio",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

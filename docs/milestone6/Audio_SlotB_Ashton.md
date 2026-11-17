@@ -110,8 +110,12 @@ this pattern is nothing new in your area.
    is a noise burst with a thunk, a hum is a 50/100 Hz stack with a slow wobble, fluorescent buzz is 120 Hz plus
    hiss. `tools/audio/synth.py` is Zach's and **append-only** — ask rather than edit.
 2. **Do the ten digit tones first** and listen to them as a sequence. If `5813` doesn't sound like a phrase, retune.
-3. **Write `SecurityAudioBuilder.cs`** — your Editor menu that imports each wav with the Quest import settings and
-   writes `CueSet_Security.asset`. Copy the import block from `Environment/Editor/AudioBuilder.cs`.
+3. **Write `SecurityAudioBuilder.cs`** — your Editor menu that imports each wav and writes
+   `CueSet_Security.asset`. Don't write the import settings yourself; **call Slot D's shared helper**
+   (`Environment/Audio/Editor/AudioImport.cs`, append-only — ask rather than edit):
+   ```csharp
+   AudioImport.Apply(assetPath, AudioImport.Kind.OneShot);   // or .Loop for your hums, .Bed for long tones
+   ```
 4. **Add the `Play` calls**, one line each:
    ```csharp
    using HighStakes.Environment.Audio;

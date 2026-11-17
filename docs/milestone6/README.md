@@ -132,8 +132,9 @@ Everything else — all 60-odd cues, four generators, four cue sets, four builde
 ## How to add a sound (the whole workflow, five minutes)
 
 1. Add it to **your** generator: `python tools/audio/generate_<yours>_audio.py` writes a `.wav` into your content folder.
-2. Add the cue to **your** builder menu (e.g. **High Stakes > Audio > Build Table Audio**) — it imports the clip with
-   the Quest settings and writes your `SoundCueSet`.
+2. Add the cue to **your** builder menu (e.g. **High Stakes > Audio > Build Table Audio**) — it writes your
+   `SoundCueSet` and imports the clip by calling Slot D's shared `AudioImport.Apply(path, kind)`, so the Quest
+   import settings (force-mono, ADPCM/Vorbis/streaming, the Android override) live in one place rather than four.
 3. Call it from your own code: one `Soundscape.PlayAt(...)` line.
 4. Run **High Stakes > Audio > Validate Cues**, then listen to it in the simulator.
 5. Commit: your `.wav` + its `.meta`, your cue set, your script, your generator, and your line in `Progress_Vol1.md`.

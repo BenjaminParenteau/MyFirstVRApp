@@ -109,10 +109,17 @@ docs/GameDesignDocument.md                         the table-games sentence in S
    `tools/audio/synth.py` is Slot D's and is **append-only** — need a primitive it doesn't have, ask Zach and he
    adds it rather than you editing it.
 2. **Listen to them outside Unity first.** Much faster than a Play-mode loop. They are plain 48 kHz wavs.
-3. **Write `TableAudioBuilder.cs`** — one Editor menu that imports each wav with the Quest settings
-   (`AudioImporter`: force-mono for anything 3D, Vorbis for loops, ADPCM for one-shots, `loadInBackground`) and
-   writes `CueSet_Tables.asset`. Crib the import block from `Environment/Editor/AudioBuilder.cs`; copy it, don't
-   call into it.
+3. **Write `TableAudioBuilder.cs`** — one Editor menu that imports each wav and writes
+   `CueSet_Tables.asset`. You don't write the import settings yourself: **call Slot D's shared helper**, which
+   already does force-mono for 3D, ADPCM for one-shots, Vorbis for loops, streaming for beds, and the Android
+   override:
+   ```csharp
+   AudioImport.Apply(assetPath, AudioImport.Kind.OneShot);   // or .Loop / .Bed
+   // or let it guess from the file name: AudioImport.KindFor(fileName)
+   ```
+   It lives in `Environment/Audio/Editor/AudioImport.cs` and is append-only like `synth.py` — ask Zach for a new
+   `Kind` rather than editing it. Those settings are most of the audio memory budget (§7), and getting them wrong
+   doesn't sound wrong, it just quietly eats frame time on device where none of us can see it.
 4. **Add the `Play` calls** to your presenters, one line each:
    ```csharp
    using HighStakes.Environment.Audio;

@@ -133,8 +133,12 @@ docs/GameDesignDocument.md                         the UI/voice sentences in Sou
    short click with a woody body, a page turn is filtered noise with a rustle envelope, the watch alert is a
    two-note chime. UI sound should be quiet and quick — anything over 200 ms will grate by the tenth press.
    `tools/audio/synth.py` is Zach's and **append-only** — ask rather than edit.
-3. **Write `UiAudioBuilder.cs`**, importing each clip with the Quest settings and writing `CueSet_UI.asset`. Copy
-   the import block out of `Environment/Editor/AudioBuilder.cs`.
+3. **Write `UiAudioBuilder.cs`**, importing each clip and writing `CueSet_UI.asset`. Don't write the import
+   settings yourself; **call Slot D's shared helper** (`Environment/Audio/Editor/AudioImport.cs`, append-only —
+   ask rather than edit):
+   ```csharp
+   AudioImport.Apply(assetPath, AudioImport.Kind.OneShot);   // your UI clips and the Guide's VO are all one-shots
+   ```
 4. **Add the `Play` calls** — `PressableButton` is the big one; sounding it once covers most of the game's buttons:
    ```csharp
    using HighStakes.Environment.Audio;
