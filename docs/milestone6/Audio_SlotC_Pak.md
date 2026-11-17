@@ -84,6 +84,30 @@ The mirror of that rule protects you: **you** own the one line in your own `Spee
 puzzles and Ben's Pit Boss both use it. If either of them wants a different bubble sound, they ask you or set a
 field — they don't edit `Dialogue/`.
 
+### ⚠️ One line that matters more than anything else on this page
+
+**The Guide currently bypasses the bus system completely.** `GuideVoice.cs` has its own `AudioSource` (the
+`earpiece` field), which means the VOICE slider you are about to build **will not control him** — the most
+important voice in the game would be the one thing the audio settings can't touch, and we'd find that out during
+the round 3 mix.
+
+He *should* keep his own source (he reads `clip.length` and `isPlaying` to time the subtitles, which playing
+through `Soundscape` would take away), so the fix is one line, not a redesign. In `GuideVoice.Begin`, next to
+`earpiece.Play()`:
+
+```csharp
+earpiece.volume = Soundscape.GetBusVolume(SoundBus.Voice);
+```
+
+Your file, so it's yours to apply. Same applies to any other `AudioSource` you own directly.
+
+### Also missing, and it's yours: the tier-up sting
+
+The player's body visibly upgrading as their bankroll grows is the centrepiece the whole GDD is built around, and
+the Guide already speaks on the first tier-up — but **the moment itself makes no sound.** One cue,
+`ui.tier.up`, fired where the watch handles `ICharacterTier.TierChanged`. It should feel like an upgrade, not a
+notification: this is the game telling the player they've become someone.
+
 ### The AUDIO settings page (yours alone)
 
 The notebook SETTINGS spread is your file (`Notebook/Logic/SettingsLogic.cs`, `NotebookSettings.cs`). It needs an

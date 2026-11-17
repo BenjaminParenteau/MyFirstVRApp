@@ -78,6 +78,7 @@ public static class AudioBuilder
         var blackout = holder.AddComponent<BlackoutMode>();
         holder.AddComponent<SonarPing>();
         holder.AddComponent<BlackoutProximity>();
+        holder.AddComponent<BlackoutBreath>();
         holder.AddComponent<BlackoutTrigger>();
 
         // Share SceneFlow's black quad rather than adding a second one — same as TeleportBlink. The quad masks
@@ -202,6 +203,13 @@ public static class AudioBuilder
         Spatial = false, MinDistance = 1f, MaxDistance = 500f, Loop = true,
     };
 
+    /// <summary>A non-positioned one-shot: UI, or anything that happens "inside" the player.</summary>
+    static Spec TwoD(string id, string[] clips, SoundBus bus, float volume = 1f, float jitter = 0.3f) => new Spec
+    {
+        Id = id, ClipNames = clips, Bus = bus, Volume = volume, Jitter = jitter,
+        Spatial = false, MinDistance = 1f, MaxDistance = 500f, Loop = false,
+    };
+
     /// <summary>A positioned looping emitter (a hum, a beacon, a wheel).</summary>
     static Spec Loop3D(string id, string clip, SoundBus bus, float volume = 1f,
                        float min = 1f, float max = 18f) => new Spec
@@ -256,7 +264,13 @@ public static class AudioBuilder
         // the blackout mode's own cues
         OneShot("dark.power.down",        new[] { "SFX_PowerDown" }, 1f, 0f, 1f, 40f),
         OneShot("dark.power.up",          new[] { "SFX_PowerUp" }, 1f, 0f, 1f, 40f),
-        OneShot("dark.sonar.ping",        new[] { "SFX_SonarPing" }, 0.7f, 0f),
+        // 2D: the click the player makes themselves, so it must not pan when they turn their head.
+        TwoD("dark.sonar.ping", new[] { "SFX_SonarPing" }, SoundBus.Sfx, 0.7f, 0f),
+
+        // The player's own breathing — the one cue that comes from inside them rather than from the room.
+        TwoD("dark.breath.in",  new[] { "SFX_BreathIn_1", "SFX_BreathIn_2", "SFX_BreathIn_3" }, SoundBus.Sfx, 0.5f, 0.35f),
+        TwoD("dark.breath.out", new[] { "SFX_BreathOut_1", "SFX_BreathOut_2", "SFX_BreathOut_3" }, SoundBus.Sfx, 0.45f, 0.35f),
+
         OneShot("dark.sonar.return.soft", new[] { "SFX_SonarReturnSoft" }, 0.6f, 0.8f, 0.5f, 20f),
         OneShot("dark.sonar.return.hard", new[] { "SFX_SonarReturnHard" }, 0.6f, 0.8f, 0.5f, 20f),
 

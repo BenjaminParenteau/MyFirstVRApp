@@ -56,6 +56,24 @@ The **ten digit tones** are the one thing in this brief that is not optional. Us
 (e.g. a pentatonic run) so the four-digit vault code becomes a little melody — players will remember `5813` as a
 tune, which is exactly the "nonvisual element" the milestone is asking for.
 
+### The Pit Boss walks around in silence (added 2026-11-17)
+
+Nobody was assigned NPC footsteps, and `PatrolWalker.cs` is in your folder, so this falls to you. He patrols the
+casino floor and makes no sound at all — a missed beat in the lit game, and in the blackout it means there is a
+**silent human walking around the room**, which is both a wasted opportunity and faintly eerie by accident.
+
+| Cue id | Fires when | Call it from | Bus | 3D? |
+|---|---|---|---|---|
+| `sec.npc.step` | Each stride of any walking NPC | `PatrolWalker` | Sfx | 3D at his feet |
+
+Four variants and some pitch jitter, quieter and slower than the player's own steps. Slot D's `env.step.*` cues
+are the **player's** — don't reuse them, they're mixed for a sound coming from your own feet. If you want the
+surface under him to matter, `SurfaceLogic.KindOf(materialName)` in the Audio logic assembly already answers it
+and is what the player's footsteps use.
+
+Worth knowing for later: when guards arrive (a future milestone), this cue is how a player hears one coming, so
+getting it right now pays off twice.
+
 ### Back-of-house atmosphere and alarms
 
 | Cue id | Fires when | Call it from | Bus | 3D? |

@@ -160,6 +160,11 @@ namespace HighStakes.Environment.Audio
             if (cueId.StartsWith("ui.", StringComparison.Ordinal)) return false;
             if (cueId.StartsWith("vo.guide", StringComparison.Ordinal)) return false;   // vo.pitboss IS 3D
             if (cueId.StartsWith("mus.", StringComparison.Ordinal)) return false;
+
+            // The blackout's two "inside the player" cues: the sonar click they make themselves, and their own
+            // breathing. Both must stay centred when the head turns — everything else in dark. is in the room.
+            if (cueId.StartsWith("dark.breath", StringComparison.Ordinal)) return false;
+            if (cueId == "dark.sonar.ping") return false;
             return true;
         }
     }

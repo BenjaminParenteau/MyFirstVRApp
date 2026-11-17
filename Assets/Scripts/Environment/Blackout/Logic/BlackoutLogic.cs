@@ -172,6 +172,46 @@ namespace HighStakes.Environment.Blackout
         public static bool IsFacing(float signedAngleDeg, float toleranceDeg = 25f)
             => Math.Abs(Wrap180(signedAngleDeg)) <= toleranceDeg;
 
+        // ------------------------------------------------------------------ the player's own breathing
+
+        /// <summary>
+        /// Seconds for one full breath, from calm to stressed. In the dark the player has no sense of their own
+        /// body — no hands to look at, no horizon — and their breathing gives it back. It is also the only cue in
+        /// the mode that comes from *inside* the player rather than from the room.
+        /// <para>
+        /// Kept inside a narrow, plausible range on purpose: fast enough to read as tension at full stress, never
+        /// fast enough to sound like panic. Breathing audio tips into horror-movie territory very easily, and this
+        /// is a heist, not a jump scare.
+        /// </para>
+        /// </summary>
+        public static float BreathPeriod(float stress)
+        {
+            float t = Clamp01(stress);
+            return 4.6f + (2.4f - 4.6f) * t;      // 4.6 s calm -> 2.4 s stressed
+        }
+
+        /// <summary>How far into a breath cycle the exhale falls. Slightly before halfway, as real breathing is.</summary>
+        public static float ExhaleAt(float period) => period * 0.42f;
+
+        /// <summary>
+        /// How loud the breathing is. Audible but well under everything the player is straining to hear — it must
+        /// never mask a sonar return or the Guide.
+        /// </summary>
+        public static float BreathVolume(float stress) => 0.22f + 0.33f * Clamp01(stress);
+
+        /// <summary>
+        /// Update the player's stress. Rises when they are pressed up against geometry or have just bumped into
+        /// something, and bleeds away in open space — so the breathing reports how the run is actually going
+        /// rather than just counting time.
+        /// </summary>
+        public static float Stress(float current, float deltaSeconds, bool nearWall, bool justBumped)
+        {
+            float next = current;
+            if (justBumped) next += 0.28f;                        // a bump is a discrete fright
+            next += (nearWall ? 0.22f : -0.17f) * deltaSeconds;   // pressed in vs. breathing room
+            return Clamp01(next);
+        }
+
         // ------------------------------------------------------------------ the run
 
         /// <summary>

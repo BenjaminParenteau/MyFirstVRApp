@@ -216,20 +216,26 @@ namespace HighStakes.Environment.Audio
 
         // ---------------------------------------------------------------- the API
 
-        /// <summary>Play a 2D one-shot — UI, or anything that belongs to the player rather than the room.</summary>
-        public static void Play(string cueId) => PlayInternal(cueId, null, null);
+        /// <summary>
+        /// Play a 2D one-shot — UI, or anything that belongs to the player rather than the room.
+        /// <paramref name="volumeScale"/> optionally scales this firing on top of the cue's own level, for a sound
+        /// whose loudness depends on something (how hard a chip landed, how stressed the player is).
+        /// </summary>
+        public static void Play(string cueId, float volumeScale = 1f)
+            => PlayInternal(cueId, null, null, volumeScale);
 
         /// <summary>Play a 3D one-shot at a world position. The normal way to sound an interaction.</summary>
-        public static void PlayAt(string cueId, Vector3 position) => PlayInternal(cueId, position, null);
+        public static void PlayAt(string cueId, Vector3 position, float volumeScale = 1f)
+            => PlayInternal(cueId, position, null, volumeScale);
 
         /// <summary>
         /// Play a 3D one-shot that follows a moving transform for its duration (a ball, a card, a cart).
         /// Safe if the transform is destroyed mid-sound.
         /// </summary>
-        public static void PlayOn(string cueId, Transform follow)
-            => PlayInternal(cueId, follow != null ? follow.position : (Vector3?)null, follow);
+        public static void PlayOn(string cueId, Transform follow, float volumeScale = 1f)
+            => PlayInternal(cueId, follow != null ? follow.position : (Vector3?)null, follow, volumeScale);
 
-        static void PlayInternal(string cueId, Vector3? position, Transform follow)
+        static void PlayInternal(string cueId, Vector3? position, Transform follow, float volumeScale)
         {
             var s = Instance;
             if (s == null) return;                       // no soundscape loaded: silently do nothing, by design
@@ -256,7 +262,8 @@ namespace HighStakes.Environment.Audio
             AudioSpatial.Apply(src, cue);
             src.clip = cue.ClipAt(pick);
             src.pitch = SoundscapeLogic.PitchFor(cue.pitchJitter, Random.value);
-            src.volume = BusLogic.Gain(s.BusFor(cue.bus), cue.volume, s.Duck(cue.bus));
+            src.volume = BusLogic.Gain(s.BusFor(cue.bus), cue.volume * (volumeScale < 0f ? 0f : volumeScale),
+                                       s.Duck(cue.bus));
             src.transform.position = position ?? Vector3.zero;
             s.poolFollow[voice] = follow;
             s.poolStarted[voice] = Time.unscaledTime;

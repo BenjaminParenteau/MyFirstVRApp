@@ -183,7 +183,19 @@ namespace HighStakes.Environment.Audio.Tests
             Assert.IsTrue(SoundscapeLogic.ShouldBeSpatial("table.chip.bet"));
             Assert.IsTrue(SoundscapeLogic.ShouldBeSpatial("sec.reader.ok"));
             Assert.IsTrue(SoundscapeLogic.ShouldBeSpatial("amb.vault"));
-            Assert.IsTrue(SoundscapeLogic.ShouldBeSpatial("dark.sonar.return.hard"));
+            Assert.IsTrue(SoundscapeLogic.ShouldBeSpatial("dark.sonar.return.hard"),
+                "the echo comes off a surface in the room, so it must be locatable");
+        }
+
+        [Test]
+        public void TheCuesThatComeFromInsideThePlayerStayCentred()
+        {
+            // The click the player makes and their own breathing: both must not pan when the head turns, unlike
+            // everything else in the dark. namespace, which is the room answering.
+            Assert.IsFalse(SoundscapeLogic.ShouldBeSpatial("dark.sonar.ping"));
+            Assert.IsFalse(SoundscapeLogic.ShouldBeSpatial("dark.breath.in"));
+            Assert.IsFalse(SoundscapeLogic.ShouldBeSpatial("dark.breath.out"));
+            Assert.AreEqual("D", SoundscapeLogic.OwnerOf("dark.breath.in"));
         }
     }
 }

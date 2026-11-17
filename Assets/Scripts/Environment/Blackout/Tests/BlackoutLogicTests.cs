@@ -237,6 +237,86 @@ namespace HighStakes.Environment.Blackout.Tests
             Assert.IsFalse(BlackoutLogic.IsFacing(180f));
         }
 
+        // ---------------------------------------------------------------- breathing
+
+        [Test]
+        public void BreathingSpeedsUpWithStressButNeverBecomesPanic()
+        {
+            float calm = BlackoutLogic.BreathPeriod(0f);
+            float stressed = BlackoutLogic.BreathPeriod(1f);
+            Assert.Less(stressed, calm, "stress should quicken the breath");
+
+            // A heist, not a jump scare: stay inside a plausible human range at both ends.
+            Assert.LessOrEqual(calm, 6f);
+            Assert.GreaterOrEqual(calm, 3.5f);
+            Assert.GreaterOrEqual(stressed, 1.8f, "faster than this reads as panic / hyperventilation");
+            Assert.LessOrEqual(stressed, 3f);
+        }
+
+        [Test]
+        public void BreathPeriodIsClampedAgainstJunkStress()
+        {
+            Assert.AreEqual(BlackoutLogic.BreathPeriod(0f), BlackoutLogic.BreathPeriod(-3f), 1e-4f);
+            Assert.AreEqual(BlackoutLogic.BreathPeriod(1f), BlackoutLogic.BreathPeriod(9f), 1e-4f);
+        }
+
+        [Test]
+        public void TheExhaleFallsInsideTheBreathAndBeforeHalfway()
+        {
+            float period = BlackoutLogic.BreathPeriod(0.5f);
+            float exhale = BlackoutLogic.ExhaleAt(period);
+            Assert.Greater(exhale, 0f);
+            Assert.Less(exhale, period, "the exhale must land inside its own cycle");
+            Assert.Less(exhale, period * 0.5f, "real breathing exhales a little before halfway");
+        }
+
+        [Test]
+        public void BreathingIsAudibleButNeverMasksWhatThePlayerIsListeningFor()
+        {
+            Assert.Greater(BlackoutLogic.BreathVolume(0f), 0.1f, "must be audible, or it gives no sense of body");
+            Assert.Less(BlackoutLogic.BreathVolume(1f), 0.65f,
+                "must stay under the sonar returns and the Guide — it cannot mask them");
+            Assert.Greater(BlackoutLogic.BreathVolume(1f), BlackoutLogic.BreathVolume(0f));
+        }
+
+        [Test]
+        public void StressRisesAgainstAWallAndBleedsAwayInOpenSpace()
+        {
+            float pressed = BlackoutLogic.Stress(0.5f, 1f, nearWall: true, justBumped: false);
+            float open = BlackoutLogic.Stress(0.5f, 1f, nearWall: false, justBumped: false);
+            Assert.Greater(pressed, 0.5f);
+            Assert.Less(open, 0.5f, "open space has to be calming, or stress only ever goes up");
+        }
+
+        [Test]
+        public void ABumpIsADiscreteFright()
+        {
+            float bumped = BlackoutLogic.Stress(0.2f, 0.016f, nearWall: true, justBumped: true);
+            float notBumped = BlackoutLogic.Stress(0.2f, 0.016f, nearWall: true, justBumped: false);
+            Assert.Greater(bumped, notBumped + 0.1f, "a bump should be felt immediately, not accumulate slowly");
+        }
+
+        [Test]
+        public void StressStaysInRangeHowever()
+        {
+            float s = 1f;
+            for (int i = 0; i < 200; i++) s = BlackoutLogic.Stress(s, 0.1f, true, true);
+            Assert.LessOrEqual(s, 1f, "stress must saturate");
+
+            s = 0f;
+            for (int i = 0; i < 200; i++) s = BlackoutLogic.Stress(s, 0.1f, false, false);
+            Assert.GreaterOrEqual(s, 0f, "and must not go negative");
+        }
+
+        [Test]
+        public void CalmingDownTakesLongerThanWindingUp()
+        {
+            // Tension should linger a moment after the player escapes a tight spot, not snap back instantly.
+            float up = BlackoutLogic.Stress(0.5f, 1f, true, false) - 0.5f;
+            float down = 0.5f - BlackoutLogic.Stress(0.5f, 1f, false, false);
+            Assert.Greater(up, down);
+        }
+
         // ---------------------------------------------------------------- the run
 
         [Test]
