@@ -118,3 +118,7 @@ InitTestScene*.unity*
 
 # Unity crash-recovery scenes (local only; never part of the project)
 /[Aa]ssets/_[Rr]ecovery/
+
+# Python bytecode from the tools/ generator scripts (textures, audio)
+__pycache__/
+*.pyc
